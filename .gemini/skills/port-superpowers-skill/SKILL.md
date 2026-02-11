@@ -1,11 +1,6 @@
 ---
 name: port-superpowers-skill
 description: "obra/superpowersのスキルをGemini CLIに手動で移植するための標準作業手順書（SOP）に従って、AIエージェントをガイドします。"
-parameters:
-  skill_name_to_port:
-    type: string
-    description: 移植対象のSuperpowersスキル名（例: brainstorming, using-git-worktrees）
-    required: true
 ---
 
 # Superpowersスキル移植ガイド
@@ -14,11 +9,12 @@ parameters:
 
 ## 手動スキル移植の標準作業手順書(SOP)
 
-1.  **環境設定の確認**:
-    *   まず、`superpowers-original`リポジトリの正確なパスを確認します。もしパスが不明な場合は、`ls -d ../superpowers-original`などを実行して確認し、正しいパスを特定してください。
+1.  **移植対象スキルの決定と環境設定の確認**:
+    *   **AIエージェントへの指示**: まず、移植対象のSuperpowersスキル名をユーザーに尋ねてください。（例: brainstorming, using-git-worktrees）
+    *   **AIエージェントへの指示**: 次に、`superpowers-original`リポジトリの正確なパスを確認します。もしパスが不明な場合は、`ls -d ../superpowers-original`などを実行して確認し、正しいパスを特定してください。
 
 2.  **元のSKILL.mdの読み込みと理解**:
-    *   `skill_name_to_port`パラメータの値を使って、移植対象となる`superpowers-original/skills/{skill_name_to_port}/SKILL.md`を読み込みます。
+    *   決定されたスキル名を使って、移植対象となる`superpowers-original/skills/{skill_name}/SKILL.md`を読み込みます。
     *   読み込んだ内容から、スキルの目的、ワークフロー、意図を詳細に理解します。
 
 3.  **Gemini CLIへの適応分析**:
@@ -38,8 +34,8 @@ parameters:
     *   元のSKILL.mdに記述されていた、エージェントへの直接的な指示（例:「Announce at start」のような部分）は、新しい`SKILL.md`の`instructions`内で適切に表現されるようにします。
 
 5.  **新規SKILL.mdの作成とコミット**:
-    *   作成したSKILL.mdのドラフトを、`./.gemini/skills/{skill_name_to_port}/SKILL.md`として`write_file`ツールで書き込みます。
-    *   Gitに`git add`し、コミットメッセージ「feat: <skill-name-to-port>スキルを移植する (SKILL.md)」でコミットします。
+    *   作成したSKILL.mdのドラフトを、`./.gemini/skills/{skill_name}/SKILL.md`として`write_file`ツールで書き込みます。
+    *   Gitに`git add`し、コミットメッセージ「feat: <skill_name>スキルを移植する (SKILL.md)」でコミットします。
 
 6.  **移植スキルのテスト計画**:
     *   移植したスキルがGemini CLI環境で意図通りに動作することを確認するためのテスト計画を立案します。
