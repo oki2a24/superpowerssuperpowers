@@ -1,5 +1,5 @@
 ---
-name: skill-creator
+name: writing-skills
 description: 効果的なスキルを作成するためのガイド。このスキルは、ユーザーがGemini CLIの能力を専門的な知識、ワークフロー、またはツール統合で拡張する新しいスキルを作成（または既存のスキルを更新）したい場合に使用します。
 ---
 
