@@ -14,6 +14,13 @@
 *   `subagent-driven-development`
 *   `writing-skills`
 *   `port-superpowers-skill`
+*   `brainstorming`
+*   `executing-plans`
+*   `finishing-a-development-branch`
+*   `test-driven-development`
+*   `using-git-worktrees`
+*   `writing-plans`
+*   `verification-before-completion`
 
 ## 今後の移植の記録方法
 
