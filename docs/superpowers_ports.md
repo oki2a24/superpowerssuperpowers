@@ -21,6 +21,8 @@
 *   `using-git-worktrees`
 *   `writing-plans`
 *   `verification-before-completion`
+*   `requesting-code-review`
+*   `receiving-code-review`
 
 ## 今後の移植の記録方法
 
