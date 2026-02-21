@@ -1,18 +1,26 @@
+"""
+Gemini CLI用のタスク管理ユーティリティスクリプト。
+TODO.mdファイルをブランチごとに管理し、進行状況を追跡します。
+"""
+
 import sys, os, re, subprocess
 from datetime import datetime
 
 TASK_DIR = ".gemini/tasks"
 
 def get_branch():
+    """現在のGitブランチ名を取得し、ファイル名に使用可能な形式に変換します。"""
     try:
         return subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).decode().strip().replace("/", "-")
     except:
         return "default"
 
 def get_todo_path():
+    """現在のブランチに対応するTODOファイルのパスを返します。"""
     return os.path.join(TASK_DIR, f"TODO-{get_branch()}.md")
 
 def init(title):
+    """新しいTODOファイルを初期化します。"""
     os.makedirs(TASK_DIR, exist_ok=True)
     path = get_todo_path()
     with open(path, "w") as f:
@@ -20,10 +28,15 @@ def init(title):
     print(f"Initialized: {path}")
 
 def add(task):
+    """新しいタスクをTODOファイルに追加します。"""
     with open(get_todo_path(), "a") as f:
         f.write(f"- [ ] {task}\n")
 
 def start(pattern):
+    """
+    指定されたパターンに一致する最初の未完了タスクを開始状態 [/] にします。
+    既に実行中のタスクがある場合はエラー終了します。
+    """
     path = get_todo_path()
     if not os.path.exists(path):
         print(f"Error: {path} not found. Run 'init' first.")
@@ -31,7 +44,6 @@ def start(pattern):
     with open(path, "r") as f: lines = f.readlines()
     if any("[/]" in l for l in lines):
         print("ERROR: 他のタスクが実行中です。先に完了させてください。")
-        # sys.exit(1) # テスト中は警告に留めることも可能だが、規律のため exit
         sys.exit(1)
     
     found = False
@@ -48,6 +60,7 @@ def start(pattern):
         sys.exit(1)
 
 def done():
+    """現在実行中のタスク [/] を完了状態 [x] にします。"""
     path = get_todo_path()
     with open(path, "r") as f: lines = f.readlines()
     with open(path, "w") as f:
@@ -57,6 +70,7 @@ def done():
     print("Task marked as DONE.")
 
 def show():
+    """現在のTODOファイルの内容を表示します。"""
     path = get_todo_path()
     if not os.path.exists(path):
         print("No active TODO for this branch.")
