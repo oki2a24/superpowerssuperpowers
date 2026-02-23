@@ -57,8 +57,9 @@ def start(pattern):
     """
     path = get_todo_path()
     if not os.path.exists(path):
-        print(f"Error: {path} not found.")
+        print(f"Error: {path} not found.", end='')
         sys.exit(1)
+        return
     with open(path, "r") as f: lines = f.readlines()
     if any("[/]" in l for l in lines):
         print("ERROR: 他のタスクが実行中です。先に完了させてください。", end='')

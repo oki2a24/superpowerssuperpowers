@@ -217,6 +217,27 @@ class TestTodoScript(unittest.TestCase):
         mock_exit.assert_called_once_with(1)
 
     @patch('scripts.todo.get_branch_name')
+    @patch('sys.stdout', new_callable=StringIO)
+    @patch('sys.exit')
+    def test_start_exits_if_file_not_exists(self, mock_exit, mock_stdout, mock_get_branch_name):
+        """
+        タスクファイルが存在しない場合に `start` コマンドがエラーを表示して終了することをテストします。
+        """
+        # --- 前準備 ---
+        test_branch = "test-feature-branch"
+        mock_get_branch_name.return_value = test_branch
+        # ファイルが存在しない状態を確実にする
+        self.assertFalse(os.path.exists(self.todo_file_path))
+
+        # --- 実行 ---
+        todo.start("Any Task")
+
+        # --- 検証 ---
+        self.assertIn(f"Error: {self.todo_file_path} not found.", mock_stdout.getvalue())
+        mock_exit.assert_called_once_with(1)
+
+
+    @patch('scripts.todo.get_branch_name')
     def test_done_marks_in_progress_task_as_completed(self, mock_get_branch_name):
         """
         `done` コマンドが現在進行中のタスク (`[/]`) を完了 (`[x]`) に変更することをテストします。
@@ -370,3 +391,45 @@ class TestTodoScript(unittest.TestCase):
 
         # --- 検証 ---
         self.assertEqual("default", branch_name)
+
+    @patch('sys.argv', ['todo.py', 'init'])
+    @patch('sys.stdout', new_callable=StringIO)
+    @patch('sys.exit')
+    def test_main_exits_with_usage_if_init_missing_args(self, mock_exit, mock_stdout):
+        """
+        `init` コマンドで引数が不足している場合に `main` がエラーを表示して終了することをテストします。
+        """
+        # --- 実行 ---
+        todo.main()
+
+        # --- 検証 ---
+        self.assertIn("Usage: todo.py init <title>", mock_stdout.getvalue())
+        mock_exit.assert_called_once_with(1)
+
+    @patch('sys.argv', ['todo.py', 'add'])
+    @patch('sys.stdout', new_callable=StringIO)
+    @patch('sys.exit')
+    def test_main_exits_with_usage_if_add_missing_args(self, mock_exit, mock_stdout):
+        """
+        `add` コマンドで引数が不足している場合に `main` がエラーを表示して終了することをテストします。
+        """
+        # --- 実行 ---
+        todo.main()
+
+        # --- 検証 ---
+        self.assertIn("Usage: todo.py add <task>", mock_stdout.getvalue())
+        mock_exit.assert_called_once_with(1)
+
+    @patch('sys.argv', ['todo.py', 'start'])
+    @patch('sys.stdout', new_callable=StringIO)
+    @patch('sys.exit')
+    def test_main_exits_with_usage_if_start_missing_args(self, mock_exit, mock_stdout):
+        """
+        `start` コマンドで引数が不足している場合に `main` がエラーを表示して終了することをテストします。
+        """
+        # --- 実行 ---
+        todo.main()
+
+        # --- 検証 ---
+        self.assertIn("Usage: todo.py start <pattern>", mock_stdout.getvalue())
+        mock_exit.assert_called_once_with(1)
