@@ -46,7 +46,19 @@ description: "実装コードを書く前に、テストを先に書き、それ
 
 ## レッド・グリーン・リファクタ
 
-TDDの進行状況を正確に管理するため、`python3 scripts/todo.py` ツールを使用して以下の各ステップを登録し、フェーズごとにステータスを更新してください。
+```mermaid
+graph TD
+    RED[RED: 失敗するテストを書く] --> V_RED{正しく失敗するか?}
+    V_RED -->|いいえ| RED
+    V_RED -->|はい| GREEN[GREEN: 最小限のコードを書く]
+    GREEN --> V_GREEN{すべてパスするか?}
+    V_GREEN -->|いいえ| GREEN
+    V_GREEN -->|はい| REFACTOR[REFACTOR: クリーンアップ]
+    REFACTOR --> V_GREEN
+    V_GREEN -->|完了| NEXT[次のタスクへ]
+```
+
+`python3 scripts/todo.py` を使用して各ステップを管理し、厳格に進行してください。
 
 1.  **RED (レッド) - 失敗するテストを書く**:
     *   **AIエージェントへの指示**: `python3 scripts/todo.py add "RED: [タスク名] の失敗テスト作成"` で登録し、`python3 scripts/todo.py start "RED"` で作業を開始します。
