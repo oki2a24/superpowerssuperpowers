@@ -23,6 +23,7 @@
 *   `verification-before-completion`
 *   `requesting-code-review`
 *   `receiving-code-review`
+*   `dispatching-parallel-agents`
 
 ## 今後の移植の記録方法
 
