@@ -24,6 +24,7 @@
 *   `requesting-code-review`
 *   `receiving-code-review`
 *   `dispatching-parallel-agents`
+*   `using-superpowers`
 
 ## 今後の移植の記録方法
 
