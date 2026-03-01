@@ -1,6 +1,6 @@
 # Gemini CLI スキル製造基地 & 実験場
 
-本プロジェクトは, [obra/superpowers](https://github.com/obra/superpowers) の Gemini CLI への移植・最適化、および AI エージェントの自律的改善プロセスの確立を目的とした「実験場」です。
+本プロジェクトは、[obra/superpowers](https://github.com/obra/superpowers) の Gemini CLI への移植・最適化、および AI エージェントの自律的改善プロセスの確立を目的とした「実験場」です。
 
 単なるスキルの移植に留まらず、Gemini CLI 環境での最適な動作、運用の記憶 (`GEMINI.md`)、そして AI 自身によるスキルの自律的アップデートという「自己改善ループ」の構築を目指しています。
 
