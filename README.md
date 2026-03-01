@@ -1,54 +1,32 @@
-# Gemini CLI エージェント スキル移植プロジェクト
+# Gemini CLI スキル製造基地 & 実験場
 
-## 目的と概要
+本プロジェクトは、[obra/superpowers](https://github.com/obra/superpowers) の Gemini CLI への移植・最適化、および AI エージェントの自律的改善プロセスの確立を目的とした「実験場」です。
 
-このリポジトリは、Gemini CLIエージェントが、[obra/superpowers](https://github.com/obra/superpowers)からスキルを移植し、運用記憶を構築するためのプロジェクトです。エージェントは、この運用記憶を通じて得られた知見、作業のベストプラクティス、および特定のルールを永続的に記録し、将来のタスク実行に役立てます。
+単なるスキルの移植に留まらず、Gemini CLI 環境での最適な動作、運用の記憶 (`GEMINI.md`)、そして AI 自身によるスキルの自律的アップデートという「自己改善ループ」の構築を目指しています。
 
-## 移植元リポジリの管理
+## 1. スキル・カタログ
 
-移植元の `obra/superpowers` リポジリは、`superpowers-original` という名前の Git サブモジュールとして管理されています。これにより、移植元の特定のバージョンを正確に参照し、本リポジリのバージョン管理と独立して更新することが可能です。
+カテゴリー別に移植済みスキルを分類しています。各スキルの詳細は、`.gemini/skills/<skill-name>/SKILL.md` を参照してください。
 
-### サブモジュールの初期化と更新
+### 1.1. プロセス・思考系
+複雑なタスクを分解し、確実な実行を支援するスキル。
+- **`brainstorming`**: ユーザーの意図と設計を探求し、実装前に要件を固める。
+- **`writing-plans`**: タスクの仕様に基づき、一口サイズの実行可能な計画を作成する。
+- **`executing-plans`**: 実装計画をバッチで実行し、レビューと検証を繰り返す。
+- **`systematic-debugging`**: バグやテスト失敗に対し、根拠に基づいた体系的なデバッグを行う。
+- **`test-driven-development`**: 実装前にテストを書き、最小限のコードでパスさせる TDD を強制する。
 
-本リポジリをクローンした後、以下のコマンドでサブモジュールを初期化し、内容を取得します。
+### 1.2. 基盤・ワークフロー系
+安全な開発環境と標準的な作業フローを提供するスキル。
+- **`using-superpowers`**: 適切なスキルの起動を促し、1% の可能性でもスキルを活用する。
+- **`using-git-worktrees`**: 隔離された Git ワークツリーをセットアップし、安全に開発・テストを行う。
+- **`port-superpowers-skill`**: `obra/superpowers` からスキルを移植するための標準作業手順（SOP）。
+- **`finishing-a-development-branch`**: 作業完了後のブランチ整理、マージ、および改善提案プロセス。
+- **`update-superpowers-ports-doc`**: 移植済みスキルと元コミットの記録を更新する。
 
-```bash
-git submodule update --init --recursive
-```
-
-### サブモジュールの特定のコミットハッシュへの固定
-
-`superpowers-original` サブモジュールは、移植作業に使用している特定のコミットハッシュに固定することが可能です。これにより、移植作業の再現性を保証しています。
-
-サブモジュールが現在参照しているコミットハッシュを確認するには、以下のコマンドを使用します。
-
-```bash
-git submodule status superpowers-original
-```
-
-## 移植手順
-
-TODO: ここにスキル移植の手順を記述します。移植元リポジリの参照方法を含めます。
-
-## 移植元のアップデートに追従する方法
-
-`superpowers-original` サブモジュールのコミットハッシュを更新し、移植元の最新の変更に追従するには、以下の手順を実行します。
-
-1.  `superpowers-original` ディレクトリに移動します。
-    ```bash
-    cd superpowers-original
-    ```
-2.  リモートリポジリから最新の変更をプルします。
-    ```bash
-    git pull origin main # または、適切なブランチ
-    ```
-3.  親リポジリに戻ります。
-    ```bash
-    cd ..
-    ```
-4.  サブモジュールの変更をステージングし、コミットします。
-    ```bash
-    git add superpowers-original
-    git commit -m "chore: Update superpowers-original submodule to latest commit"
-    ```
-5.  必要に応じて、特定のコミットハッシュに再度固定することも可能です。
+### 1.3. 品質・レビュー系
+コード品質の維持と、マルチエージェントによる検証を行うスキル。
+- **`subagent-driven-development`**: 実装、仕様レビュー、コード品質レビューの 3 段階で品質を担保する。
+- **`verification-before-completion`**: 作業完了の主張前に、必ず証拠（テスト出力等）の提示を義務付ける。
+- **`requesting-code-review` / `receiving-code-review`**: 効果的なコードレビューの依頼と、建設的なフィードバックの受容。
+- **`dispatching-parallel-agents`**: 独立したタスクを複数のエージェントで並行処理する。
