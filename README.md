@@ -1,6 +1,6 @@
 # Gemini CLI スキル製造基地 & 実験場
 
-本プロジェクトは、[obra/superpowers](https://github.com/obra/superpowers) の Gemini CLI への移植・最適化、および AI エージェントの自律的改善プロセスの確立を目的とした「実験場」です。
+本プロジェクトは, [obra/superpowers](https://github.com/obra/superpowers) の Gemini CLI への移植・最適化、および AI エージェントの自律的改善プロセスの確立を目的とした「実験場」です。
 
 単なるスキルの移植に留まらず、Gemini CLI 環境での最適な動作、運用の記憶 (`GEMINI.md`)、そして AI 自身によるスキルの自律的アップデートという「自己改善ループ」の構築を目指しています。
 
@@ -58,3 +58,35 @@
 
 ### 3.2. 隔離環境での検証
 実際のファイル操作や破壊的な変更を伴うタスクは、必ず `using-git-worktrees` を用いた隔離環境で実行します。これにより、メインの開発環境を汚染することなく、安全に実証テストを行えます。
+
+## 4. スキルのグローバル展開
+
+移植・改善したスキルを他のプロジェクトでも利用できるようにするための手順です。
+
+### 4.1. 全プロジェクトへの適用 (シンボリックリンク)
+Gemini CLI のグローバルなスキルディレクトリ (`~/.gemini/skills/`) に、本リポジトリのスキルディレクトリへのシンボリックリンクを作成することで、すべてのプロジェクトでこれらのスキルが利用可能になります。
+
+```bash
+# 例: brainstorming スキルをグローバルに登録する
+ln -s /path/to/your/superpowerssuperpowers/.gemini/skills/brainstorming ~/.gemini/skills/brainstorming
+```
+
+これにより、本リポジトリでスキルを改善すると、すべてのプロジェクトに即座に反映されます。
+
+### 4.2. 個別プロジェクトへの適用
+特定のプロジェクトのみに適用したい場合は、そのプロジェクトの `.gemini/skills/` 内にシンボリックリンクを作成してください。
+
+## 5. ディレクトリ構造
+
+本プロジェクトの主要なディレクトリ構成です。
+
+- **`.gemini/skills/`**: 移植済みスキルの実体 (`SKILL.md` 等) が格納されています。
+- **`agents/`**: `subagent-driven-development` 等で使用される、特定役割を持つサブエージェントのプロンプト定義。
+- **`docs/`**: デザインドキュメント、実装計画、および移植記録 (`superpowers_ports.md`)。
+- **`scripts/`**: 運用を支援する Python スクリプト群 (例: `todo.py`, `reset_skill.py`)。
+- **`superpowers-original/`**: 移植元の [obra/superpowers](https://github.com/obra/superpowers) をサブモジュールとして管理。
+- **`tests/`**: スクリプトやスキルの動作を検証するためのテストコード。
+- **`GEMINI.md`**: AI エージェントの運用記憶と学習記録（最重要ファイル）。
+
+---
+*Created by Gemini CLI Agent as a partner in exploration.*
