@@ -59,16 +59,55 @@ def launch_session(session_id, launcher_mode="manual"):
         print(f"Warning: Unknown launcher mode '{launcher_mode}'. Falling back to manual mode.")
         launch_session(session_id, "manual")
 
+def report(project_name, session_id, target_dir=None):
+    """
+    YAML Frontmatter を含む report.md テンプレートを生成します。
+    """
+    if target_dir is None:
+        target_dir = pathlib.Path.cwd()
+    else:
+        target_dir = pathlib.Path(target_dir)
+        
+    report_file = target_dir / "report.md"
+    content = f"""---
+project: {project_name}
+session_id: {session_id}
+status: completed
+completed_at: {datetime.datetime.now().isoformat()}
+---
+
+# 実施報告
+
+## 概要
+ここに作業の概要を記述してください。
+
+## 実施内容
+- [x] 内容1
+- [x] 内容2
+
+## 親セッションへのフィードバック
+- **指示の明確さ**: 
+- **不足していたコンテキスト**: 
+- **改善案**: 
+"""
+    report_file.write_text(content)
+    return report_file
+
 if __name__ == "__main__":
     import sys
     launcher = os.environ.get("GEMINI_SUB_LAUNCHER", "manual")
+    project = os.path.basename(os.getcwd())
     
     if len(sys.argv) > 1 and sys.argv[1] == "spawn":
-        project = os.path.basename(os.getcwd())
         sid = generate_session_id()
         path = spawn(project, sid)
         print(f"Spawned: {path}")
         launch_session(sid, launcher)
+    elif len(sys.argv) > 1 and sys.argv[1] == "report":
+        # セッションIDが引数にあればそれを使用、なければ生成（通常は引数で渡される想定）
+        sid = sys.argv[2] if len(sys.argv) > 2 else "unknown-session"
+        path = report(project, sid)
+        print(f"Report template generated: {path}")
     elif len(sys.argv) > 1:
         print(f"Unknown command: {sys.argv[1]}")
     else:
