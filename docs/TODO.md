@@ -4,7 +4,7 @@
 
 ## 1. 最優先：セッション連携プロトコルの形式知化
 - [x] **成功したプロトコルの定着**: 「指示書同期・パス検証・報告義務化」の仕組みを、どう実装するのが最適か調査・決定する。 [brainstorming] (2026-03-04 完了)
-- [ ] **Phase 1: 制御スクリプトの実装**: `gemini-sub` (Python) のモック/プロトタイプ作成。 [writing-plans] -> [executing-plans]
+- [x] **Phase 1: 制御スクリプトの実装**: `gemini-sub` (Python) の高品質な修正実装。 [subagent-driven-development] (2026-03-07 完了)
 - [ ] **Phase 2: スキル定義**: `session-coordination` スキルの作成とグローバル配置。 [writing-skills]
 
 ## 2. 自己改善ループの強化と「謝罪・ミス」の連動
