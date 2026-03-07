@@ -108,9 +108,77 @@ blocker_details: "..."
     report_file.write_text(content)
     return report_file
 
+def handle_import(project_name, task_id, home_dir=None):
+    """
+    指定されたタスクの報告書を読み込み、要約を表示します。
+    """
+    if home_dir is None:
+        home_dir = pathlib.Path.home()
+    
+    report_file = home_dir / ".gemini" / "sub-sessions" / project_name / task_id / "report.md"
+    
+    if not report_file.exists():
+        # 作業ディレクトリ（ワークツリー）にある可能性も考慮
+        report_file = pathlib.Path("./report.md")
+        if not report_file.exists():
+            print(f"Error: Report file not found for task {task_id}")
+            return
+
+    content = report_file.read_text()
+    
+    # 簡易 YAML パース (--- で分割)
+    parts = content.split("---")
+    if len(parts) < 3:
+        print("Error: Invalid report format (missing YAML frontmatter)")
+        return
+    
+    yaml_lines = parts[1].strip().split("\n")
+    data = {}
+    current_key = None
+    
+    for line in yaml_lines:
+        line = line.strip()
+        if not line: continue
+        
+        if line.startswith("- "): # リスト要素
+            if current_key and isinstance(data.get(current_key), list):
+                data[current_key].append(line[2:].strip().strip('"'))
+            continue
+            
+        if ":" in line:
+            key, val = line.split(":", 1)
+            key = key.strip()
+            val = val.strip().strip('"')
+            
+            if val == "[]" or not val:
+                data[key] = []
+            else:
+                data[key] = val
+            current_key = key
+
+    # 指定されたレイアウトで出力
+    print(f"\n[GPAC IMPORT REPORT: {task_id}]")
+    print("-" * 40)
+    print(f"Status: {data.get('status', 'unknown')}")
+    print(f"Summary: {data.get('summary', 'No summary provided.')}")
+    print("Next Actions:")
+    actions = data.get('next_actions', [])
+    if isinstance(actions, list):
+        for action in actions:
+            print(f"  - {action}")
+    else:
+        print(f"  - {actions}")
+    print("-" * 40)
+    print(f"Feedback: {data.get('parent_feedback', 'None')}")
+    print(f"Proposals: {data.get('skill_proposals', 'None')}")
+    print("-" * 40)
+    print(f"Commits: {data.get('commits', [])}")
+    print("-" * 40 + "\n")
+
 if __name__ == "__main__":
     import sys
     launcher = os.environ.get("GEMINI_SUB_LAUNCHER", "manual")
+    project = os.path.basename(os.getcwd())
     
     if len(sys.argv) > 1 and sys.argv[1] == "spawn":
         work_dir_arg = sys.argv[2] if len(sys.argv) > 2 else os.getcwd()
@@ -120,8 +188,6 @@ if __name__ == "__main__":
             tag_idx = sys.argv.index("--tag") + 1
             if tag_idx < len(sys.argv):
                 tag_arg = sys.argv[tag_idx]
-        
-        project = os.path.basename(os.getcwd())
         tid = generate_task_id()
         tpath = spawn(project, tid, work_dir_abs, tag_arg)
         launch_session(tid, tpath, work_dir_abs, launcher)
@@ -132,6 +198,11 @@ if __name__ == "__main__":
         tid = sys.argv[2]
         path = report(tid)
         print(f"Report template generated: {path}")
+    elif len(sys.argv) > 1 and sys.argv[1] == "import":
+        if len(sys.argv) < 3:
+            print("Usage: python3 scripts/gemini_sub.py import <task_id>")
+            sys.exit(1)
+        tid = sys.argv[2]
+        handle_import(project, tid)
     else:
-        # 他のコマンドは後続タスクで実装
-        pass
+        print("Usage: python3 scripts/gemini_sub.py [spawn | report | import]")
