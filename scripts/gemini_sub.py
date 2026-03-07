@@ -9,7 +9,6 @@ import string
 def generate_task_id():
     """
     YYYYMMDD-HHMMSS-XXXX 形式のタスク ID を生成します。
-    XXXX はランダムな大文字英数字 4 桁。
     """
     timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
@@ -29,7 +28,6 @@ def spawn(project_name, task_id, work_dir, tag, home_dir=None):
     if home_dir is None:
         home_dir = pathlib.Path.home()
     
-    # メタデータの取得
     try:
         current_branch = subprocess.check_output(["git", "branch", "--show-current"], text=True).strip()
     except subprocess.CalledProcessError:
@@ -63,7 +61,6 @@ constraints: []
 def launch_session(session_id, task_path, work_dir, launcher_mode="manual"):
     """
     指定されたランチャーモードでセッションを起動します。
-    初期プロンプトを用いてクリーンなセッションを開始します。
     """
     payload = create_payload(work_dir, task_path)
     
@@ -74,7 +71,6 @@ def launch_session(session_id, task_path, work_dir, launcher_mode="manual"):
         print(f"作業完了後の統合コマンド:\n  python3 scripts/gemini_sub.py import {session_id}\n")
     elif launcher_mode == "tmux":
         try:
-            # tmux new-window で cd と gemini を実行
             subprocess.run(["tmux", "new-window", "-n", f"sub-{session_id}", f"bash -c '{payload}; exec bash'"], check=True)
             print(f"Launched in new tmux window: sub-{session_id}")
             print(f"作業完了後の統合コマンド:\n  python3 scripts/gemini_sub.py import {session_id}\n")
@@ -84,6 +80,34 @@ def launch_session(session_id, task_path, work_dir, launcher_mode="manual"):
     else:
         launch_session(session_id, task_path, work_dir, "manual")
 
+def report(task_id, target_dir=None):
+    """
+    YAML Frontmatter を含む report.md テンプレートを生成します。
+    """
+    if target_dir is None:
+        target_dir = pathlib.Path.cwd()
+    else:
+        target_dir = pathlib.Path(target_dir)
+        
+    report_file = target_dir / "report.md"
+    content = f"""---
+status: success
+task_id: {task_id}
+commits: []
+summary: "..."
+next_actions: []
+parent_feedback: "..."
+skill_proposals: "..."
+blocker_details: "..."
+---
+# 実施報告
+
+## 概要
+ここに作業の概要を記述してください。
+"""
+    report_file.write_text(content)
+    return report_file
+
 if __name__ == "__main__":
     import sys
     launcher = os.environ.get("GEMINI_SUB_LAUNCHER", "manual")
@@ -91,8 +115,6 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "spawn":
         work_dir_arg = sys.argv[2] if len(sys.argv) > 2 else os.getcwd()
         work_dir_abs = os.path.abspath(work_dir_arg)
-        
-        # --tag 引数の処理
         tag_arg = "unnamed-task"
         if "--tag" in sys.argv:
             tag_idx = sys.argv.index("--tag") + 1
@@ -103,6 +125,13 @@ if __name__ == "__main__":
         tid = generate_task_id()
         tpath = spawn(project, tid, work_dir_abs, tag_arg)
         launch_session(tid, tpath, work_dir_abs, launcher)
+    elif len(sys.argv) > 1 and sys.argv[1] == "report":
+        if len(sys.argv) < 3:
+            print("Usage: python3 scripts/gemini_sub.py report <task_id>")
+            sys.exit(1)
+        tid = sys.argv[2]
+        path = report(tid)
+        print(f"Report template generated: {path}")
     else:
         # 他のコマンドは後続タスクで実装
         pass
