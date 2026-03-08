@@ -47,10 +47,11 @@ python3 scripts/gemini_sub.py import [TASK_ID]
 子エージェントは、ミッション完遂後に成果を確定させます。
 
 **手順:**
-1. `run_shell_command` で `cat task.md` を実行し、`task_id` を抽出します（`read_file` は権限エラーになります）。
-2. `python3 scripts/gemini_sub.py report <TASK_ID>` を実行し、テンプレートを生成させます。
-3. **報告書の肉付け**:
-    - ワークスペース内に `tmp_report.md` を作成し、成果（status, commits, summary, proposals）を記述します。
+1. `run_shell_command` で `cat task.md` を実行し、`task_id` を抽出します。
+2. `python3 scripts/gemini_sub.py report <TASK_ID>` を実行し、`report.md` テンプレートを生成させます。
+3. **報告書の肉付け (Template Fidelity)**:
+    - **重要**: `run_shell_command` で **`cat report.md` を実行し、スクリプトが生成した初期テンプレートを読み取ってください。**
+    - ワークスペース内に `tmp_report.md` を作成する際、初期テンプレートの **YAML Frontmatter の構造（キーの順序、改行、インデント）を物理的に完全にコピー** し、値（summary, commits 等）のみを適切に埋めてください。
     - `run_shell_command` で `cp tmp_report.md <REPORT_PATH>` を実行し、報告を完了させます。
 4. ユーザーに完了を報告し、親セッションでの IMPORT を促します。
 
