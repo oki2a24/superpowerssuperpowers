@@ -15,10 +15,10 @@
 実装に先立ち、各ドキュメントの必須項目と検証ルールを以下のように定義します。
 
 **1. `spawn` (task.md) の検証ルール:**
-- **必須項目**: `task_id`, `parent_task_tag`, `work_dir`, `mission`, `steps`
+- **必須項目**: `task_id`, `parent_project_root`, `parent_branch`, `parent_task_tag`, `work_dir`, `mission`, `steps`
 - **検証内容**:
     - YAML 構文が正しいこと。
-    - `task_id` が文字列 `"PENDING"` であること（スクリプトによる置換を前提）。
+    - `task_id`, `parent_project_root`, `parent_branch` が文字列 `"PENDING"` であること（スクリプトによる置換を前提）。
     - `parent_task_tag`, `work_dir`, `mission` が空文字でないこと。
     - `steps` が非空のリスト形式であること。
 
@@ -30,7 +30,7 @@
     - `status` が `success`, `failure`, `partial` のいずれかであること。
     - `summary` が空文字でないこと。
     - `commits`, `next_actions` がリスト形式であること。
-    - **上書き保護**: 既存キュメント `report.md` が存在し、その `status` が `success` の場合は、同一 ID への再提出を拒否する。
+    - **上書き保護**: 既存ドキュメント `report.md` が存在し、その `status` が `success` の場合は、同一 ID への再提出を拒否する。
 
 ---
 
