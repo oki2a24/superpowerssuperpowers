@@ -5,6 +5,8 @@ import os
 import subprocess
 import random
 import string
+import argparse
+import sys
 
 def generate_task_id():
     """
@@ -14,12 +16,33 @@ def generate_task_id():
     suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
     return f"{timestamp}-{suffix}"
 
+def find_task_directory(task_id, home_dir=None):
+    """
+    ~/.gemini/sub-sessions/ 下から task_id ディレクトリを探し出します。
+    """
+    if home_dir is None:
+        home_dir = pathlib.Path.home()
+    
+    base_dir = home_dir / ".gemini" / "sub-sessions"
+    if not base_dir.exists():
+        return None
+    
+    # 全てのプロジェクトディレクトリを走査して task_id を探す
+    for proj_dir in base_dir.iterdir():
+        if proj_dir.is_dir():
+            task_dir = proj_dir / task_id
+            if task_dir.exists() and task_dir.is_dir():
+                return task_dir
+    return None
+
 def create_payload(work_dir, task_path):
     """
     初期プロンプトを含む起動ペイロード（シェルコマンド）を生成します。
     """
     prompt = f"GPAC Protocol: New sub-session. Read task: {task_path}"
-    return f'cd {work_dir} && gemini "{prompt}"'
+    # プロンプト内のクォートをエスケープ
+    safe_prompt = prompt.replace('"', '\\"')
+    return f'cd {work_dir} && gemini "{safe_prompt}"'
 
 def spawn(project_name, task_id, work_dir, tag, home_dir=None):
     """
@@ -80,14 +103,17 @@ def launch_session(session_id, task_path, work_dir, launcher_mode="manual"):
     else:
         launch_session(session_id, task_path, work_dir, "manual")
 
-def report(task_id, target_dir=None):
+def report(task_id, home_dir=None):
     """
-    YAML Frontmatter を含む report.md テンプレートを生成します。
+    指定されたタスクのディレクトリに report.md テンプレートを生成します。
     """
-    if target_dir is None:
+    task_dir = find_task_directory(task_id, home_dir=home_dir)
+    if not task_dir:
+        # 見つからない場合はカレントディレクトリにフォールバック（以前の動作を一部維持）
         target_dir = pathlib.Path.cwd()
+        print(f"Warning: Task directory for {task_id} not found. Creating report.md in current directory.")
     else:
-        target_dir = pathlib.Path(target_dir)
+        target_dir = task_dir
         
     report_file = target_dir / "report.md"
     content = f"""---
@@ -108,21 +134,23 @@ blocker_details: "..."
     report_file.write_text(content)
     return report_file
 
-def handle_import(project_name, task_id, home_dir=None):
+def handle_import(task_id, project_name=None, home_dir=None):
     """
     指定されたタスクの報告書を読み込み、要約を表示します。
     """
-    if home_dir is None:
-        home_dir = pathlib.Path.home()
-    
-    report_file = home_dir / ".gemini" / "sub-sessions" / project_name / task_id / "report.md"
+    task_dir = find_task_directory(task_id, home_dir=home_dir)
+    if not task_dir:
+        # プロジェクト名がある場合は旧パスも探す（後方互換性）
+        if project_name and home_dir:
+             report_file = home_dir / ".gemini" / "sub-sessions" / project_name / task_id / "report.md"
+        else:
+             report_file = pathlib.Path("./report.md")
+    else:
+        report_file = task_dir / "report.md"
     
     if not report_file.exists():
-        # 作業ディレクトリ（ワークツリー）にある可能性も考慮
-        report_file = pathlib.Path("./report.md")
-        if not report_file.exists():
-            print(f"Error: Report file not found for task {task_id}")
-            return
+        print(f"Error: Report file not found for task {task_id}")
+        return
 
     content = report_file.read_text()
     
@@ -146,9 +174,9 @@ def handle_import(project_name, task_id, home_dir=None):
             continue
             
         if ":" in line:
-            key, val = line.split(":", 1)
-            key = key.strip()
-            val = val.strip().strip('"')
+            parts_line = line.split(":", 1)
+            key = parts_line[0].strip()
+            val = parts_line[1].strip().strip('"')
             
             if val == "[]" or not val:
                 data[key] = []
@@ -175,34 +203,42 @@ def handle_import(project_name, task_id, home_dir=None):
     print(f"Commits: {data.get('commits', [])}")
     print("-" * 40 + "\n")
 
-if __name__ == "__main__":
-    import sys
+def main():
+    parser = argparse.ArgumentParser(description="Gemini Peer-Agent Coordination (GPAC) Controller")
+    subparsers = parser.add_subparsers(dest="command", help="Sub-commands")
+
+    # spawn コマンド
+    spawn_parser = subparsers.add_parser("spawn", help="Spawn a new sub-session")
+    spawn_parser.add_argument("dir", nargs="?", default=".", help="Working directory (absolute path recommended)")
+    spawn_parser.add_argument("-t", "--tag", default="unnamed-task", help="Task tag/name")
+    spawn_parser.add_argument("-p", "--project", help="Project name (default: basename of CWD)")
+
+    # report コマンド
+    report_parser = subparsers.add_parser("report", help="Generate report template")
+    report_parser.add_argument("task_id", help="Task ID")
+
+    # import コマンド
+    import_parser = subparsers.add_parser("import", help="Import results from a sub-session")
+    import_parser.add_argument("task_id", help="Task ID")
+    import_parser.add_argument("-p", "--project", help="Project name")
+
+    args = parser.parse_args()
+
     launcher = os.environ.get("GEMINI_SUB_LAUNCHER", "manual")
-    project = os.path.basename(os.getcwd())
-    
-    if len(sys.argv) > 1 and sys.argv[1] == "spawn":
-        work_dir_arg = sys.argv[2] if len(sys.argv) > 2 else os.getcwd()
-        work_dir_abs = os.path.abspath(work_dir_arg)
-        tag_arg = "unnamed-task"
-        if "--tag" in sys.argv:
-            tag_idx = sys.argv.index("--tag") + 1
-            if tag_idx < len(sys.argv):
-                tag_arg = sys.argv[tag_idx]
+    project = args.project if hasattr(args, 'project') and args.project else os.path.basename(os.getcwd())
+
+    if args.command == "spawn":
+        work_dir_abs = os.path.abspath(args.dir)
         tid = generate_task_id()
-        tpath = spawn(project, tid, work_dir_abs, tag_arg)
+        tpath = spawn(project, tid, work_dir_abs, args.tag)
         launch_session(tid, tpath, work_dir_abs, launcher)
-    elif len(sys.argv) > 1 and sys.argv[1] == "report":
-        if len(sys.argv) < 3:
-            print("Usage: python3 scripts/gemini_sub.py report <task_id>")
-            sys.exit(1)
-        tid = sys.argv[2]
-        path = report(tid)
+    elif args.command == "report":
+        path = report(args.task_id)
         print(f"Report template generated: {path}")
-    elif len(sys.argv) > 1 and sys.argv[1] == "import":
-        if len(sys.argv) < 3:
-            print("Usage: python3 scripts/gemini_sub.py import <task_id>")
-            sys.exit(1)
-        tid = sys.argv[2]
-        handle_import(project, tid)
+    elif args.command == "import":
+        handle_import(args.task_id, project_name=args.project)
     else:
-        print("Usage: python3 scripts/gemini_sub.py [spawn | report | import]")
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()
