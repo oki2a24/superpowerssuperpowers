@@ -232,6 +232,42 @@ next_actions: []
             if test_home.exists():
                 shutil.rmtree(test_home)
 
+class TestListSessions(unittest.TestCase):
+    def test_list_sessions_format(self):
+        """list コマンドの出力形式検証"""
+        test_home = pathlib.Path("./test_home_list")
+        test_home.mkdir(exist_ok=True)
+        
+        try:
+            # 1. テストデータの作成
+            project_name = "list-proj"
+            task_ids = ["20260308-1000-AAAA", "20260308-1100-BBBB"]
+            tags = ["tag-a", "tag-b"]
+            
+            for tid, tag in zip(task_ids, tags):
+                task_dir = test_home / ".gemini" / "sub-sessions" / project_name / tid
+                task_dir.mkdir(parents=True)
+                (task_dir / "task.md").write_text(f"---\ntask_id: {tid}\nparent_task_tag: {tag}\n---")
+            
+            # 2. list 呼び出し (stdout をキャプチャ)
+            # 内部関数の list_sessions(home_dir=None) を想定
+            from scripts.gemini_sub import list_sessions
+            
+            f = io.StringIO()
+            with redirect_stdout(f):
+                list_sessions(home_dir=test_home)
+            output = f.getvalue()
+            
+            # 3. 検証
+            self.assertIn("20260308-1000-AAAA", output)
+            self.assertIn("tag-a", output)
+            self.assertIn("20260308-1100-BBBB", output)
+            self.assertIn("tag-b", output)
+            
+        finally:
+            if test_home.exists():
+                shutil.rmtree(test_home)
+
 class TestGeminiSub(unittest.TestCase):
     def test_generate_task_id_format(self):
         """Task ID の形式検証"""

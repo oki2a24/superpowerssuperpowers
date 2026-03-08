@@ -343,6 +343,54 @@ def handle_import(task_id, project_name=None, home_dir=None):
     print(f"Commits: {data.get('commits', [])}")
     print("-" * 40 + "\n")
 
+def list_sessions(home_dir=None):
+    """
+    グローバル領域にあるサブセッションを一覧表示します。
+    
+    【走査ロジック】
+    ~/.gemini/sub-sessions/PROJECT/TASK_ID/task.md を探し、
+    プロジェクト名、タスクID、および task.md 内のタグを取得して表示します。
+    """
+    if home_dir is None:
+        home_dir = pathlib.Path.home()
+    
+    base_dir = home_dir / ".gemini" / "sub-sessions"
+    if not base_dir.exists():
+        print("No sub-sessions found.")
+        return
+
+    print(f"\n[GPAC SUB-SESSIONS LIST]")
+    print("-" * 60)
+    print(f"{'PROJECT':<15} {'TASK_ID':<25} {'TAG'}")
+    print("-" * 60)
+
+    found = False
+    # プロジェクトディレクトリを走査
+    for proj_dir in sorted(base_dir.iterdir()):
+        if not proj_dir.is_dir(): continue
+        
+        # タスクディレクトリを走査（新しい順）
+        for task_dir in sorted(proj_dir.iterdir(), reverse=True):
+            if not task_dir.is_dir(): continue
+            
+            task_file = task_dir / "task.md"
+            if not task_file.exists(): continue
+            
+            # 簡易パースでタグを抽出
+            content = task_file.read_text()
+            tag = "unknown"
+            for line in content.splitlines():
+                if line.startswith("parent_task_tag:"):
+                    tag = line.split(":", 1)[1].strip().strip('"').strip("'")
+                    break
+            
+            print(f"{proj_dir.name:<15} {task_dir.name:<25} {tag}")
+            found = True
+            
+    if not found:
+        print("(No sessions found)")
+    print("-" * 60 + "\n")
+
 def main():
     parser = argparse.ArgumentParser(description="Gemini Peer-Agent Coordination (GPAC) Controller")
     subparsers = parser.add_subparsers(dest="command", help="Sub-commands")
@@ -356,6 +404,9 @@ def main():
     report_parser = subparsers.add_parser("report", help="Submit a report using a draft file")
     report_parser.add_argument("draft", help="Path to the report draft file (tmp_report.md)")
     report_parser.add_argument("--id", required=True, help="Task ID to report for")
+
+    # list コマンド
+    subparsers.add_parser("list", help="List all sub-sessions")
 
     # import コマンド
     import_parser = subparsers.add_parser("import", help="Import results from a sub-session")
@@ -376,6 +427,8 @@ def main():
     elif args.command == "report":
         path = report(args.draft, args.id)
         print(f"Report submitted successfully: {path}")
+    elif args.command == "list":
+        list_sessions()
     elif args.command == "import":
         handle_import(args.task_id, project_name=args.project)
     else:
