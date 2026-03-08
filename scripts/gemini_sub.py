@@ -8,6 +8,96 @@ import string
 import argparse
 import sys
 
+import shutil # タスク3以降で使用予定
+
+def validate_frontmatter(content, required_keys, pending_keys=None):
+    """
+    Markdown の Frontmatter を抽出し、バリデーションを行います。
+    
+    【実装の背景】
+    - 標準ライブラリのみで動作させるため、簡易的な YAML パーサーを自作しています。
+    - 'key: value' 形式と、'- item' によるリスト形式をサポートします。
+    - 値の中にコロンが含まれる場合は、ダブルクォート等で囲む必要があります。
+    
+    【パースの仕組み】
+    1. キーのみ（例 'steps:'）が現れた場合、一旦空リスト [] として初期化します。
+    2. 次の行が '- ' で始まる場合、直前のキーのリストに要素を追加します。
+    3. バリデーションフェーズで、リストが空のまま（＝単なる空値）であればエラーとして扱います。
+    """
+    if pending_keys is None:
+        pending_keys = []
+
+    # Frontmatter の抽出
+    parts = content.split("---")
+    if len(parts) < 3:
+        raise ValueError("Invalid format: Missing YAML frontmatter (---)")
+    
+    yaml_text = parts[1].strip()
+    data = {}
+    current_key = None
+    
+    for line in yaml_text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        
+        # リスト要素の処理
+        if line.startswith("- "):
+            if current_key and isinstance(data.get(current_key), list):
+                data[current_key].append(line[2:].strip().strip('"').strip("'"))
+            else:
+                # リストの前にキーがない場合は文法エラー（簡易的）
+                raise ValueError(f"YAML syntax error: Unexpected list item '{line}'")
+            continue
+
+        # キー: 値 の処理
+        if ":" not in line:
+            raise ValueError(f"YAML syntax error: Invalid line '{line}'")
+        
+        # 最初のコロンで分割
+        key, val = line.split(":", 1)
+        key = key.strip()
+        val = val.strip()
+
+        # クォートの除去と空値判定
+        if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
+            val = val[1:-1].strip()
+        
+        if not val: # 空（または ""）。次にリストが来る可能性があるため [] とする
+            data[key] = []
+        elif val == "[]":
+            data[key] = []
+        else:
+            # 裸のコロンが値の中に含まれているかチェック
+            if ":" in val:
+                 raise ValueError(f"YAML syntax error: Invalid value '{val}' (Try quoting it)")
+            data[key] = val
+        current_key = key
+
+    # バリデーション
+    for key in required_keys:
+        if key not in data:
+            raise ValueError(f"Missing required key: {key}")
+        
+        val = data[key]
+        
+        # PENDING チェック
+        if key in pending_keys and val != "PENDING":
+            raise ValueError(f"Key '{key}' must be 'PENDING'")
+        
+        # 空値チェック (リストの場合は中身があるかチェック)
+        if isinstance(val, list):
+            if len(val) == 0:
+                 raise ValueError(f"Empty value for key: {key}")
+        elif not val:
+            raise ValueError(f"Empty value for key: {key}")
+            
+        # リスト型チェック (steps 等) - すでに上記で空リストチェック済み
+        if key == "steps" and not isinstance(val, list):
+             raise ValueError(f"Key 'steps' must be a non-empty list")
+
+    return data
+
 def generate_task_id():
     """
     YYYYMMDD-HHMMSS-XXXX 形式のタスク ID を生成します。
