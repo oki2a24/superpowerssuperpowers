@@ -39,7 +39,7 @@ def create_payload(work_dir, task_path):
     """
     初期プロンプトを含む起動ペイロード（シェルコマンド）を生成します。
     """
-    prompt = f"GPAC Protocol: New sub-session. Read task: {task_path}"
+    prompt = f"GPAC Protocol: Your mission is defined in a file outside the workspace. Please execute 'cat {task_path}' to understand your mission."
     # プロンプト内のクォートをエスケープ
     safe_prompt = prompt.replace('"', '\\"')
     return f'cd {work_dir} && gemini "{safe_prompt}"'
