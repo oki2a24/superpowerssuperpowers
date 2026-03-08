@@ -60,6 +60,8 @@ mission: "Existing"
         """
         空値の拒否。
         - エージェントが項目を埋め忘れることを防ぐための重要なチェック。
+        - 内部実装で空の文字列 "" と空のリスト [] が混同されないことを検証する
+          （実装時の試行錯誤ポイント："" はエラー、[] は受理したい項目がある）。
         """
         content = """---
 mission: ""
@@ -82,6 +84,8 @@ task_id: 20260308-120000-XXXX
         """
         リスト形式の検証。
         - 'steps' は必ず 1 つ以上の要素を持つリストでなければならない。
+        - 実装時の難所：キー直後に値がない場合に、それが空文字なのかリストの開始なのかを
+          パーサーが正確に遅延判定できているかを確認する。
         """
         content = """---
 steps: "not a list"
@@ -144,6 +148,90 @@ steps:
             if test_home.exists():
                 shutil.rmtree(test_home)
 
+class TestReportHandoff(unittest.TestCase):
+    def test_report_handoff_success(self):
+        """
+        正常な Handoff 方式の report 検証
+        - 報告書下書きの読み取りとバリデーション (PENDING 置換前)
+        - 'task_id: PENDING' の指定 ID への置換
+        - グローバル領域 (~/.gemini/...) への配置とローカル下書きの削除を確認。
+        """
+        test_home = pathlib.Path("./test_home_report_handoff")
+        test_home.mkdir(exist_ok=True)
+        draft_path = pathlib.Path("tmp_report_draft.md")
+        
+        try:
+            task_id = "20260308-130000-WXYZ"
+            # 1. 下書き準備
+            draft_content = f"""---
+status: success
+task_id: PENDING
+commits:
+  - "feat: my change"
+summary: "Finished"
+next_actions: []
+---"""
+            draft_path.write_text(draft_content)
+            
+            # 2. ダミーのタスクディレクトリ準備
+            project_name = "report-proj"
+            task_dir = test_home / ".gemini" / "sub-sessions" / project_name / task_id
+            task_dir.mkdir(parents=True)
+            
+            # 3. report 呼び出し
+            # 現行: report(task_id, home_dir=None)
+            # 新規案: report(local_draft_path, task_id, home_dir=None)
+            result_path = report(str(draft_path), task_id, home_dir=test_home)
+            
+            # 4. 検証: ローカル削除とグローバル配置
+            self.assertFalse(draft_path.exists())
+            self.assertTrue(result_path.exists())
+            self.assertIn("report.md", str(result_path))
+            
+            # 5. 検証: ID 置換
+            content = result_path.read_text()
+            self.assertIn(f"task_id: {task_id}", content)
+            self.assertNotIn("task_id: PENDING", content)
+            
+        finally:
+            if draft_path.exists():
+                draft_path.unlink()
+            if test_home.exists():
+                shutil.rmtree(test_home)
+
+    def test_report_overwrite_protection(self):
+        """
+        完了済みタスクへの上書き防止検証
+        - 既に 'status: success' で提出済みのタスクに対し、別の報告書を提出しようとした場合に
+          ValueError が送出されることを確認する。
+        """
+        test_home = pathlib.Path("./test_home_overwrite")
+        test_home.mkdir(exist_ok=True)
+        draft_path = pathlib.Path("tmp_report_overwrite.md")
+        
+        try:
+            task_id = "20260308-Completed-Task"
+            project_name = "overwrite-proj"
+            task_dir = test_home / ".gemini" / "sub-sessions" / project_name / task_id
+            task_dir.mkdir(parents=True)
+            
+            # 1. すでに success の報告書を置いておく
+            existing_report = task_dir / "report.md"
+            existing_report.write_text("---\nstatus: success\n---")
+            
+            # 2. 新しい報告を出そうとする
+            draft_path.write_text("---\nstatus: failure\ntask_id: PENDING\nsummary: 'retry'\ncommits: []\nnext_actions: []\n---")
+            
+            # 3. 呼び出し。ValueError（または特定の上書きエラー）を期待
+            with self.assertRaisesRegex(ValueError, "already reported as success"):
+                report(str(draft_path), task_id, home_dir=test_home)
+                
+        finally:
+            if draft_path.exists():
+                draft_path.unlink()
+            if test_home.exists():
+                shutil.rmtree(test_home)
+
 class TestGeminiSub(unittest.TestCase):
     def test_generate_task_id_format(self):
         """Task ID の形式検証"""
@@ -189,19 +277,33 @@ steps:
                 shutil.rmtree(test_home)
 
     def test_report_creates_correct_template(self):
-        """report が正しいフォーマットの report.md を生成することを検証"""
+        """report が正しい内容の report.md を配置することを検証 (Handoff)"""
         test_home = pathlib.Path("./test_home_report")
         test_home.mkdir(exist_ok=True)
+        draft_path = pathlib.Path("tmp_test_report.md")
         try:
             task_id = "20260305-130000-EFGH"
-            # find_task_directory で見つからない場合はカレントディレクトリに作られる仕様
-            # テスト環境では home_dir を指定
-            report_path = report(task_id, home_dir=test_home)
+            project_name = "test-project"
+            task_dir = test_home / ".gemini" / "sub-sessions" / project_name / task_id
+            task_dir.mkdir(parents=True)
+            
+            draft_content = f"""---
+status: success
+task_id: PENDING
+commits: []
+summary: "Final test"
+next_actions: []
+---"""
+            draft_path.write_text(draft_content)
+            
+            report_path = report(str(draft_path), task_id, home_dir=test_home)
             self.assertTrue(report_path.exists())
             content = report_path.read_text()
             self.assertIn(f"task_id: {task_id}", content)
             self.assertIn("status: success", content)
         finally:
+            if draft_path.exists():
+                draft_path.unlink()
             if test_home.exists():
                 shutil.rmtree(test_home)
 

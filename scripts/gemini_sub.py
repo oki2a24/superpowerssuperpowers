@@ -14,15 +14,23 @@ def validate_frontmatter(content, required_keys, pending_keys=None):
     """
     Markdown の Frontmatter を抽出し、バリデーションを行います。
     
-    【実装の背景】
-    - 標準ライブラリのみで動作させるため、簡易的な YAML パーサーを自作しています。
-    - 'key: value' 形式と、'- item' によるリスト形式をサポートします。
-    - 値の中にコロンが含まれる場合は、ダブルクォート等で囲む必要があります。
+    【実装の背景と苦労した点】
+    標準ライブラリのみで動作させるため、YAML パーサーを自作しました。実装中、以下の「型判定の曖昧さ」が
+    大きな課題となりました：
     
-    【パースの仕組み】
-    1. キーのみ（例 'steps:'）が現れた場合、一旦空リスト [] として初期化します。
-    2. 次の行が '- ' で始まる場合、直前のキーのリストに要素を追加します。
-    3. バリデーションフェーズで、リストが空のまま（＝単なる空値）であればエラーとして扱います。
+    1. 曖昧な空値:
+       'key:' や 'key: ""' という行が現れた際、それが「空の文字列」を意図しているのか、
+       それとも「次の行からリストが始まる」のかを、その行単体では判定できません。
+    
+    2. 試行錯誤の末の解決策（遅延リスト変換）:
+       - 最初にキーが現れた際は、一旦空文字列 "" として保持します。
+       - 次の行が '- ' で始まるリストアイテムだった場合のみ、動的にリスト型 [] へ変換します。
+       - これにより、'mission: ""'（空でエラーにしたい文字列）と、
+         'steps:'（次にリストが続く正常な記述）を正確に区別できるようになりました。
+    
+    【パース制限】
+    - インデントは無視されます（フラットな構造のみサポート）。
+    - 値の中にコロン ':' を含む場合は、必ずクォート（"..."）で囲んでください。
     """
     if pending_keys is None:
         pending_keys = []
@@ -43,10 +51,14 @@ def validate_frontmatter(content, required_keys, pending_keys=None):
         
         # リスト要素の処理
         if line.startswith("- "):
-            if current_key and isinstance(data.get(current_key), list):
+            if current_key:
+                # 【重要】遅延変換: 最初のリストアイテムが現れた時点で、キーの型をリストに確定させる。
+                # これにより、'mission: ""'（文字列）と 'steps:'（リスト）のパース時の曖昧さを排除している。
+                if not isinstance(data.get(current_key), list):
+                    data[current_key] = [] 
                 data[current_key].append(line[2:].strip().strip('"').strip("'"))
             else:
-                # リストの前にキーがない場合は文法エラー（簡易的）
+                # リストの前にキーがない場合は文法エラー
                 raise ValueError(f"YAML syntax error: Unexpected list item '{line}'")
             continue
 
@@ -59,18 +71,21 @@ def validate_frontmatter(content, required_keys, pending_keys=None):
         key = key.strip()
         val = val.strip()
 
-        # クォートの除去と空値判定
+        # クォートの除去
         if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
             val = val[1:-1].strip()
         
-        if not val: # 空（または ""）。次にリストが来る可能性があるため [] とする
-            data[key] = []
+        # 値の中に裸のコロンが含まれているかチェック (クォート除去後)
+        if ":" in val:
+             raise ValueError(f"YAML syntax error: Invalid value '{val}' (Try quoting it)")
+
+        if not val:
+            # 空の値。現時点では文字列かリストか不明。
+            # 次の行がリストアイテムならリストになる。
+            data[key] = ""
         elif val == "[]":
             data[key] = []
         else:
-            # 裸のコロンが値の中に含まれているかチェック
-            if ":" in val:
-                 raise ValueError(f"YAML syntax error: Invalid value '{val}' (Try quoting it)")
             data[key] = val
         current_key = key
 
@@ -85,16 +100,14 @@ def validate_frontmatter(content, required_keys, pending_keys=None):
         if key in pending_keys and val != "PENDING":
             raise ValueError(f"Key '{key}' must be 'PENDING'")
         
-        # 空値チェック (リストの場合は中身があるかチェック)
-        if isinstance(val, list):
-            if len(val) == 0:
-                 raise ValueError(f"Empty value for key: {key}")
-        elif not val:
+        # 空値チェック (リスト/文字列両対応)
+        # 試行錯誤の結果：steps は「1つ以上の手順」が必須だが、
+        # commits や next_actions は「作業内容によっては空」もあり得るため、空リスト [] を許容する。
+        if key == "steps":
+            if not isinstance(val, list) or len(val) == 0:
+                 raise ValueError(f"Key 'steps' must be a non-empty list")
+        elif not val and val != []: # 空文字列 "" はエラーだが、空リスト [] は受理
             raise ValueError(f"Empty value for key: {key}")
-            
-        # リスト型チェック (steps 等) - すでに上記で空リストチェック済み
-        if key == "steps" and not isinstance(val, list):
-             raise ValueError(f"Key 'steps' must be a non-empty list")
 
     return data
 
@@ -213,35 +226,52 @@ def launch_session(session_id, task_path, work_dir, launcher_mode="manual"):
     else:
         launch_session(session_id, task_path, work_dir, "manual")
 
-def report(task_id, home_dir=None):
+def report(local_draft_path, task_id, home_dir=None):
     """
-    指定されたタスクのディレクトリに report.md テンプレートを生成します。
+    ワークスペース内の報告書下書きを検証し、グローバル領域へ配置（Handoff）します。
+    既に 'status: success' で報告済みの場合は上書きを防止します。
+    
+    【バリデーション】
+    - 必須キー（status, summary, commits, next_actions）の存在と型を確認します。
+    - commits や next_actions は空リスト [] でも受理されます。
     """
+    draft_file = pathlib.Path(local_draft_path)
+    if not draft_file.exists():
+        raise FileNotFoundError(f"Draft file not found: {local_draft_path}")
+    
     task_dir = find_task_directory(task_id, home_dir=home_dir)
     if not task_dir:
-        # 見つからない場合はカレントディレクトリにフォールバック（以前の動作を一部維持）
-        target_dir = pathlib.Path.cwd()
-        print(f"Warning: Task directory for {task_id} not found. Creating report.md in current directory.")
-    else:
-        target_dir = task_dir
+        raise FileNotFoundError(f"Task directory for {task_id} not found.")
         
-    report_file = target_dir / "report.md"
-    content = f"""---
-status: success
-task_id: {task_id}
-commits: []
-summary: "..."
-next_actions: []
-parent_feedback: "..."
-skill_proposals: "..."
-blocker_details: "..."
----
-# 実施報告
+    report_file = task_dir / "report.md"
+    
+    # 1. 上書き防止チェック
+    if report_file.exists():
+        try:
+            existing_content = report_file.read_text()
+            # 簡易パースで status を確認
+            if "status: success" in existing_content:
+                raise ValueError(f"Task {task_id} is already reported as success. (Handoff blocked)")
+        except Exception as e:
+            if isinstance(e, ValueError): raise e
+            # パース失敗等は無視して続行
+            pass
 
-## 概要
-ここに作業の概要を記述してください。
-"""
-    report_file.write_text(content)
+    content = draft_file.read_text()
+    
+    # 必須項目の定義
+    required = ["task_id", "status", "summary", "commits", "next_actions"]
+    
+    # 2. バリデーション
+    validate_frontmatter(content, required, pending_keys=["task_id"])
+    
+    # 3. コンテンツの置換 (PENDING -> task_id)
+    updated_content = content.replace("task_id: PENDING", f"task_id: {task_id}")
+    
+    # 4. 配置と削除
+    report_file.write_text(updated_content)
+    draft_file.unlink()
+    
     return report_file
 
 def handle_import(task_id, project_name=None, home_dir=None):
@@ -323,8 +353,9 @@ def main():
     spawn_parser.add_argument("-p", "--project", help="Project name (default: basename of CWD)")
 
     # report コマンド
-    report_parser = subparsers.add_parser("report", help="Generate report template")
-    report_parser.add_argument("task_id", help="Task ID")
+    report_parser = subparsers.add_parser("report", help="Submit a report using a draft file")
+    report_parser.add_argument("draft", help="Path to the report draft file (tmp_report.md)")
+    report_parser.add_argument("--id", required=True, help="Task ID to report for")
 
     # import コマンド
     import_parser = subparsers.add_parser("import", help="Import results from a sub-session")
@@ -343,8 +374,8 @@ def main():
         # 起動ペイロード。work_dir は一旦カレントディレクトリを使用 (簡易対応)
         launch_session(tid, tpath, os.getcwd(), launcher)
     elif args.command == "report":
-        path = report(args.task_id)
-        print(f"Report template generated: {path}")
+        path = report(args.draft, args.id)
+        print(f"Report submitted successfully: {path}")
     elif args.command == "import":
         handle_import(args.task_id, project_name=args.project)
     else:
