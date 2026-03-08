@@ -134,10 +134,31 @@ def create_payload(work_dir, task_path):
     safe_prompt = prompt.replace('"', '\\"')
     return f'cd {work_dir} && gemini "{safe_prompt}"'
 
-def spawn(project_name, task_id, work_dir, tag, home_dir=None):
+def spawn(local_draft_path, project_name=None, home_dir=None):
     """
-    新しいサブセッションのディレクトリを作成し、task.md を生成します。
+    ワークスペース内の下書きファイルを読み込み、検証した上でグローバル領域へ配置（Handoff）します。
+    
+    【Handoff ワークフロー】
+    1. エージェントがワークスペース内に 'task_id: PENDING' を含む下書きを作成。
+    2. 本関数がバリデーションを行い、PENDING 箇所を実際の値（ID, Root, Branch）で置換。
+    3. 置換後の内容をグローバル領域 (~/.gemini/sub-sessions/...) へ書き出し。
+    4. ワークスペース内の下書きファイルを削除（これにより環境をクリーンに保つ）。
     """
+    draft_file = pathlib.Path(local_draft_path)
+    if not draft_file.exists():
+        raise FileNotFoundError(f"Draft file not found: {local_draft_path}")
+    
+    content = draft_file.read_text()
+    
+    # 必須項目の定義
+    # parent_project_root, parent_branch は親セッションの文脈を子に引き継ぐために必須。
+    required = ["task_id", "parent_project_root", "parent_branch", "parent_task_tag", "work_dir", "mission", "steps"]
+    pending = ["task_id", "parent_project_root", "parent_branch"]
+    
+    # 1. バリデーション
+    validate_frontmatter(content, required, pending_keys=pending)
+    
+    # 2. 実値の取得 (コンテキスト情報の収集)
     if home_dir is None:
         home_dir = pathlib.Path.home()
     
@@ -147,29 +168,28 @@ def spawn(project_name, task_id, work_dir, tag, home_dir=None):
         current_branch = "unknown"
     
     parent_project_root = os.getcwd()
+    task_id = generate_task_id()
     
+    if project_name is None:
+        project_name = os.path.basename(parent_project_root)
+        
+    # 3. コンテンツの置換 (PENDING -> 実値)
+    # 文字列置換により、テンプレートの構造を維持したままメタデータを注入する。
+    updated_content = content.replace("task_id: PENDING", f"task_id: {task_id}")
+    updated_content = updated_content.replace("parent_project_root: PENDING", f"parent_project_root: {parent_project_root}")
+    updated_content = updated_content.replace("parent_branch: PENDING", f"parent_branch: {current_branch}")
+    
+    # 4. グローバル領域のディレクトリ作成
     session_dir = home_dir / ".gemini" / "sub-sessions" / project_name / task_id
     session_dir.mkdir(parents=True, exist_ok=True)
     
-    task_file = session_dir / "task.md"
-    content = f"""---
-task_id: {task_id}
-parent_project_root: {parent_project_root}
-parent_branch: {current_branch}
-parent_task_tag: {tag}
-work_dir: {work_dir}
-required_skills: []
-mission: "..."
-steps: []
-constraints: []
----
-# タスク詳細
-
-## 概要
-ここにタスクの概要を記述してください。
-"""
-    task_file.write_text(content)
-    return task_file
+    target_path = session_dir / "task.md"
+    
+    # 5. 移動 (書き込み完了後に元のファイルを削除することで、原子的な Handoff を実現)
+    target_path.write_text(updated_content)
+    draft_file.unlink()
+    
+    return target_path
 
 def launch_session(session_id, task_path, work_dir, launcher_mode="manual"):
     """
@@ -298,9 +318,8 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Sub-commands")
 
     # spawn コマンド
-    spawn_parser = subparsers.add_parser("spawn", help="Spawn a new sub-session")
-    spawn_parser.add_argument("dir", nargs="?", default=".", help="Working directory (absolute path recommended)")
-    spawn_parser.add_argument("-t", "--tag", default="unnamed-task", help="Task tag/name")
+    spawn_parser = subparsers.add_parser("spawn", help="Spawn a new sub-session using a draft file")
+    spawn_parser.add_argument("draft", help="Path to the task draft file (tmp_task.md)")
     spawn_parser.add_argument("-p", "--project", help="Project name (default: basename of CWD)")
 
     # report コマンド
@@ -318,10 +337,11 @@ def main():
     project = args.project if hasattr(args, 'project') and args.project else os.path.basename(os.getcwd())
 
     if args.command == "spawn":
-        work_dir_abs = os.path.abspath(args.dir)
-        tid = generate_task_id()
-        tpath = spawn(project, tid, work_dir_abs, args.tag)
-        launch_session(tid, tpath, work_dir_abs, launcher)
+        tpath = spawn(args.draft, project_name=project)
+        # ID とパスを取得するために再パース (タスク7でリファクタ対象)
+        tid = tpath.parent.name
+        # 起動ペイロード。work_dir は一旦カレントディレクトリを使用 (簡易対応)
+        launch_session(tid, tpath, os.getcwd(), launcher)
     elif args.command == "report":
         path = report(args.task_id)
         print(f"Report template generated: {path}")

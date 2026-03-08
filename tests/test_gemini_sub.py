@@ -90,6 +90,60 @@ steps: "not a list"
         with self.assertRaisesRegex(ValueError, "Key 'steps' must be a non-empty list"):
             validate_frontmatter(content, ["steps"])
 
+class TestSpawnHandoff(unittest.TestCase):
+    def test_handoff_success(self):
+        """
+        正常な Handoff 方式の spawn 検証
+        - 下書きファイルの読み取りと検証
+        - PENDING の実値置換
+        - グローバル配置とローカル削除
+        """
+        test_home = pathlib.Path("./test_home_handoff")
+        test_home.mkdir(exist_ok=True)
+        draft_path = pathlib.Path("tmp_task_draft.md")
+        
+        try:
+            # 1. 下書きの準備
+            draft_content = """---
+task_id: PENDING
+parent_project_root: PENDING
+parent_branch: PENDING
+parent_task_tag: test-handoff
+work_dir: /abs/path
+mission: "Implement Handoff"
+steps:
+  - Step A
+  - Step B
+---
+# Draft Content"""
+            draft_path.write_text(draft_content)
+            
+            # 2. 新しい spawn の呼び出し
+            # 現行: spawn(project_name, task_id, work_dir, tag, home_dir=None)
+            # 新規案: spawn(local_draft_path, project_name=None, home_dir=None)
+            project_name = "handoff-project"
+            result_path = spawn(str(draft_path), project_name=project_name, home_dir=test_home)
+            
+            # 3. 検証: ローカル下書きが削除されていること (Handoff の完了)
+            self.assertFalse(draft_path.exists())
+            
+            # 4. 検証: グローバル領域に配置されていること (SSOT への登録)
+            self.assertTrue(result_path.exists())
+            self.assertIn(project_name, str(result_path))
+            
+            # 5. 検証: 内容が置換されていること (コンテキストの注入)
+            content = result_path.read_text()
+            self.assertNotIn("task_id: PENDING", content)
+            self.assertNotIn("parent_project_root: PENDING", content)
+            self.assertNotIn("parent_branch: PENDING", content)
+            self.assertIn("parent_task_tag: test-handoff", content)
+            
+        finally:
+            if draft_path.exists():
+                draft_path.unlink()
+            if test_home.exists():
+                shutil.rmtree(test_home)
+
 class TestGeminiSub(unittest.TestCase):
     def test_generate_task_id_format(self):
         """Task ID の形式検証"""
@@ -106,21 +160,31 @@ class TestGeminiSub(unittest.TestCase):
         self.assertEqual(payload, expected)
 
     def test_spawn_creates_correct_task_md(self):
-        """spawn が正しい内容の task.md を生成することを検証"""
+        """spawn が正しい内容の task.md を生成することを検証 (Handoff)"""
         test_home = pathlib.Path("./test_home_spawn")
         test_home.mkdir(exist_ok=True)
+        draft_path = pathlib.Path("tmp_test_spawn.md")
         try:
-            work_dir = "/dummy/worktree"
-            tag = "test-feature"
+            draft_content = """---
+task_id: PENDING
+parent_project_root: PENDING
+parent_branch: PENDING
+parent_task_tag: test-tag
+work_dir: /abs/path
+mission: "Test Mission"
+steps:
+  - Step 1
+---"""
+            draft_path.write_text(draft_content)
+            
             project_name = "test-project"
-            task_id = "20260305-120000-ABCD"
-            # spawn(project_name, task_id, work_dir, tag, home_dir=None)
-            task_path = spawn(project_name, task_id, work_dir, tag, home_dir=test_home)
+            task_path = spawn(str(draft_path), project_name=project_name, home_dir=test_home)
             self.assertTrue(task_path.exists())
             content = task_path.read_text()
-            self.assertIn(f"task_id: {task_id}", content)
-            self.assertIn(f"parent_task_tag: {tag}", content)
+            self.assertNotIn("task_id: PENDING", content)
         finally:
+            if draft_path.exists():
+                draft_path.unlink()
             if test_home.exists():
                 shutil.rmtree(test_home)
 
