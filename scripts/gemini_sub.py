@@ -147,15 +147,13 @@ def create_payload(work_dir, task_path):
     safe_prompt = prompt.replace('"', '\\"')
     return f'cd {work_dir} && gemini "{safe_prompt}"'
 
-def spawn(local_draft_path, project_name=None, home_dir=None):
+def handoff_document(local_draft_path, target_path, required_keys, pending_map):
     """
-    ワークスペース内の下書きファイルを読み込み、検証した上でグローバル領域へ配置（Handoff）します。
+    ローカルの下書きを検証・置換し、グローバル領域へ配置する共通ロジック。
     
-    【Handoff ワークフロー】
-    1. エージェントがワークスペース内に 'task_id: PENDING' を含む下書きを作成。
-    2. 本関数がバリデーションを行い、PENDING 箇所を実際の値（ID, Root, Branch）で置換。
-    3. 置換後の内容をグローバル領域 (~/.gemini/sub-sessions/...) へ書き出し。
-    4. ワークスペース内の下書きファイルを削除（これにより環境をクリーンに保つ）。
+    【リファクタリングの意図】
+    spawn と report で重複していた「ファイルI/O、バリデーション呼び出し、文字列置換、原子的移動」
+    を一箇所に集約 (DRY) し、メンテナンス性と堅牢性を向上させました。
     """
     draft_file = pathlib.Path(local_draft_path)
     if not draft_file.exists():
@@ -163,18 +161,26 @@ def spawn(local_draft_path, project_name=None, home_dir=None):
     
     content = draft_file.read_text()
     
-    # 必須項目の定義
-    # parent_project_root, parent_branch は親セッションの文脈を子に引き継ぐために必須。
-    required = ["task_id", "parent_project_root", "parent_branch", "parent_task_tag", "work_dir", "mission", "steps"]
-    pending = ["task_id", "parent_project_root", "parent_branch"]
-    
     # 1. バリデーション
-    validate_frontmatter(content, required, pending_keys=pending)
+    validate_frontmatter(content, required_keys, pending_keys=list(pending_map.keys()))
     
-    # 2. 実値の取得 (コンテキスト情報の収集)
-    if home_dir is None:
-        home_dir = pathlib.Path.home()
+    # 2. コンテンツの置換 (PENDING -> 実値)
+    updated_content = content
+    for key, value in pending_map.items():
+        updated_content = updated_content.replace(f"{key}: PENDING", f"{key}: {value}")
     
+    # 3. グローバル領域への配置とローカル削除
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    target_path.write_text(updated_content)
+    draft_file.unlink()
+    
+    return target_path
+
+def spawn(local_draft_path, project_name=None, home_dir=None):
+    """
+    ワークスペース内の下書きファイルを読み込み、検証した上でグローバル領域へ配置（Handoff）します。
+    """
+    # コンテキスト情報の収集
     try:
         current_branch = subprocess.check_output(["git", "branch", "--show-current"], text=True).strip()
     except subprocess.CalledProcessError:
@@ -186,23 +192,20 @@ def spawn(local_draft_path, project_name=None, home_dir=None):
     if project_name is None:
         project_name = os.path.basename(parent_project_root)
         
-    # 3. コンテンツの置換 (PENDING -> 実値)
-    # 文字列置換により、テンプレートの構造を維持したままメタデータを注入する。
-    updated_content = content.replace("task_id: PENDING", f"task_id: {task_id}")
-    updated_content = updated_content.replace("parent_project_root: PENDING", f"parent_project_root: {parent_project_root}")
-    updated_content = updated_content.replace("parent_branch: PENDING", f"parent_branch: {current_branch}")
+    if home_dir is None:
+        home_dir = pathlib.Path.home()
+        
+    target_path = home_dir / ".gemini" / "sub-sessions" / project_name / task_id / "task.md"
     
-    # 4. グローバル領域のディレクトリ作成
-    session_dir = home_dir / ".gemini" / "sub-sessions" / project_name / task_id
-    session_dir.mkdir(parents=True, exist_ok=True)
+    # 必須項目と置換マップ
+    required = ["task_id", "parent_project_root", "parent_branch", "parent_task_tag", "work_dir", "mission", "steps"]
+    pending_map = {
+        "task_id": task_id,
+        "parent_project_root": parent_project_root,
+        "parent_branch": current_branch
+    }
     
-    target_path = session_dir / "task.md"
-    
-    # 5. 移動 (書き込み完了後に元のファイルを削除することで、原子的な Handoff を実現)
-    target_path.write_text(updated_content)
-    draft_file.unlink()
-    
-    return target_path
+    return handoff_document(local_draft_path, target_path, required, pending_map)
 
 def launch_session(session_id, task_path, work_dir, launcher_mode="manual"):
     """
@@ -230,49 +233,24 @@ def report(local_draft_path, task_id, home_dir=None):
     """
     ワークスペース内の報告書下書きを検証し、グローバル領域へ配置（Handoff）します。
     既に 'status: success' で報告済みの場合は上書きを防止します。
-    
-    【バリデーション】
-    - 必須キー（status, summary, commits, next_actions）の存在と型を確認します。
-    - commits や next_actions は空リスト [] でも受理されます。
     """
-    draft_file = pathlib.Path(local_draft_path)
-    if not draft_file.exists():
-        raise FileNotFoundError(f"Draft file not found: {local_draft_path}")
-    
     task_dir = find_task_directory(task_id, home_dir=home_dir)
     if not task_dir:
         raise FileNotFoundError(f"Task directory for {task_id} not found.")
         
-    report_file = task_dir / "report.md"
+    target_path = task_dir / "report.md"
     
     # 1. 上書き防止チェック
-    if report_file.exists():
-        try:
-            existing_content = report_file.read_text()
-            # 簡易パースで status を確認
-            if "status: success" in existing_content:
-                raise ValueError(f"Task {task_id} is already reported as success. (Handoff blocked)")
-        except Exception as e:
-            if isinstance(e, ValueError): raise e
-            # パース失敗等は無視して続行
-            pass
+    if target_path.exists():
+        existing_content = target_path.read_text()
+        if "status: success" in existing_content:
+            raise ValueError(f"Task {task_id} is already reported as success. (Handoff blocked)")
 
-    content = draft_file.read_text()
-    
-    # 必須項目の定義
+    # 2. Handoff 実行
     required = ["task_id", "status", "summary", "commits", "next_actions"]
+    pending_map = { "task_id": task_id }
     
-    # 2. バリデーション
-    validate_frontmatter(content, required, pending_keys=["task_id"])
-    
-    # 3. コンテンツの置換 (PENDING -> task_id)
-    updated_content = content.replace("task_id: PENDING", f"task_id: {task_id}")
-    
-    # 4. 配置と削除
-    report_file.write_text(updated_content)
-    draft_file.unlink()
-    
-    return report_file
+    return handoff_document(local_draft_path, target_path, required, pending_map)
 
 def handle_import(task_id, project_name=None, home_dir=None):
     """
@@ -445,33 +423,27 @@ def main():
     launcher = os.environ.get("GEMINI_SUB_LAUNCHER", "manual")
     project = args.project if hasattr(args, 'project') and args.project else os.path.basename(os.getcwd())
 
-    if args.command == "spawn":
-        tpath = spawn(args.draft, project_name=project)
-        # ID とパスを取得するために再パース (タスク7でリファクタ対象)
-        tid = tpath.parent.name
-        # 起動ペイロード。work_dir は一旦カレントディレクトリを使用 (簡易対応)
-        launch_session(tid, tpath, os.getcwd(), launcher)
-    elif args.command == "report":
-        path = report(args.draft, args.id)
-        print(f"Report submitted successfully: {path}")
-    elif args.command == "list":
-        list_sessions()
-    elif args.command == "show-task":
-        try:
+    try:
+        if args.command == "spawn":
+            tpath = spawn(args.draft, project_name=project)
+            tid = tpath.parent.name
+            launch_session(tid, tpath, os.getcwd(), launcher)
+        elif args.command == "report":
+            path = report(args.draft, args.id)
+            print(f"Report submitted successfully: {path}")
+        elif args.command == "list":
+            list_sessions()
+        elif args.command == "show-task":
             show_file(args.id, "task.md")
-        except FileNotFoundError as e:
-            print(f"Error: {e}")
-            sys.exit(1)
-    elif args.command == "show-report":
-        try:
+        elif args.command == "show-report":
             show_file(args.id, "report.md")
-        except FileNotFoundError as e:
-            print(f"Error: {e}")
-            sys.exit(1)
-    elif args.command == "import":
-        handle_import(args.task_id, project_name=args.project)
-    else:
-        parser.print_help()
+        elif args.command == "import":
+            handle_import(args.task_id, project_name=args.project)
+        else:
+            parser.print_help()
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
