@@ -268,6 +268,59 @@ class TestListSessions(unittest.TestCase):
             if test_home.exists():
                 shutil.rmtree(test_home)
 
+class TestShowCommands(unittest.TestCase):
+    def test_show_task_success(self):
+        """show-task の正常系検証"""
+        test_home = pathlib.Path("./test_home_show")
+        test_home.mkdir(exist_ok=True)
+        try:
+            tid = "20260308-SHOW-TASK"
+            task_dir = test_home / ".gemini" / "sub-sessions" / "test-proj" / tid
+            task_dir.mkdir(parents=True)
+            content = "# Task content"
+            (task_dir / "task.md").write_text(content)
+            
+            from scripts.gemini_sub import show_file
+            f = io.StringIO()
+            with redirect_stdout(f):
+                show_file(tid, "task.md", home_dir=test_home)
+            self.assertEqual(f.getvalue().strip(), content)
+        finally:
+            if test_home.exists():
+                shutil.rmtree(test_home)
+
+    def test_show_report_success(self):
+        """show-report の正常系検証"""
+        test_home = pathlib.Path("./test_home_show_report")
+        test_home.mkdir(exist_ok=True)
+        try:
+            tid = "20260308-SHOW-REPORT"
+            task_dir = test_home / ".gemini" / "sub-sessions" / "test-proj" / tid
+            task_dir.mkdir(parents=True)
+            content = "# Report content"
+            (task_dir / "report.md").write_text(content)
+            
+            from scripts.gemini_sub import show_file
+            f = io.StringIO()
+            with redirect_stdout(f):
+                show_file(tid, "report.md", home_dir=test_home)
+            self.assertEqual(f.getvalue().strip(), content)
+        finally:
+            if test_home.exists():
+                shutil.rmtree(test_home)
+
+    def test_show_file_not_found(self):
+        """存在しないファイルを表示しようとした際のエラー検証"""
+        test_home = pathlib.Path("./test_home_not_found")
+        test_home.mkdir(exist_ok=True)
+        try:
+            from scripts.gemini_sub import show_file
+            with self.assertRaises(FileNotFoundError):
+                show_file("INVALID-ID", "task.md", home_dir=test_home)
+        finally:
+            if test_home.exists():
+                shutil.rmtree(test_home)
+
 class TestGeminiSub(unittest.TestCase):
     def test_generate_task_id_format(self):
         """Task ID の形式検証"""
