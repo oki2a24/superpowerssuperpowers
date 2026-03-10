@@ -118,7 +118,7 @@ git commit -m "feat: add specific feature"
     *   **AIエージェントへの指示**: 新しいセッション内で移植された`executing-plans`スキルを`activate_skill`で起動してください。
 
 ## ローカル・アダプテーション (Gemini固有)
-<!-- IMPROVED_ON: 2026-03-08 | REASON: プログラム実装時の迷いとデシンクを根絶するため、I/O 定義を「義務」として再定義。 -->
+<!-- IMPROVED_ON: 2026-03-10 | REASON: GPAC v3 統合。大規模タスクの自律的分割と、gemini-sub を活用した安全なハンドオフを実現するため。 -->
 
 ### AIエージェントへの指示 (Gemini固有)
 
@@ -133,4 +133,17 @@ git commit -m "feat: add specific feature"
 
 3.  **役割分担の明示 (Hybrid Pattern)**:
     *   スクリプト（構造生成）と AI（文脈記入）の役割分担がある場合は、どのステップでどちらが責任を持つかを明確に記述してください。
+
+4.  **セッション分割の判定基準 (Mandatory Partitioning Check)**:
+    *   計画策定の最終段階で、以下のいずれかに該当する場合は**必ず** `session-coordination` スキルによる分割をユーザーに提案してください。
+        *   **規模**: タスク（Task）数が 5つ以上、または合計ステップ数が 20以上。
+        *   **健康状態**: 現在のセッションが既に 15ターン以上経過している。
+        *   **独立性**: 異なるモジュールや、依存関係のない並行可能な作業が含まれる。
+
+5.  **GPAC v3 へのハンドオフ手順 (Execution Handoff Refinement)**:
+    *   オリジナルの「6. 実行の引き渡し」において「並行セッション (別のセッション)」が選択された場合、または上記 4 の基準を満たす場合、以下の手順を**厳格に実行**してください。
+        1.  `activate_skill(name="session-coordination")` を呼び出す。
+        2.  計画書の各タスクを「独立した指示書（Markdown）」として一時ファイルに書き出す。
+        3.  `gemini-sub spawn` コマンドを生成し、ユーザーに提示（または実行許可を求める）。
+        4.  サブセッション側では、配布された指示書に基づき `activate_skill(name="executing-plans")` を起動して作業を開始するよう明記する。
 
