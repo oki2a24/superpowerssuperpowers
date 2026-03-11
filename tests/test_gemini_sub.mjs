@@ -10,7 +10,8 @@ import {
   generateTaskId,
   createPayload,
   findTaskDirectory,
-  spawn
+  spawn,
+  report
 } from '../scripts/gemini_sub.mjs';
 
 describe('YAML Parser', () => {
@@ -151,6 +152,87 @@ steps:
       assert.ok(!content.includes('parent_project_root: PENDING'));
       assert.ok(!content.includes('parent_branch: PENDING'));
       assert.ok(content.includes('parent_task_tag: test-handoff'));
+    } finally {
+      if (fs.existsSync(draftPath)) fs.unlinkSync(draftPath);
+      if (fs.existsSync(tempHome)) fs.rmSync(tempHome, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('Report Handoff', () => {
+  test('reportSuccess should create report and delete local draft', () => {
+    /**
+     * 正常な Handoff 方式の report 検証
+     * - 報告書下書きの読み取りとバリデーション (PENDING 置換前)
+     * - 'task_id: PENDING' の指定 ID への置換
+     * - グローバル領域 (~/.gemini/...) への配置とローカル下書きの削除を確認。
+     */
+    const tempHome = path.join(os.tmpdir(), `gemini-report-test-${Date.now()}`);
+    const draftPath = path.join(os.tmpdir(), `tmp_report_draft_${Date.now()}.md`);
+    const taskId = "20260311-REPORT-WXYZ";
+    const projectName = "report-proj";
+
+    try {
+      // 1. 下書き準備
+      const draftContent = `---
+status: success
+task_id: PENDING
+commits:
+  - "feat: my change"
+summary: "Finished"
+next_actions: []
+---`;
+      fs.writeFileSync(draftPath, draftContent);
+
+      // 2. ダミーのタスクディレクトリ準備
+      const taskDir = path.join(tempHome, '.gemini', 'sub-sessions', projectName, taskId);
+      fs.mkdirSync(taskDir, { recursive: true });
+
+      // 3. report 呼び出し
+      const resultPath = report(draftPath, taskId, { homeDir: tempHome });
+
+      // 4. 検証: ローカル削除とグローバル配置
+      assert.strictEqual(fs.existsSync(draftPath), false);
+      assert.strictEqual(fs.existsSync(resultPath), true);
+      assert.ok(resultPath.endsWith('report.md'));
+
+      // 5. 検証: ID 置換
+      const content = fs.readFileSync(resultPath, 'utf8');
+      assert.ok(content.includes(`task_id: ${taskId}`));
+      assert.ok(!content.includes('task_id: PENDING'));
+    } finally {
+      if (fs.existsSync(draftPath)) fs.unlinkSync(draftPath);
+      if (fs.existsSync(tempHome)) fs.rmSync(tempHome, { recursive: true, force: true });
+    }
+  });
+
+  test('reportOverwriteProtection should block update if status is success', () => {
+    /**
+     * 完了済みタスクへの上書き防止検証
+     * - 既に 'status: success' で提出済みのタスクに対し、別の報告書を提出しようとした場合に
+     *   Error が送出されることを確認する。
+     */
+    const tempHome = path.join(os.tmpdir(), `gemini-overwrite-test-${Date.now()}`);
+    const draftPath = path.join(os.tmpdir(), `tmp_report_overwrite_${Date.now()}.md`);
+    const taskId = "20260311-Completed-Task";
+    const projectName = "overwrite-proj";
+
+    try {
+      const taskDir = path.join(tempHome, '.gemini', 'sub-sessions', projectName, taskId);
+      fs.mkdirSync(taskDir, { recursive: true });
+
+      // 1. すでに success の報告書を置いておく
+      const existingReport = path.join(taskDir, "report.md");
+      fs.writeFileSync(existingReport, "---\nstatus: success\n---");
+
+      // 2. 新しい報告を出そうとする
+      const draftContent = `---\nstatus: failure\ntask_id: PENDING\nsummary: 'retry'\ncommits: []\nnext_actions: []\n---`;
+      fs.writeFileSync(draftPath, draftContent);
+
+      // 3. 呼び出し。Error（メッセージ: already reported as success）を期待
+      assert.throws(() => report(draftPath, taskId, { homeDir: tempHome }), {
+        message: /already reported as success/
+      });
     } finally {
       if (fs.existsSync(draftPath)) fs.unlinkSync(draftPath);
       if (fs.existsSync(tempHome)) fs.rmSync(tempHome, { recursive: true, force: true });

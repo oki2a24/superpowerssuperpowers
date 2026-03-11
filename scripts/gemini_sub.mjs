@@ -250,6 +250,33 @@ export function spawn(localDraftPath, options = {}) {
   return handoffDocument(localDraftPath, targetPath, required, pendingMap);
 }
 
+/**
+ * ワークスペース内の報告書下書きを検証し、グローバル領域へ配置（Handoff）します。
+ */
+export function report(localDraftPath, taskId, options = {}) {
+  const { homeDir = null } = options;
+  const taskDir = findTaskDirectory(taskId, homeDir);
+  if (!taskDir) {
+    throw new Error(`Task directory for ${taskId} not found.`);
+  }
+
+  const targetPath = path.join(taskDir, 'report.md');
+
+  // 1. 上書き防止チェック
+  if (fs.existsSync(targetPath)) {
+    const existingContent = fs.readFileSync(targetPath, 'utf8');
+    if (existingContent.includes('status: success')) {
+      throw new Error(`Task ${taskId} is already reported as success. (Handoff blocked)`);
+    }
+  }
+
+  // 2. Handoff 実行
+  const required = ["task_id", "status", "summary", "commits", "next_actions"];
+  const pendingMap = { "task_id": taskId };
+
+  return handoffDocument(localDraftPath, targetPath, required, pendingMap);
+}
+
 function removeQuotes(val) {
   if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
     return val.slice(1, -1).trim();
