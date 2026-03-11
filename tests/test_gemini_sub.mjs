@@ -11,7 +11,10 @@ import {
   createPayload,
   findTaskDirectory,
   spawn,
-  report
+  report,
+  listSessions,
+  showFile,
+  handleImport
 } from '../scripts/gemini_sub.mjs';
 
 describe('YAML Parser', () => {
@@ -191,7 +194,7 @@ next_actions: []
       // 3. report 呼び出し
       const resultPath = report(draftPath, taskId, { homeDir: tempHome });
 
-      // 4. 検証: ローカル削除とグローバル配置
+      // 4. 検証: ローカル削除 e グローバル配置
       assert.strictEqual(fs.existsSync(draftPath), false);
       assert.strictEqual(fs.existsSync(resultPath), true);
       assert.ok(resultPath.endsWith('report.md'));
@@ -235,6 +238,89 @@ next_actions: []
       });
     } finally {
       if (fs.existsSync(draftPath)) fs.unlinkSync(draftPath);
+      if (fs.existsSync(tempHome)) fs.rmSync(tempHome, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('List and Show Commands', () => {
+  test('listSessions should output session info', () => {
+    const tempHome = path.join(os.tmpdir(), `gemini-list-test-${Date.now()}`);
+    try {
+      const projName = 'list-proj';
+      const taskId = '20260311-LIST-AAAA';
+      const taskDir = path.join(tempHome, '.gemini', 'sub-sessions', projName, taskId);
+      fs.mkdirSync(taskDir, { recursive: true });
+      fs.writeFileSync(path.join(taskDir, 'task.md'), '---\nparent_task_tag: test-tag\n---');
+
+      let output = '';
+      const originalLog = console.log;
+      console.log = (msg) => { output += msg + '\n'; };
+      
+      listSessions(tempHome);
+      
+      console.log = originalLog;
+      assert.ok(output.includes(projName));
+      assert.ok(output.includes(taskId));
+      assert.ok(output.includes('test-tag'));
+    } finally {
+      if (fs.existsSync(tempHome)) fs.rmSync(tempHome, { recursive: true, force: true });
+    }
+  });
+
+  test('showFile should print file content', () => {
+    const tempHome = path.join(os.tmpdir(), `gemini-show-test-${Date.now()}`);
+    try {
+      const taskId = '20260311-SHOW-TASK';
+      const taskDir = path.join(tempHome, '.gemini', 'sub-sessions', 'test-proj', taskId);
+      fs.mkdirSync(taskDir, { recursive: true });
+      const content = '# Task content';
+      fs.writeFileSync(path.join(taskDir, 'task.md'), content);
+
+      let output = '';
+      const originalLog = console.log;
+      console.log = (msg) => { output += msg + '\n'; };
+      
+      showFile(taskId, 'task.md', tempHome);
+      
+      console.log = originalLog;
+      assert.strictEqual(output.trim(), content);
+    } finally {
+      if (fs.existsSync(tempHome)) fs.rmSync(tempHome, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('Import Report', () => {
+  test('handleImport should format and print report info', () => {
+    const tempHome = path.join(os.tmpdir(), `gemini-import-test-${Date.now()}`);
+    try {
+      const taskId = '20260311-IMPORT-WXYZ';
+      const projName = 'test-proj';
+      const reportDir = path.join(tempHome, '.gemini', 'sub-sessions', projName, taskId);
+      fs.mkdirSync(reportDir, { recursive: true });
+      const reportContent = `---
+status: success
+task_id: ${taskId}
+summary: "Import Test"
+commits:
+  - "commit-1"
+next_actions:
+  - "action-1"
+---`;
+      fs.writeFileSync(path.join(reportDir, 'report.md'), reportContent);
+
+      let output = '';
+      const originalLog = console.log;
+      console.log = (msg) => { output += msg + '\n'; };
+      
+      handleImport(taskId, { projectName: projName, homeDir: tempHome });
+      
+      console.log = originalLog;
+      assert.ok(output.includes(`[GPAC IMPORT REPORT: ${taskId}]`));
+      assert.ok(output.includes('Status: success'));
+      assert.ok(output.includes('Summary: Import Test'));
+    } finally {
       if (fs.existsSync(tempHome)) fs.rmSync(tempHome, { recursive: true, force: true });
     }
   });

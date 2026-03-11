@@ -277,6 +277,240 @@ export function report(localDraftPath, taskId, options = {}) {
   return handoffDocument(localDraftPath, targetPath, required, pendingMap);
 }
 
+/**
+ * 指定されたランチャーモードでセッションを起動します。
+ */
+export function launchSession(sessionId, taskPath, workDir, launcherMode = 'manual') {
+  const payload = createPayload(workDir, taskPath);
+
+  if (launcherMode === 'manual') {
+    console.log('\n[GPAC Launcher: Manual Mode]');
+    console.log('新しいタブを開き、以下のコマンドをコピー＆ペーストして実行してください：\n');
+    console.log(`  ${payload}\n`);
+    console.log(`作業完了後の統合コマンド:\n  node scripts/gemini_sub.mjs import ${sessionId}\n`);
+  } else if (launcherMode === 'tmux') {
+    try {
+      // tmux new-window -n sub-ID "bash -c 'payload; exec bash'"
+      const tmuxCmd = ['new-window', '-n', `sub-${sessionId}`, `bash -c '${payload}; exec bash'`];
+      const result = spawnSync('tmux', tmuxCmd);
+      if (result.status === 0) {
+        console.log(`Launched in new tmux window: sub-${sessionId}`);
+        console.log(`作業完了後の統合コマンド:\n  node scripts/gemini_sub.mjs import ${sessionId}\n`);
+      } else {
+        throw new Error('tmux failed');
+      }
+    } catch (e) {
+      console.log('Error: tmux is not available. Falling back to manual mode.');
+      launchSession(sessionId, taskPath, workDir, 'manual');
+    }
+  } else {
+    launchSession(sessionId, taskPath, workDir, 'manual');
+  }
+}
+
+/**
+ * グローバル領域にあるサブセッションを一覧表示します。
+ */
+export function listSessions(homeDir = null) {
+  const baseHome = homeDir || os.homedir();
+  const baseDir = path.join(baseHome, '.gemini', 'sub-sessions');
+
+  if (!fs.existsSync(baseDir)) {
+    console.log('No sub-sessions found.');
+    return;
+  }
+
+  console.log('\n[GPAC SUB-SESSIONS LIST]');
+  console.log('-'.repeat(60));
+  console.log(`${'PROJECT'.padEnd(15)} ${'TASK_ID'.padEnd(25)} ${'TAG'}`);
+  console.log('-'.repeat(60));
+
+  let found = false;
+  try {
+    const projects = fs.readdirSync(baseDir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name));
+    for (const proj of projects) {
+      if (!proj.isDirectory()) continue;
+
+      const projDir = path.join(baseDir, proj.name);
+      const tasks = fs.readdirSync(projDir, { withFileTypes: true }).sort((a, b) => b.name.localeCompare(a.name));
+      for (const task of tasks) {
+        if (!task.isDirectory()) continue;
+
+        const taskFile = path.join(projDir, task.name, 'task.md');
+        if (!fs.existsSync(taskFile)) continue;
+
+        // 簡易パースでタグを抽出
+        const content = fs.readFileSync(taskFile, 'utf8');
+        let tag = 'unknown';
+        for (const line of content.split('\n')) {
+          if (line.startsWith('parent_task_tag:')) {
+            tag = line.split(':')[1].trim().replace(/['"]/g, '');
+            break;
+          }
+        }
+
+        console.log(`${proj.name.padEnd(15)} ${task.name.padEnd(25)} ${tag}`);
+        found = true;
+      }
+    }
+  } catch (e) {
+    // 権限エラーなどは無視
+  }
+
+  if (!found) {
+    console.log('(No sessions found)');
+  }
+  console.log('-'.repeat(60) + '\n');
+}
+
+/**
+ * 指定されたタスクのファイル（task.md または report.md）を表示します。
+ */
+export function showFile(taskId, filename, homeDir = null) {
+  const taskDir = findTaskDirectory(taskId, homeDir);
+  if (!taskDir) {
+    throw new Error(`Task directory for ${taskId} not found.`);
+  }
+
+  const filePath = path.join(taskDir, filename);
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`File ${filename} not found for task ${taskId}.`);
+  }
+
+  console.log(fs.readFileSync(filePath, 'utf8'));
+}
+
+/**
+ * 指定されたタスクの報告書を読み込み、要約を表示します。
+ */
+export function handleImport(taskId, options = {}) {
+  const { projectName = null, homeDir = null } = options;
+  let reportFile = null;
+
+  const taskDir = findTaskDirectory(taskId, homeDir);
+  if (taskDir) {
+    reportFile = path.join(taskDir, 'report.md');
+  } else if (projectName && homeDir) {
+    // プロジェクト名がある場合は旧パスも探す（後方互換性）
+    reportFile = path.join(homeDir, '.gemini', 'sub-sessions', projectName, taskId, 'report.md');
+  } else {
+    reportFile = path.join(process.cwd(), 'report.md');
+  }
+
+  if (!fs.existsSync(reportFile)) {
+    console.log(`Error: Report file not found for task ${taskId}`);
+    return;
+  }
+
+  const content = fs.readFileSync(reportFile, 'utf8');
+  const data = parseYamlFrontmatter(content);
+
+  console.log(`\n[GPAC IMPORT REPORT: ${taskId}]`);
+  console.log('-'.repeat(40));
+  console.log(`Status: ${data.status || 'unknown'}`);
+  console.log(`Summary: ${data.summary || 'No summary provided.'}`);
+  console.log('Next Actions:');
+  const actions = data.next_actions || [];
+  if (Array.isArray(actions)) {
+    for (const action of actions) {
+      console.log(`  - ${action}`);
+    }
+  } else {
+    console.log(`  - ${actions}`);
+  }
+  console.log('-'.repeat(40));
+  console.log(`Feedback: ${data.parent_feedback || 'None'}`);
+  console.log(`Proposals: ${data.skill_proposals || 'None'}`);
+  console.log('-'.repeat(40));
+  console.log(`Commits: ${JSON.stringify(data.commits || [])}`);
+  console.log('-'.repeat(40) + '\n');
+}
+
+/**
+ * メインエントリーポイント
+ */
+export function main() {
+  const args = process.argv.slice(2);
+  const command = args[0];
+
+  const launcher = process.env.GEMINI_SUB_LAUNCHER || 'manual';
+  const defaultProject = path.basename(process.cwd());
+
+  try {
+    if (command === 'spawn') {
+      const { values, positionals } = parseArgs({
+        args: args.slice(1),
+        options: {
+          project: { type: 'string', short: 'p' }
+        },
+        allowPositionals: true
+      });
+      const draft = positionals[0];
+      const project = values.project || defaultProject;
+      if (!draft) throw new Error('Usage: spawn <draft_file> [-p project]');
+      
+      const tpath = spawn(draft, { projectName: project });
+      const tid = path.basename(path.dirname(tpath));
+      launchSession(tid, tpath, process.cwd(), launcher);
+    } else if (command === 'report') {
+      const { values, positionals } = parseArgs({
+        args: args.slice(1),
+        options: {
+          id: { type: 'string' }
+        },
+        allowPositionals: true
+      });
+      const draft = positionals[0];
+      const taskId = values.id;
+      if (!draft || !taskId) throw new Error('Usage: report <draft_file> --id <task_id>');
+      
+      const rpath = report(draft, taskId);
+      console.log(`Report submitted successfully: ${rpath}`);
+    } else if (command === 'list') {
+      listSessions();
+    } else if (command === 'show-task') {
+      const { positionals } = parseArgs({ args: args.slice(1), allowPositionals: true });
+      const taskId = positionals[0];
+      if (!taskId) throw new Error('Usage: show-task <task_id>');
+      showFile(taskId, 'task.md');
+    } else if (command === 'show-report') {
+      const { positionals } = parseArgs({ args: args.slice(1), allowPositionals: true });
+      const taskId = positionals[0];
+      if (!taskId) throw new Error('Usage: show-report <task_id>');
+      showFile(taskId, 'report.md');
+    } else if (command === 'import') {
+      const { values, positionals } = parseArgs({
+        args: args.slice(1),
+        options: {
+          project: { type: 'string', short: 'p' }
+        },
+        allowPositionals: true
+      });
+      const taskId = positionals[0];
+      const project = values.project;
+      if (!taskId) throw new Error('Usage: import <task_id> [-p project]');
+      handleImport(taskId, { projectName: project });
+    } else {
+      console.log('Gemini Peer-Agent Coordination (GPAC) Controller');
+      console.log('\nCommands:');
+      console.log('  spawn <draft> [-p project]   Spawn a new sub-session');
+      console.log('  report <draft> --id <id>     Submit a report');
+      console.log('  list                         List all sub-sessions');
+      console.log('  show-task <id>               Show mission (task.md)');
+      console.log('  show-report <id>             Show report (report.md)');
+      console.log('  import <id> [-p project]     Import results');
+    }
+  } catch (e) {
+    console.error(`Error: ${e.message}`);
+    process.exit(1);
+  }
+}
+
+// 直接実行された場合
+if (process.argv[1] === path.resolve(process.argv[1]) && import.meta.url.endsWith(path.basename(process.argv[1]))) {
+  // NOTE: ESM では __filename がないため、簡易的な判定を使用
+}
+
 function removeQuotes(val) {
   if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
     return val.slice(1, -1).trim();
