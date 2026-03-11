@@ -184,6 +184,72 @@ export function createPayload(workDir, taskPath) {
   return `cd ${workDir} && gemini "${safePrompt}"`;
 }
 
+/**
+ * ローカルの下書きを検証・置換し、グローバル領域へ配置する共通ロジック。
+ */
+export function handoffDocument(localDraftPath, targetPath, requiredKeys, pendingMap) {
+  if (!fs.existsSync(localDraftPath)) {
+    throw new Error(`Draft file not found: ${localDraftPath}`);
+  }
+
+  const content = fs.readFileSync(localDraftPath, 'utf8');
+
+  // 1. バリデーション
+  const data = parseYamlFrontmatter(content);
+  validateFrontmatter(data, requiredKeys, Object.keys(pendingMap));
+
+  // 2. コンテンツの置換 (PENDING -> 実値)
+  let updatedContent = content;
+  for (const [key, value] of Object.entries(pendingMap)) {
+    updatedContent = updatedContent.replace(`${key}: PENDING`, `${key}: ${value}`);
+  }
+
+  // 3. グローバル領域への配置とローカル削除
+  const targetDir = path.dirname(targetPath);
+  if (!fs.existsSync(targetDir)) {
+    fs.mkdirSync(targetDir, { recursive: true });
+  }
+  fs.writeFileSync(targetPath, updatedContent);
+  fs.unlinkSync(localDraftPath);
+
+  return targetPath;
+}
+
+/**
+ * ワークスペース内の下書きファイルを読み込み、検証した上でグローバル領域へ配置（Handoff）します。
+ */
+export function spawn(localDraftPath, options = {}) {
+  const { projectName = null, homeDir = null } = options;
+
+  // コンテキスト情報の収集
+  let currentBranch = 'unknown';
+  try {
+    const gitResult = spawnSync('git', ['branch', '--show-current'], { encoding: 'utf8' });
+    if (gitResult.status === 0) {
+      currentBranch = gitResult.stdout.trim();
+    }
+  } catch (e) {
+    // git が使えない場合は unknown のまま
+  }
+
+  const parentProjectRoot = process.cwd();
+  const taskId = generateTaskId();
+  const resolvedProjectName = projectName || path.basename(parentProjectRoot);
+  const baseHome = homeDir || os.homedir();
+
+  const targetPath = path.join(baseHome, '.gemini', 'sub-sessions', resolvedProjectName, taskId, 'task.md');
+
+  // 必須項目と置換マップ
+  const required = ["task_id", "parent_project_root", "parent_branch", "parent_task_tag", "work_dir", "mission", "steps"];
+  const pendingMap = {
+    "task_id": taskId,
+    "parent_project_root": parentProjectRoot,
+    "parent_branch": currentBranch
+  };
+
+  return handoffDocument(localDraftPath, targetPath, required, pendingMap);
+}
+
 function removeQuotes(val) {
   if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
     return val.slice(1, -1).trim();

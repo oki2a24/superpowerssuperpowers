@@ -9,7 +9,8 @@ import {
   validateFrontmatter,
   generateTaskId,
   createPayload,
-  findTaskDirectory
+  findTaskDirectory,
+  spawn
 } from '../scripts/gemini_sub.mjs';
 
 describe('YAML Parser', () => {
@@ -102,6 +103,57 @@ describe('Helper Functions', () => {
       assert.strictEqual(found, taskDir);
     } finally {
       fs.rmSync(tempHome, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('Spawn Handoff', () => {
+  test('handoffSuccess should create file in global and delete local', () => {
+    /**
+     * 正常な Handoff 方式の spawn 検証
+     * - 下書きファイルの読み取りと検証
+     * - PENDING の実値置換
+     * - グローバル配置とローカル削除
+     */
+    const tempHome = path.join(os.tmpdir(), `gemini-spawn-test-${Date.now()}`);
+    const draftPath = path.join(os.tmpdir(), `tmp_task_draft_${Date.now()}.md`);
+    const projectName = 'handoff-project';
+
+    try {
+      // 1. 下書きの準備
+      const draftContent = `---
+task_id: PENDING
+parent_project_root: PENDING
+parent_branch: PENDING
+parent_task_tag: test-handoff
+work_dir: /abs/path
+mission: "Implement Handoff"
+steps:
+  - Step A
+  - Step B
+---
+# Draft Content`;
+      fs.writeFileSync(draftPath, draftContent);
+
+      // 2. spawn の呼び出し
+      const resultPath = spawn(draftPath, { projectName, homeDir: tempHome });
+
+      // 3. 検証: ローカル下書きが削除されていること (Handoff の完了)
+      assert.strictEqual(fs.existsSync(draftPath), false);
+
+      // 4. 検証: グローバル領域に配置されていること (SSOT への登録)
+      assert.strictEqual(fs.existsSync(resultPath), true);
+      assert.ok(resultPath.includes(projectName));
+
+      // 5. 検証: 内容が置換されていること (コンテキストの注入)
+      const content = fs.readFileSync(resultPath, 'utf8');
+      assert.ok(!content.includes('task_id: PENDING'));
+      assert.ok(!content.includes('parent_project_root: PENDING'));
+      assert.ok(!content.includes('parent_branch: PENDING'));
+      assert.ok(content.includes('parent_task_tag: test-handoff'));
+    } finally {
+      if (fs.existsSync(draftPath)) fs.unlinkSync(draftPath);
+      if (fs.existsSync(tempHome)) fs.rmSync(tempHome, { recursive: true, force: true });
     }
   });
 });
