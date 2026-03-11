@@ -1,3 +1,10 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import crypto from 'node:crypto';
+import { parseArgs } from 'node:util';
+import { spawnSync } from 'node:child_process';
+
 /**
  * Markdown の Frontmatter を抽出し、パースを行います。
  * 
@@ -117,6 +124,64 @@ export function validateFrontmatter(data, requiredKeys, pendingKeys = []) {
   }
 
   return data;
+}
+
+/**
+ * YYYYMMDD-HHMMSS-XXXX 形式のタスク ID を生成します。
+ */
+export function generateTaskId() {
+  const now = new Date();
+  const timestamp = now.getFullYear().toString() +
+    (now.getMonth() + 1).toString().padStart(2, '0') +
+    now.getDate().toString().padStart(2, '0') + '-' +
+    now.getHours().toString().padStart(2, '0') +
+    now.getMinutes().toString().padStart(2, '0') +
+    now.getSeconds().toString().padStart(2, '0');
+  
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let suffix = '';
+  for (let i = 0; i < 4; i++) {
+    suffix += chars.charAt(crypto.randomInt(0, chars.length));
+  }
+  return `${timestamp}-${suffix}`;
+}
+
+/**
+ * ~/.gemini/sub-sessions/ 下から task_id ディレクトリを探し出します。
+ */
+export function findTaskDirectory(taskId, homeDir = null) {
+  const baseHome = homeDir || os.homedir();
+  const baseDir = path.join(baseHome, '.gemini', 'sub-sessions');
+
+  if (!fs.existsSync(baseDir)) {
+    return null;
+  }
+
+  // 全てのプロジェクトディレクトリを走査して task_id を探す
+  try {
+    const projects = fs.readdirSync(baseDir, { withFileTypes: true });
+    for (const proj of projects) {
+      if (proj.isDirectory()) {
+        const taskDir = path.join(baseDir, proj.name, taskId);
+        if (fs.existsSync(taskDir) && fs.statSync(taskDir).isDirectory()) {
+          return taskDir;
+        }
+      }
+    }
+  } catch (e) {
+    // 権限エラーなどは無視して次へ
+  }
+  return null;
+}
+
+/**
+ * 初期プロンプトを含む起動ペイロード（シェルコマンド）を生成します。
+ */
+export function createPayload(workDir, taskPath) {
+  const prompt = `GPAC Protocol: Your mission is defined in a file outside the workspace. Please execute 'cat ${taskPath}' to understand your mission.`;
+  // プロンプト内のクォートをエスケープ
+  const safePrompt = prompt.replace(/"/g, '\\"');
+  return `cd ${workDir} && gemini "${safePrompt}"`;
 }
 
 function removeQuotes(val) {

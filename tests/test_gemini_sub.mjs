@@ -1,7 +1,16 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
 // まだ存在しない、または関数がエクスポートされていないため失敗することを期待
-import { parseYamlFrontmatter, validateFrontmatter } from '../scripts/gemini_sub.mjs';
+import { 
+  parseYamlFrontmatter, 
+  validateFrontmatter,
+  generateTaskId,
+  createPayload,
+  findTaskDirectory
+} from '../scripts/gemini_sub.mjs';
 
 describe('YAML Parser', () => {
   test('should parse simple key-value pairs', () => {
@@ -61,5 +70,38 @@ describe('Frontmatter Validation', () => {
     assert.throws(() => validateFrontmatter(data, required), {
       message: "Key 'steps' must be a non-empty list"
     });
+  });
+});
+
+describe('Helper Functions', () => {
+  test('generateTaskId should return correct format', () => {
+    /** Task ID の形式検証 (YYYYMMDD-HHMMSS-XXXX) */
+    const taskId = generateTaskId();
+    assert.match(taskId, /^\d{8}-\d{6}-[A-Z0-9]{4}$/);
+  });
+
+  test('createPayload should return correct shell command', () => {
+    /** 起動ペイロードの形式検証 */
+    const workDir = '/path/to/workdir';
+    const taskPath = '/path/to/task.md';
+    const payload = createPayload(workDir, taskPath);
+    const expected = `cd ${workDir} && gemini "GPAC Protocol: Your mission is defined in a file outside the workspace. Please execute 'cat ${taskPath}' to understand your mission."`;
+    assert.strictEqual(payload, expected);
+  });
+
+  test('findTaskDirectory should find existing task directory', () => {
+    /** 指定した ID のディレクトリを見つけられるか検証 */
+    const tempHome = path.join(os.tmpdir(), `gemini-test-${Date.now()}`);
+    const taskId = '20260311-TEST-XXXX';
+    const projName = 'test-proj';
+    const taskDir = path.join(tempHome, '.gemini', 'sub-sessions', projName, taskId);
+    
+    try {
+      fs.mkdirSync(taskDir, { recursive: true });
+      const found = findTaskDirectory(taskId, tempHome);
+      assert.strictEqual(found, taskDir);
+    } finally {
+      fs.rmSync(tempHome, { recursive: true, force: true });
+    }
   });
 });
