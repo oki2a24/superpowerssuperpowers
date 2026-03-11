@@ -507,8 +507,9 @@ export function main() {
 }
 
 // 直接実行された場合
-if (process.argv[1] === path.resolve(process.argv[1]) && import.meta.url.endsWith(path.basename(process.argv[1]))) {
-  // NOTE: ESM では __filename がないため、簡易的な判定を使用
+import { fileURLToPath } from 'node:url';
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main();
 }
 
 function removeQuotes(val) {
