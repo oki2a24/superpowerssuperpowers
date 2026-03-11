@@ -82,6 +82,43 @@ export function parseYamlFrontmatter(content) {
   return data;
 }
 
+/**
+ * パース済みの Frontmatter データに対してバリデーションを行います。
+ * 
+ * @param {Object} data パース済みデータ
+ * @param {string[]} requiredKeys 必須キーのリスト
+ * @param {string[]} [pendingKeys=[]] PENDING であるべきキーのリスト
+ * @returns {Object} バリデーション済みのデータ
+ */
+export function validateFrontmatter(data, requiredKeys, pendingKeys = []) {
+  for (const key of requiredKeys) {
+    if (!(key in data)) {
+      throw new Error(`Missing required key: ${key}`);
+    }
+
+    const val = data[key];
+
+    // PENDING チェック
+    if (pendingKeys.includes(key) && val !== 'PENDING') {
+      throw new Error(`Key '${key}' must be 'PENDING'`);
+    }
+
+    // 空値チェック (リスト/文字列両対応)
+    // 試行錯誤の結果：steps は「1つ以上の手順」が必須だが、
+    // commits や next_actions は「作業内容によっては空」もあり得るため、空リスト [] を許容する。
+    if (key === 'steps') {
+      if (!Array.isArray(val) || val.length === 0) {
+        throw new Error("Key 'steps' must be a non-empty list");
+      }
+    } else if (!val && !Array.isArray(val)) {
+      // 空文字列 "" はエラーだが、空リスト [] は受理
+      throw new Error(`Empty value for key: ${key}`);
+    }
+  }
+
+  return data;
+}
+
 function removeQuotes(val) {
   if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
     return val.slice(1, -1).trim();
