@@ -4,8 +4,8 @@
 - [x] Task 1: テスト環境の準備と最初の失敗するテスト (RED)
 - [x] Task 2: resetSkillFile の基本実装 (GREEN)
 - [x] Task 3: エッジケースのテストと実装の洗練 (RED/GREEN)
-- [/] Task 4: CLI インターフェースの完成 (RED/GREEN)
-- [ ] RED: tests/test_reset_skill.mjs に CLI 用のテストを追加
-- [ ] GREEN: scripts/reset_skill.mjs に main 関数を実装
-- [ ] REFACTOR: コメントの洗練とエントリポイントのガード追加
-- [ ] COMMIT: 変更のコミット
+- [x] Task 4: CLI インターフェースの完成 (RED/GREEN)
+- [x] RED: tests/test_reset_skill.mjs に CLI 用のテストを追加
+- [x] GREEN: scripts/reset_skill.mjs に main 関数を実装
+- [x] REFACTOR: コメントの洗練とエントリポイントのガード追加
+- [x] COMMIT: 変更のコミット
