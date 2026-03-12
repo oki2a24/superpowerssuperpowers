@@ -176,6 +176,9 @@ test('todo.mjs core functions', async (t) => {
           start('Task 1');
         }, /process.exit called with 1/);
 
+        // 正確なエラーメッセージと改行の検証
+        assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], 'ERROR: 他のタスクが実行中です。先に完了させてください。\n');
+
       } finally {
         if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
       }
@@ -202,9 +205,8 @@ test('todo.mjs core functions', async (t) => {
           start('Non-existent Task');
         }, /process.exit called with 1/);
 
-        assert.ok(mockWrite.mock.calls.some(call => 
-          call.arguments[0].includes('Error: Task matching "Non-existent Task" not found')
-        ));
+        // 正確なエラーメッセージ（シングルクォート）と改行の検証
+        assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], "Error: Task matching 'Non-existent Task' not found or already started.\n");
       } finally {
         if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
         mockExit.mock.restore();
@@ -226,9 +228,8 @@ test('todo.mjs core functions', async (t) => {
         
         start('Task 1');
         
-        assert.ok(mockWrite.mock.calls.some(call => 
-          call.arguments[0].includes('Started: Task 1')
-        ));
+        // 正確なメッセージと改行の検証
+        assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], 'Started: Task 1\n');
       } finally {
         if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
         mockWrite.mock.restore();
@@ -242,6 +243,7 @@ test('todo.mjs core functions', async (t) => {
       const mockSpawnSync = mock.method(cp, 'spawnSync', () => {
         return { stdout: 'test-branch\n', status: 0 };
       });
+      const mockWrite = mock.method(process.stdout, 'write', () => {});
       const expectedPath = path.join('.gemini/tasks', 'TODO-test-branch.md');
 
       try {
@@ -255,6 +257,7 @@ test('todo.mjs core functions', async (t) => {
         assert.ok(content.includes('- [x] Task 1\n'));
       } finally {
         if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
+        mockWrite.mock.restore();
       }
       mockSpawnSync.mock.restore();
     });
@@ -273,11 +276,38 @@ test('todo.mjs core functions', async (t) => {
         
         done();
         
-        assert.ok(mockWrite.mock.calls.some(call => 
-          call.arguments[0].includes('Task marked as DONE.')
-        ));
+        // 正確なメッセージと改行の検証
+        assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], 'Task marked as DONE.\n');
       } finally {
         if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
+        mockWrite.mock.restore();
+        mockSpawnSync.mock.restore();
+      }
+    });
+
+    await t.test('進行中のタスクがない場合にエラーメッセージを表示して process.exit(1) を呼ぶことを検証', (t) => {
+      const mockSpawnSync = mock.method(cp, 'spawnSync', () => {
+        return { stdout: 'test-branch\n', status: 0 };
+      });
+      const mockExit = mock.method(process, 'exit', (code) => {
+        throw new Error(`process.exit called with ${code}`);
+      });
+      const mockWrite = mock.method(process.stdout, 'write', () => {});
+      const expectedPath = path.join('.gemini/tasks', 'TODO-test-branch.md');
+
+      try {
+        init('Test Task');
+        add('Task 1');
+        
+        assert.throws(() => {
+          done();
+        }, /process.exit called with 1/);
+
+        // 正確なエラーメッセージと改行の検証
+        assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], 'No in-progress task found to mark as DONE.\n');
+      } finally {
+        if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
+        mockExit.mock.restore();
         mockWrite.mock.restore();
         mockSpawnSync.mock.restore();
       }

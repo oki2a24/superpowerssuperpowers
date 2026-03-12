@@ -106,13 +106,13 @@ export function start(pattern) {
 
   if (!found) {
     // 一致するタスクが見つからない、または既に開始されている場合
-    process.stdout.write(`Error: Task matching "${pattern}" not found or already started.\n`);
+    process.stdout.write(`Error: Task matching '${pattern}' not found or already started.\n`);
     process.exit(1);
   }
 
   fs.writeFileSync(todoPath, newLines.join('\n'));
   // 成功メッセージを表示
-  process.stdout.write(`Started: ${pattern}`);
+  process.stdout.write(`Started: ${pattern}\n`);
 }
 
 /**
@@ -128,14 +128,14 @@ export function done() {
   const content = fs.readFileSync(todoPath, 'utf8');
   if (!content.includes('[/]')) {
     // 進行中のタスクが見つからない場合
-    process.stdout.write("No in-progress task found to mark as DONE.");
-    return;
+    process.stdout.write("No in-progress task found to mark as DONE.\n");
+    process.exit(1);
   }
 
   const newContent = content.replace(/\[\/\]/, '[x]');
   fs.writeFileSync(todoPath, newContent);
   // 成功メッセージを表示
-  process.stdout.write("Task marked as DONE.");
+  process.stdout.write("Task marked as DONE.\n");
 }
 
 // メインロジック：直接実行された場合にコマンドを処理します。
