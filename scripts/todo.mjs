@@ -1,6 +1,7 @@
 import cp from 'node:child_process';
 import path from 'node:path';
 import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 const TASK_DIR = ".gemini/tasks";
 
@@ -71,4 +72,103 @@ export function show() {
   const content = fs.readFileSync(todoPath, 'utf8').trimEnd();
   const fileName = path.basename(todoPath);
   process.stdout.write(`\n--- ${fileName} ---\n${content}`);
+}
+
+/**
+ * 指定されたパターンにマッチする最初の未完了タスクを開始状態 [/] にします。
+ * すでに実行中のタスクがある場合はエラー終了します。
+ * 
+ * @param {string} pattern - 検索するタスクのパターン。
+ */
+export function start(pattern) {
+  const todoPath = getTodoPath();
+  if (!fs.existsSync(todoPath)) {
+    process.stdout.write(`Error: ${todoPath} not found.\n`);
+    process.exit(1);
+  }
+
+  const content = fs.readFileSync(todoPath, 'utf8');
+  if (content.includes('[/]')) {
+    process.stdout.write("ERROR: 他のタスクが実行中です。先に完了させてください。\n");
+    process.exit(1);
+  }
+
+  const lines = content.split('\n');
+  let found = false;
+  const regex = new RegExp(pattern);
+  const newLines = lines.map(line => {
+    if (!found && line.includes('[ ]') && regex.test(line)) {
+      found = true;
+      return line.replace('[ ]', '[/]');
+    }
+    return line;
+  });
+
+  if (!found) {
+    process.stdout.write(`Error: Task matching "${pattern}" not found or already started.\n`);
+    process.exit(1);
+  }
+
+  fs.writeFileSync(todoPath, newLines.join('\n'));
+}
+
+/**
+ * 進行中のタスク ([/]) を完了状態 ([x]) に変更します。
+ */
+export function done() {
+  const todoPath = getTodoPath();
+  if (!fs.existsSync(todoPath)) {
+    process.stdout.write(`Error: ${todoPath} not found.\n`);
+    process.exit(1);
+  }
+
+  const content = fs.readFileSync(todoPath, 'utf8');
+  if (!content.includes('[/]')) {
+    process.stdout.write("No in-progress task found to mark as DONE.\n");
+    return;
+  }
+
+  const newContent = content.replace(/\[\/\]/, '[x]');
+  fs.writeFileSync(todoPath, newContent);
+}
+
+// メインロジック：直接実行された場合にコマンドを処理します。
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isMain) {
+  const command = process.argv[2];
+  const args = process.argv.slice(3);
+
+  switch (command) {
+    case 'init':
+      if (args.length < 1) {
+        process.stdout.write("Usage: todo.mjs init <title>\n");
+        process.exit(1);
+      }
+      init(args[0]);
+      break;
+    case 'add':
+      if (args.length < 1) {
+        process.stdout.write("Usage: todo.mjs add <task>\n");
+        process.exit(1);
+      }
+      add(args[0]);
+      break;
+    case 'show':
+      show();
+      break;
+    case 'start':
+      if (args.length < 1) {
+        process.stdout.write("Usage: todo.mjs start <pattern>\n");
+        process.exit(1);
+      }
+      start(args[0]);
+      break;
+    case 'done':
+      done();
+      break;
+    default:
+      process.stdout.write("Usage: todo.mjs [init|add|show|start|done] [args...]\n");
+      process.exit(1);
+  }
 }
