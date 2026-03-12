@@ -2,7 +2,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { resetSkillFile } from '../scripts/reset_skill.mjs';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const SCRIPT_PATH = path.resolve(__dirname, '../scripts/reset_skill.mjs');
 
 test('## ローカル・アダプテーション (Gemini固有) セクションとそれ以降が削除されることをテストする。', (t) => {
   const tempFile = path.join(process.cwd(), 'tests/temp_skill_basic.md');
@@ -77,4 +82,10 @@ Extra info.
   const updatedContent = fs.readFileSync(tempFile, 'utf8');
   const expected = `# Header\nContent\n`;
   assert.strictEqual(updatedContent, expected, '複数の改行が1つに集約されるべきです');
+});
+
+test('CLI: 引数なしで実行された場合に終了コード 1 と使用法を表示することをテストする。', () => {
+  const result = spawnSync('node', [SCRIPT_PATH], { encoding: 'utf8' });
+  assert.strictEqual(result.status, 1, '引数なしの場合は終了コード 1 を返すべきです');
+  assert.match(result.stdout + result.stderr, /使用法:/, '標準出力または標準エラーに使用法が表示されるべきです');
 });

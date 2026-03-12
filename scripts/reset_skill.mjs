@@ -1,4 +1,6 @@
 import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const TARGET_HEADER = "## ローカル・アダプテーション (Gemini固有)";
 
@@ -33,4 +35,36 @@ export function resetSkillFile(filePath) {
 
   fs.writeFileSync(filePath, newContent);
   return true;
+}
+
+/**
+ * CLI のエントリポイント。
+ */
+function main() {
+  const args = process.argv.slice(2);
+  if (args.length === 0) {
+    console.error("使用法: node scripts/reset_skill.mjs <SKILL_FILE_PATH>");
+    process.exit(1);
+  }
+
+  const filePath = args[0];
+  const success = resetSkillFile(filePath);
+
+  if (success) {
+    console.log(`リセット成功: ${filePath}`);
+  } else {
+    console.error(`リセット失敗（セクション未検出またはファイル不在）: ${filePath}`);
+    process.exit(1);
+  }
+}
+
+// エントリポイントのガード
+const scriptPath = fileURLToPath(import.meta.url);
+const isMain = process.argv[1] && (
+  process.argv[1] === scriptPath || 
+  path.resolve(process.argv[1]) === scriptPath
+);
+
+if (isMain) {
+  main();
 }
