@@ -71,14 +71,16 @@ export function show() {
   }
   const content = fs.readFileSync(todoPath, 'utf8').trimEnd();
   const fileName = path.basename(todoPath);
-  process.stdout.write(`\n--- ${fileName} ---\n${content}`);
+  // ヘッダーとコンテンツを改行なしで連結
+  process.stdout.write(`\n--- ${fileName} ---${content}`);
 }
 
 /**
  * 指定されたパターンにマッチする最初の未完了タスクを開始状態 [/] にします。
- * すでに実行中のタスクがある場合はエラー終了します。
  * 
  * @param {string} pattern - 検索するタスクのパターン。
+ * @throws {Error} TODOファイルが存在しない場合や、すでに実行中のタスクがある場合、
+ *                 または一致するタスクが見つからない場合に process.exit(1) を呼び出します。
  */
 export function start(pattern) {
   const todoPath = getTodoPath();
@@ -117,6 +119,9 @@ export function start(pattern) {
 
 /**
  * 進行中のタスク ([/]) を完了状態 ([x]) に変更します。
+ * 
+ * @throws {Error} TODOファイルが存在しない場合に process.exit(1) を呼び出します。
+ *                 進行中のタスクがない場合はメッセージを表示して正常終了（終了コード 0）します。
  */
 export function done() {
   const todoPath = getTodoPath();
@@ -127,9 +132,9 @@ export function done() {
 
   const content = fs.readFileSync(todoPath, 'utf8');
   if (!content.includes('[/]')) {
-    // 進行中のタスクが見つからない場合
+    // 進行中のタスクが見つからない場合（正常終了）
     process.stdout.write("No in-progress task found to mark as DONE.\n");
-    process.exit(1);
+    return;
   }
 
   const newContent = content.replace(/\[\/\]/, '[x]');

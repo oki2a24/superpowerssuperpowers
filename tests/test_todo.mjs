@@ -109,7 +109,8 @@ test('todo.mjs core functions', async (t) => {
 
         assert.ok(mockWrite.mock.callCount() >= 1);
         const lastCall = mockWrite.mock.calls[mockWrite.mock.callCount() - 1];
-        assert.ok(lastCall.arguments[0].includes('--- TODO-test-branch.md ---'));
+        // Python版と同様にヘッダーとコンテンツの間に改行を入れない
+        assert.ok(lastCall.arguments[0].startsWith('\n--- TODO-test-branch.md ---# TASK: Shopping'));
         assert.ok(lastCall.arguments[0].includes('- [ ] Apples'));
       } finally {
         if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
@@ -127,6 +128,7 @@ test('todo.mjs core functions', async (t) => {
       show();
 
       assert.ok(mockWrite.mock.callCount() >= 1);
+      // Python版は改行なしで終了
       assert.strictEqual(mockWrite.mock.calls[0].arguments[0], 'No active TODO for this branch.');
 
       mockWrite.mock.restore();
@@ -285,7 +287,7 @@ test('todo.mjs core functions', async (t) => {
       }
     });
 
-    await t.test('進行中のタスクがない場合にエラーメッセージを表示して process.exit(1) を呼ぶことを検証', (t) => {
+    await t.test('進行中のタスクがない場合にメッセージを表示し、正常終了することを検証', (t) => {
       const mockSpawnSync = mock.method(cp, 'spawnSync', () => {
         return { stdout: 'test-branch\n', status: 0 };
       });
@@ -299,11 +301,10 @@ test('todo.mjs core functions', async (t) => {
         init('Test Task');
         add('Task 1');
         
-        assert.throws(() => {
-          done();
-        }, /process.exit called with 1/);
+        // process.exit(1) が呼ばれないことを検証
+        done();
 
-        // 正確なエラーメッセージと改行の検証
+        // 正確なメッセージと改行の検証
         assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], 'No in-progress task found to mark as DONE.\n');
       } finally {
         if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
