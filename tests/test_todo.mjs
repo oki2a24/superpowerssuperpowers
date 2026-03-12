@@ -179,7 +179,7 @@ test('todo.mjs core functions', async (t) => {
         }, /process.exit called with 1/);
 
         // 正確なエラーメッセージと改行の検証
-        assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], 'ERROR: 他のタスクが実行中です。先に完了させてください。\n');
+        assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], 'ERROR: 他のタスクが実行中です。先に完了させてください。');
 
       } finally {
         if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
@@ -208,7 +208,7 @@ test('todo.mjs core functions', async (t) => {
         }, /process.exit called with 1/);
 
         // 正確なエラーメッセージ（シングルクォート）と改行の検証
-        assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], "Error: Task matching 'Non-existent Task' not found or already started.\n");
+        assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], "Error: Task matching 'Non-existent Task' not found or already started.");
       } finally {
         if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
         mockExit.mock.restore();
@@ -231,7 +231,7 @@ test('todo.mjs core functions', async (t) => {
         start('Task 1');
         
         // 正確なメッセージと改行の検証
-        assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], 'Started: Task 1\n');
+        assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], 'Started: Task 1');
       } finally {
         if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
         mockWrite.mock.restore();
@@ -279,7 +279,7 @@ test('todo.mjs core functions', async (t) => {
         done();
         
         // 正確なメッセージと改行の検証
-        assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], 'Task marked as DONE.\n');
+        assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], 'Task marked as DONE.');
       } finally {
         if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
         mockWrite.mock.restore();
@@ -305,12 +305,84 @@ test('todo.mjs core functions', async (t) => {
         done();
 
         // 正確なメッセージと改行の検証
-        assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], 'No in-progress task found to mark as DONE.\n');
+        assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], 'No in-progress task found to mark as DONE.');
       } finally {
         if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
         mockExit.mock.restore();
         mockWrite.mock.restore();
         mockSpawnSync.mock.restore();
+      }
+    });
+  });
+
+  await t.test('todo.mjs CLI behavior', async (t) => {
+    const scriptPath = path.resolve('scripts/todo.mjs');
+
+    await t.test('引数なしの場合に終了コード 1 と Usage を表示する', () => {
+      const result = cp.spawnSync('node', [scriptPath], { encoding: 'utf8' });
+      assert.strictEqual(result.status, 1);
+      assert.strictEqual(result.stdout, 'Usage: todo.py [init|add|start|done|show] [args]');
+    });
+
+    await t.test('無効なコマンドの場合に終了コード 1 と Usage を表示する', () => {
+      const result = cp.spawnSync('node', [scriptPath, 'invalid'], { encoding: 'utf8' });
+      assert.strictEqual(result.status, 1);
+      assert.strictEqual(result.stdout, 'Usage: todo.py [init|add|start|done|show] [args]');
+    });
+
+    await t.test('init 引数不足の場合に終了コード 1 と Usage を表示する', () => {
+      const result = cp.spawnSync('node', [scriptPath, 'init'], { encoding: 'utf8' });
+      assert.strictEqual(result.status, 1);
+      assert.strictEqual(result.stdout, 'Usage: todo.py init <title>');
+    });
+
+    await t.test('add 引数不足の場合に終了コード 1 と Usage を表示する', () => {
+      const result = cp.spawnSync('node', [scriptPath, 'add'], { encoding: 'utf8' });
+      assert.strictEqual(result.status, 1);
+      assert.strictEqual(result.stdout, 'Usage: todo.py add <task>');
+    });
+
+    await t.test('start 引数不足の場合に終了コード 1 と Usage を表示する', () => {
+      const result = cp.spawnSync('node', [scriptPath, 'start'], { encoding: 'utf8' });
+      assert.strictEqual(result.status, 1);
+      assert.strictEqual(result.stdout, 'Usage: todo.py start <pattern>');
+    });
+
+    await t.test('CLI 経由で init, add, start, done, show が一連の動作として成功する', () => {
+      const branchName = getBranchName();
+      const expectedPath = path.join('.gemini/tasks', `TODO-${branchName}.md`);
+      
+      try {
+        // init
+        let result = cp.spawnSync('node', [scriptPath, 'init', 'CLI Test'], { encoding: 'utf8' });
+        assert.strictEqual(result.status, 0);
+
+        // add
+        result = cp.spawnSync('node', [scriptPath, 'add', 'Task from CLI'], { encoding: 'utf8' });
+        assert.strictEqual(result.status, 0);
+
+        // start
+        result = cp.spawnSync('node', [scriptPath, 'start', 'Task from CLI'], { encoding: 'utf8' });
+        assert.strictEqual(result.status, 0);
+        assert.ok(result.stdout.includes('Started: Task from CLI'));
+
+        // show
+        result = cp.spawnSync('node', [scriptPath, 'show'], { encoding: 'utf8' });
+        assert.strictEqual(result.status, 0);
+        assert.ok(result.stdout.includes('Task from CLI'));
+        assert.ok(result.stdout.includes('[/]'));
+
+        // done
+        result = cp.spawnSync('node', [scriptPath, 'done'], { encoding: 'utf8' });
+        assert.strictEqual(result.status, 0);
+        assert.ok(result.stdout.includes('Task marked as DONE.'));
+
+        // verify final state
+        const content = fs.readFileSync(expectedPath, 'utf8');
+        assert.ok(content.includes('[x] Task from CLI'));
+
+      } finally {
+        if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
       }
     });
   });

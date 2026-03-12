@@ -79,19 +79,17 @@ export function show() {
  * 指定されたパターンにマッチする最初の未完了タスクを開始状態 [/] にします。
  * 
  * @param {string} pattern - 検索するタスクのパターン。
- * @throws {Error} TODOファイルが存在しない場合や、すでに実行中のタスクがある場合、
- *                 または一致するタスクが見つからない場合に process.exit(1) を呼び出します。
  */
 export function start(pattern) {
   const todoPath = getTodoPath();
   if (!fs.existsSync(todoPath)) {
-    process.stdout.write(`Error: ${todoPath} not found.\n`);
+    process.stdout.write(`Error: ${todoPath} not found.`);
     process.exit(1);
   }
 
   const content = fs.readFileSync(todoPath, 'utf8');
   if (content.includes('[/]')) {
-    process.stdout.write("ERROR: 他のタスクが実行中です。先に完了させてください。\n");
+    process.stdout.write("ERROR: 他のタスクが実行中です。先に完了させてください。");
     process.exit(1);
   }
 
@@ -108,39 +106,39 @@ export function start(pattern) {
 
   if (!found) {
     // 一致するタスクが見つからない、または既に開始されている場合
-    process.stdout.write(`Error: Task matching '${pattern}' not found or already started.\n`);
+    process.stdout.write(`Error: Task matching '${pattern}' not found or already started.`);
     process.exit(1);
   }
 
   fs.writeFileSync(todoPath, newLines.join('\n'));
-  // 成功メッセージを表示
-  process.stdout.write(`Started: ${pattern}\n`);
+  // 成功メッセージを表示 (改行なし)
+  process.stdout.write(`Started: ${pattern}`);
 }
 
 /**
  * 進行中のタスク ([/]) を完了状態 ([x]) に変更します。
- * 
- * @throws {Error} TODOファイルが存在しない場合に process.exit(1) を呼び出します。
- *                 進行中のタスクがない場合はメッセージを表示して正常終了（終了コード 0）します。
  */
 export function done() {
   const todoPath = getTodoPath();
   if (!fs.existsSync(todoPath)) {
-    process.stdout.write(`Error: ${todoPath} not found.\n`);
+    process.stdout.write(`Error: ${todoPath} not found.`);
     process.exit(1);
   }
 
   const content = fs.readFileSync(todoPath, 'utf8');
   if (!content.includes('[/]')) {
-    // 進行中のタスクが見つからない場合（正常終了）
-    process.stdout.write("No in-progress task found to mark as DONE.\n");
+    // 進行中のタスクが見つからない場合
+    process.stdout.write("No in-progress task found to mark as DONE.");
     return;
   }
 
-  const newContent = content.replace(/\[\/\]/, '[x]');
-  fs.writeFileSync(todoPath, newContent);
-  // 成功メッセージを表示
-  process.stdout.write("Task marked as DONE.\n");
+  const newLines = content.split('\n').map(line => {
+    return line.replace('[ / ]', '[x]').replace('[/]', '[x]');
+  });
+  
+  fs.writeFileSync(todoPath, newLines.join('\n'));
+  // 成功メッセージを表示 (改行なし)
+  process.stdout.write("Task marked as DONE.");
 }
 
 // メインロジック：直接実行された場合にコマンドを処理します。
@@ -150,27 +148,29 @@ if (isMain) {
   const command = process.argv[2];
   const args = process.argv.slice(3);
 
+  if (!command) {
+    process.stdout.write("Usage: todo.py [init|add|start|done|show] [args]");
+    process.exit(1);
+  }
+
   switch (command) {
     case 'init':
       if (args.length < 1) {
-        process.stdout.write("Usage: todo.mjs init <title>\n");
+        process.stdout.write("Usage: todo.py init <title>");
         process.exit(1);
       }
       init(args[0]);
       break;
     case 'add':
       if (args.length < 1) {
-        process.stdout.write("Usage: todo.mjs add <task>\n");
+        process.stdout.write("Usage: todo.py add <task>");
         process.exit(1);
       }
       add(args[0]);
       break;
-    case 'show':
-      show();
-      break;
     case 'start':
       if (args.length < 1) {
-        process.stdout.write("Usage: todo.mjs start <pattern>\n");
+        process.stdout.write("Usage: todo.py start <pattern>");
         process.exit(1);
       }
       start(args[0]);
@@ -178,8 +178,11 @@ if (isMain) {
     case 'done':
       done();
       break;
+    case 'show':
+      show();
+      break;
     default:
-      process.stdout.write("Usage: todo.mjs [init|add|show|start|done] [args...]\n");
+      process.stdout.write("Usage: todo.py [init|add|start|done|show] [args]");
       process.exit(1);
   }
 }
