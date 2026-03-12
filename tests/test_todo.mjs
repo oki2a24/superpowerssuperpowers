@@ -183,6 +183,58 @@ test('todo.mjs core functions', async (t) => {
       mockWrite.mock.restore();
       mockSpawnSync.mock.restore();
     });
+
+    await t.test('start で一致するタスクが見つからない場合に、エラーメッセージを表示して process.exit(1) を呼ぶことを検証', (t) => {
+      const mockSpawnSync = mock.method(cp, 'spawnSync', () => {
+        return { stdout: 'test-branch\n', status: 0 };
+      });
+      const mockExit = mock.method(process, 'exit', (code) => {
+        throw new Error(`process.exit called with ${code}`);
+      });
+      const mockWrite = mock.method(process.stdout, 'write', () => {});
+      const expectedPath = path.join('.gemini/tasks', 'TODO-test-branch.md');
+
+      try {
+        init('Test Task');
+        add('Task 1');
+        
+        assert.throws(() => {
+          start('Non-existent Task');
+        }, /process.exit called with 1/);
+
+        assert.ok(mockWrite.mock.calls.some(call => 
+          call.arguments[0].includes('Error: Task matching "Non-existent Task" not found')
+        ));
+      } finally {
+        if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
+        mockExit.mock.restore();
+        mockWrite.mock.restore();
+        mockSpawnSync.mock.restore();
+      }
+    });
+
+    await t.test('start 成功時に Started: <pattern> を標準出力に表示することを検証', (t) => {
+      const mockSpawnSync = mock.method(cp, 'spawnSync', () => {
+        return { stdout: 'test-branch\n', status: 0 };
+      });
+      const mockWrite = mock.method(process.stdout, 'write', () => {});
+      const expectedPath = path.join('.gemini/tasks', 'TODO-test-branch.md');
+
+      try {
+        init('Test Task');
+        add('Task 1');
+        
+        start('Task 1');
+        
+        assert.ok(mockWrite.mock.calls.some(call => 
+          call.arguments[0].includes('Started: Task 1')
+        ));
+      } finally {
+        if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
+        mockWrite.mock.restore();
+        mockSpawnSync.mock.restore();
+      }
+    });
   });
 
   await t.test('done', async (t) => {
@@ -205,6 +257,30 @@ test('todo.mjs core functions', async (t) => {
         if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
       }
       mockSpawnSync.mock.restore();
+    });
+
+    await t.test('done 成功時に Task marked as DONE. を標準出力に表示することを検証', (t) => {
+      const mockSpawnSync = mock.method(cp, 'spawnSync', () => {
+        return { stdout: 'test-branch\n', status: 0 };
+      });
+      const mockWrite = mock.method(process.stdout, 'write', () => {});
+      const expectedPath = path.join('.gemini/tasks', 'TODO-test-branch.md');
+
+      try {
+        init('Test Task');
+        add('Task 1');
+        start('Task 1');
+        
+        done();
+        
+        assert.ok(mockWrite.mock.calls.some(call => 
+          call.arguments[0].includes('Task marked as DONE.')
+        ));
+      } finally {
+        if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
+        mockWrite.mock.restore();
+        mockSpawnSync.mock.restore();
+      }
     });
   });
 });
