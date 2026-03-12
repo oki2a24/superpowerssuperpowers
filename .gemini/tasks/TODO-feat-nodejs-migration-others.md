@@ -1,0 +1,11 @@
+# TASK: reset_skill.mjs 実装
+- Branch: feat-nodejs-migration-others
+- Created: 2026-03-12
+- [x] Task 1: テスト環境の準備と最初の失敗するテスト (RED)
+- [x] Task 2: resetSkillFile の基本実装 (GREEN)
+- [x] Task 3: エッジケースのテストと実装の洗練 (RED/GREEN)
+- [x] Task 4: CLI インターフェースの完成 (RED/GREEN)
+- [ ] RED: tests/test_reset_skill.mjs にエッジケースのテストを追加
+- [x] GREEN: tests/test_reset_skill.mjs のテストをパスさせるための実装の洗練
+- [x] REFACTOR: コードのクリーンアップと知見の還元
+- [/] COMMIT: 変更のコミット
