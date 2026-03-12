@@ -6,7 +6,7 @@ import path from 'node:path';
 import { mock } from 'node:test';
 
 // scripts/todo.mjs を import する
-import { getBranchName, getTodoPath, init, add, show, start, done } from '../scripts/todo.mjs';
+import { getBranchName, getTodoPath, init, add, show, start, done, main } from '../scripts/todo.mjs';
 
 test('todo.mjs core functions', async (t) => {
   const tmpTasksDir = path.join(process.cwd(), 'tests/tmp_tasks');
@@ -312,6 +312,41 @@ test('todo.mjs core functions', async (t) => {
         mockWrite.mock.restore();
         mockSpawnSync.mock.restore();
       }
+    });
+  });
+
+  await t.test('main', async (t) => {
+    await t.test('引数なしで Usage を出力し、終了コード 1 で終了する', (t) => {
+      const mockExit = mock.method(process, 'exit', (code) => {
+        throw new Error(`process.exit called with ${code}`);
+      });
+      const mockWrite = mock.method(process.stdout, 'write', () => {});
+
+      assert.throws(() => {
+        main(['node', 'todo.mjs']);
+      }, /process.exit called with 1/);
+
+      assert.strictEqual(mockWrite.mock.calls[0].arguments[0], 'Usage: todo.py [init|add|start|done|show] [args]');
+
+      mockExit.mock.restore();
+      mockWrite.mock.restore();
+    });
+
+    await t.test('init コマンドを正しく呼び出す', (t) => {
+      const mockSpawnSync = mock.method(cp, 'spawnSync', () => {
+        return { stdout: 'test-branch\n', status: 0 };
+      });
+      const expectedPath = path.join('.gemini/tasks', 'TODO-test-branch.md');
+      
+      try {
+        main(['node', 'todo.mjs', 'init', 'Main Test']);
+        assert.ok(fs.existsSync(expectedPath));
+        const content = fs.readFileSync(expectedPath, 'utf8');
+        assert.ok(content.includes('# TASK: Main Test'));
+      } finally {
+        if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
+      }
+      mockSpawnSync.mock.restore();
     });
   });
 

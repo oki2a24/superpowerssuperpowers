@@ -141,12 +141,15 @@ export function done() {
   process.stdout.write("Task marked as DONE.");
 }
 
-// メインロジック：直接実行された場合にコマンドを処理します。
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
-
-if (isMain) {
-  const command = process.argv[2];
-  const args = process.argv.slice(3);
+/**
+ * CLI エントリポイント。引数を解析し、各コマンドを実行します。
+ * Python 版の構造を忠実に移植しています。
+ * 
+ * @param {string[]} argv - コマンドライン引数の配列。
+ */
+export function main(argv = process.argv) {
+  const command = argv[2];
+  const args = argv.slice(3);
 
   if (!command) {
     process.stdout.write("Usage: todo.py [init|add|start|done|show] [args]");
@@ -185,4 +188,11 @@ if (isMain) {
       process.stdout.write("Usage: todo.py [init|add|start|done|show] [args]");
       process.exit(1);
   }
+}
+
+// メインロジック：直接実行された場合にコマンドを処理します。
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isMain) {
+  main();
 }
