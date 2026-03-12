@@ -89,3 +89,26 @@ test('CLI: 引数なしで実行された場合に終了コード 1 と使用法
   assert.strictEqual(result.status, 1, '引数なしの場合は終了コード 1 を返すべきです');
   assert.match(result.stdout + result.stderr, /使用法:/, '標準出力または標準エラーに使用法が表示されるべきです');
 });
+
+test('CLI: 有効なファイルパス（ターゲットセクションあり）で実行した場合、終了コード 0 でリセットされることをテストする。', (t) => {
+  const tempFile = path.join(process.cwd(), 'tests/temp_cli_success.md');
+  const content = `# Title\nContent\n\n## ローカル・アダプテーション (Gemini固有)\nAdapting...\n`;
+  fs.writeFileSync(tempFile, content);
+  t.after(() => { if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile); });
+
+  const result = spawnSync('node', [SCRIPT_PATH, tempFile], { encoding: 'utf8' });
+  
+  assert.strictEqual(result.status, 0, '正常終了時は終了コード 0 を返すべきです');
+  assert.match(result.stdout, /リセット成功:/, '成功メッセージが表示されるべきです');
+  
+  const updatedContent = fs.readFileSync(tempFile, 'utf8');
+  assert.strictEqual(updatedContent, `# Title\nContent\n`, 'ファイルが正しくリセットされているべきです');
+});
+
+test('CLI: 存在しないファイルパスで実行した場合、終了コード 1 とエラーメッセージを表示することをテストする。', () => {
+  const nonExistentFile = path.join(process.cwd(), 'tests/non_existent_cli.md');
+  const result = spawnSync('node', [SCRIPT_PATH, nonExistentFile], { encoding: 'utf8' });
+  
+  assert.strictEqual(result.status, 1, 'エラー時は終了コード 1 を返すべきです');
+  assert.match(result.stderr, /リセット失敗/, 'エラーメッセージが表示されるべきです');
+});

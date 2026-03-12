@@ -43,17 +43,29 @@ export function resetSkillFile(filePath) {
 function main() {
   const args = process.argv.slice(2);
   if (args.length === 0) {
-    console.error("使用法: node scripts/reset_skill.mjs <SKILL_FILE_PATH>");
+    console.error("使用法: node scripts/reset_skill.mjs <SKILL_FILE_PATH> ...");
     process.exit(1);
   }
 
-  const filePath = args[0];
-  const success = resetSkillFile(filePath);
+  let overallSuccess = true;
 
-  if (success) {
-    console.log(`リセット成功: ${filePath}`);
-  } else {
-    console.error(`リセット失敗（セクション未検出またはファイル不在）: ${filePath}`);
+  for (const filePath of args) {
+    try {
+      const success = resetSkillFile(filePath);
+
+      if (success) {
+        console.log(`リセット成功: ${filePath}`);
+      } else {
+        console.error(`リセット失敗（セクション未検出またはファイル不在）: ${filePath}`);
+        overallSuccess = false;
+      }
+    } catch (error) {
+      console.error(`予期せぬエラーが発生しました (${filePath}): ${error.message}`);
+      overallSuccess = false;
+    }
+  }
+
+  if (!overallSuccess) {
     process.exit(1);
   }
 }
