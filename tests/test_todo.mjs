@@ -9,15 +9,12 @@ import { mock } from 'node:test';
 // scripts/todo.mjs を import する
 import { getBranchName, getTodoPath, init, add, show, start, done, main } from '../scripts/todo.mjs';
 
-test('todo.mjs core functions', async (t) => {
-  const tmpTasksDir = path.join(process.cwd(), 'tests/tmp_tasks');
-  
-  t.beforeEach(() => {
-    if (fs.existsSync(tmpTasksDir)) {
-      fs.rmSync(tmpTasksDir, { recursive: true, force: true });
-    }
-  });
+// テスト用の一時ディレクトリを作成し、環境変数を設定
+const tmpTasksDir = fs.mkdtempSync(path.join(os.tmpdir(), 'todo-test-tasks-'));
+process.env.GEMINI_TASK_DIR = tmpTasksDir;
 
+test('todo.mjs コア機能', async (t) => {
+  
   t.after(() => {
     if (fs.existsSync(tmpTasksDir)) {
       fs.rmSync(tmpTasksDir, { recursive: true, force: true });
@@ -55,14 +52,12 @@ test('todo.mjs core functions', async (t) => {
         return { stdout: 'test-branch\n', status: 0 };
       });
 
-      // テスト用に作業ディレクトリをモックする代わりに、実際のファイルパスを操作
-      // scripts/todo.mjs の TASK_DIR をテスト用に書き換えるか、あるいは環境に合わせてテストする。
-      // ここでは、一時ディレクトリを使用する方針。
-      const expectedPath = path.join('.gemini/tasks', 'TODO-test-branch.md');
+      // 環境変数 GEMINI_TASK_DIR を使用した期待されるパス
+      const expectedPath = path.join(tmpTasksDir, 'TODO-test-branch.md');
       
       try {
         init('Test Task');
-        assert.ok(fs.existsSync(expectedPath), 'File should be created');
+        assert.ok(fs.existsSync(expectedPath), `ファイルが ${expectedPath} に作成される必要があります`);
         
         const content = fs.readFileSync(expectedPath, 'utf8');
         assert.ok(content.includes('# TASK: Test Task'));
@@ -80,7 +75,7 @@ test('todo.mjs core functions', async (t) => {
       const mockSpawnSync = mock.method(cp, 'spawnSync', () => {
         return { stdout: 'test-branch\n', status: 0 };
       });
-      const expectedPath = path.join('.gemini/tasks', 'TODO-test-branch.md');
+      const expectedPath = path.join(tmpTasksDir, 'TODO-test-branch.md');
       
       try {
         init('Initial List');
@@ -101,7 +96,7 @@ test('todo.mjs core functions', async (t) => {
         return { stdout: 'test-branch\n', status: 0 };
       });
       const mockWrite = mock.method(process.stdout, 'write', () => {});
-      const expectedPath = path.join('.gemini/tasks', 'TODO-test-branch.md');
+      const expectedPath = path.join(tmpTasksDir, 'TODO-test-branch.md');
 
       try {
         init('Shopping');
@@ -110,7 +105,6 @@ test('todo.mjs core functions', async (t) => {
 
         assert.ok(mockWrite.mock.callCount() >= 1);
         const lastCall = mockWrite.mock.calls[mockWrite.mock.callCount() - 1];
-        // Python版と同様にヘッダーとコンテンツの間に改行を入れない
         assert.ok(lastCall.arguments[0].startsWith('\n--- TODO-test-branch.md ---# TASK: Shopping'));
         assert.ok(lastCall.arguments[0].includes('- [ ] Apples'));
       } finally {
@@ -129,7 +123,6 @@ test('todo.mjs core functions', async (t) => {
       show();
 
       assert.ok(mockWrite.mock.callCount() >= 1);
-      // Python版は改行なしで終了
       assert.strictEqual(mockWrite.mock.calls[0].arguments[0], 'No active TODO for this branch.');
 
       mockWrite.mock.restore();
@@ -142,7 +135,7 @@ test('todo.mjs core functions', async (t) => {
       const mockSpawnSync = mock.method(cp, 'spawnSync', () => {
         return { stdout: 'test-branch\n', status: 0 };
       });
-      const expectedPath = path.join('.gemini/tasks', 'TODO-test-branch.md');
+      const expectedPath = path.join(tmpTasksDir, 'TODO-test-branch.md');
 
       try {
         init('Test Task');
@@ -168,7 +161,7 @@ test('todo.mjs core functions', async (t) => {
         throw new Error(`process.exit called with ${code}`);
       });
       const mockWrite = mock.method(process.stdout, 'write', () => {});
-      const expectedPath = path.join('.gemini/tasks', 'TODO-test-branch.md');
+      const expectedPath = path.join(tmpTasksDir, 'TODO-test-branch.md');
 
       try {
         init('Test Task');
@@ -179,7 +172,6 @@ test('todo.mjs core functions', async (t) => {
           start('Task 1');
         }, /process.exit called with 1/);
 
-        // 正確なエラーメッセージと改行の検証
         assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], 'ERROR: 他のタスクが実行中です。先に完了させてください。');
 
       } finally {
@@ -198,7 +190,7 @@ test('todo.mjs core functions', async (t) => {
         throw new Error(`process.exit called with ${code}`);
       });
       const mockWrite = mock.method(process.stdout, 'write', () => {});
-      const expectedPath = path.join('.gemini/tasks', 'TODO-test-branch.md');
+      const expectedPath = path.join(tmpTasksDir, 'TODO-test-branch.md');
 
       try {
         init('Test Task');
@@ -208,7 +200,6 @@ test('todo.mjs core functions', async (t) => {
           start('Non-existent Task');
         }, /process.exit called with 1/);
 
-        // 正確なエラーメッセージ（シングルクォート）と改行の検証
         assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], "Error: Task matching 'Non-existent Task' not found or already started.");
       } finally {
         if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
@@ -223,7 +214,7 @@ test('todo.mjs core functions', async (t) => {
         return { stdout: 'test-branch\n', status: 0 };
       });
       const mockWrite = mock.method(process.stdout, 'write', () => {});
-      const expectedPath = path.join('.gemini/tasks', 'TODO-test-branch.md');
+      const expectedPath = path.join(tmpTasksDir, 'TODO-test-branch.md');
 
       try {
         init('Test Task');
@@ -231,7 +222,6 @@ test('todo.mjs core functions', async (t) => {
         
         start('Task 1');
         
-        // 正確なメッセージと改行の検証
         assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], 'Started: Task 1');
       } finally {
         if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
@@ -247,7 +237,7 @@ test('todo.mjs core functions', async (t) => {
         return { stdout: 'test-branch\n', status: 0 };
       });
       const mockWrite = mock.method(process.stdout, 'write', () => {});
-      const expectedPath = path.join('.gemini/tasks', 'TODO-test-branch.md');
+      const expectedPath = path.join(tmpTasksDir, 'TODO-test-branch.md');
 
       try {
         init('Test Task');
@@ -270,7 +260,7 @@ test('todo.mjs core functions', async (t) => {
         return { stdout: 'test-branch\n', status: 0 };
       });
       const mockWrite = mock.method(process.stdout, 'write', () => {});
-      const expectedPath = path.join('.gemini/tasks', 'TODO-test-branch.md');
+      const expectedPath = path.join(tmpTasksDir, 'TODO-test-branch.md');
 
       try {
         init('Test Task');
@@ -279,7 +269,6 @@ test('todo.mjs core functions', async (t) => {
         
         done();
         
-        // 正確なメッセージと改行の検証
         assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], 'Task marked as DONE.');
       } finally {
         if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
@@ -296,16 +285,14 @@ test('todo.mjs core functions', async (t) => {
         throw new Error(`process.exit called with ${code}`);
       });
       const mockWrite = mock.method(process.stdout, 'write', () => {});
-      const expectedPath = path.join('.gemini/tasks', 'TODO-test-branch.md');
+      const expectedPath = path.join(tmpTasksDir, 'TODO-test-branch.md');
 
       try {
         init('Test Task');
         add('Task 1');
         
-        // process.exit(1) が呼ばれないことを検証
         done();
 
-        // 正確なメッセージと改行の検証
         assert.strictEqual(mockWrite.mock.calls[mockWrite.mock.callCount() - 1].arguments[0], 'No in-progress task found to mark as DONE.');
       } finally {
         if (fs.existsSync(expectedPath)) fs.unlinkSync(expectedPath);
@@ -337,7 +324,7 @@ test('todo.mjs core functions', async (t) => {
       const mockSpawnSync = mock.method(cp, 'spawnSync', () => {
         return { stdout: 'test-branch\n', status: 0 };
       });
-      const expectedPath = path.join('.gemini/tasks', 'TODO-test-branch.md');
+      const expectedPath = path.join(tmpTasksDir, 'TODO-test-branch.md');
       
       try {
         main(['node', 'todo.mjs', 'init', 'Main Test']);
@@ -351,65 +338,96 @@ test('todo.mjs core functions', async (t) => {
     });
   });
 
-  await t.test('todo.mjs CLI behavior', async (t) => {
+  await t.test('todo.mjs CLI 挙動', async (t) => {
     const scriptPath = path.resolve('scripts/todo.mjs');
 
     await t.test('引数なしの場合に終了コード 1 と Usage を表示する', () => {
-      const result = cp.spawnSync('node', [scriptPath], { encoding: 'utf8' });
+      const result = cp.spawnSync('node', [scriptPath], { 
+        encoding: 'utf8',
+        env: { ...process.env, GEMINI_TASK_DIR: tmpTasksDir }
+      });
       assert.strictEqual(result.status, 1);
       assert.strictEqual(result.stdout, 'Usage: todo.py [init|add|start|done|show] [args]');
     });
 
     await t.test('無効なコマンドの場合に終了コード 1 と Usage を表示する', () => {
-      const result = cp.spawnSync('node', [scriptPath, 'invalid'], { encoding: 'utf8' });
+      const result = cp.spawnSync('node', [scriptPath, 'invalid'], { 
+        encoding: 'utf8',
+        env: { ...process.env, GEMINI_TASK_DIR: tmpTasksDir }
+      });
       assert.strictEqual(result.status, 1);
       assert.strictEqual(result.stdout, 'Usage: todo.py [init|add|start|done|show] [args]');
     });
 
     await t.test('init 引数不足の場合に終了コード 1 と Usage を表示する', () => {
-      const result = cp.spawnSync('node', [scriptPath, 'init'], { encoding: 'utf8' });
+      const result = cp.spawnSync('node', [scriptPath, 'init'], { 
+        encoding: 'utf8',
+        env: { ...process.env, GEMINI_TASK_DIR: tmpTasksDir }
+      });
       assert.strictEqual(result.status, 1);
       assert.strictEqual(result.stdout, 'Usage: todo.py init <title>');
     });
 
     await t.test('add 引数不足の場合に終了コード 1 と Usage を表示する', () => {
-      const result = cp.spawnSync('node', [scriptPath, 'add'], { encoding: 'utf8' });
+      const result = cp.spawnSync('node', [scriptPath, 'add'], { 
+        encoding: 'utf8',
+        env: { ...process.env, GEMINI_TASK_DIR: tmpTasksDir }
+      });
       assert.strictEqual(result.status, 1);
       assert.strictEqual(result.stdout, 'Usage: todo.py add <task>');
     });
 
     await t.test('start 引数不足の場合に終了コード 1 と Usage を表示する', () => {
-      const result = cp.spawnSync('node', [scriptPath, 'start'], { encoding: 'utf8' });
+      const result = cp.spawnSync('node', [scriptPath, 'start'], { 
+        encoding: 'utf8',
+        env: { ...process.env, GEMINI_TASK_DIR: tmpTasksDir }
+      });
       assert.strictEqual(result.status, 1);
       assert.strictEqual(result.stdout, 'Usage: todo.py start <pattern>');
     });
 
     await t.test('CLI 経由で init, add, start, done, show が一連の動作として成功する', () => {
       const branchName = getBranchName();
-      const expectedPath = path.join('.gemini/tasks', `TODO-${branchName}.md`);
+      const expectedPath = path.join(tmpTasksDir, `TODO-${branchName}.md`);
       
       try {
         // init
-        let result = cp.spawnSync('node', [scriptPath, 'init', 'CLI Test'], { encoding: 'utf8' });
+        let result = cp.spawnSync('node', [scriptPath, 'init', 'CLI Test'], { 
+          encoding: 'utf8',
+          env: { ...process.env, GEMINI_TASK_DIR: tmpTasksDir }
+        });
         assert.strictEqual(result.status, 0);
+        assert.ok(fs.existsSync(expectedPath), `ファイルが ${expectedPath} に作成される必要があります`);
 
         // add
-        result = cp.spawnSync('node', [scriptPath, 'add', 'Task from CLI'], { encoding: 'utf8' });
+        result = cp.spawnSync('node', [scriptPath, 'add', 'Task from CLI'], { 
+          encoding: 'utf8',
+          env: { ...process.env, GEMINI_TASK_DIR: tmpTasksDir }
+        });
         assert.strictEqual(result.status, 0);
 
         // start
-        result = cp.spawnSync('node', [scriptPath, 'start', 'Task from CLI'], { encoding: 'utf8' });
+        result = cp.spawnSync('node', [scriptPath, 'start', 'Task from CLI'], { 
+          encoding: 'utf8',
+          env: { ...process.env, GEMINI_TASK_DIR: tmpTasksDir }
+        });
         assert.strictEqual(result.status, 0);
         assert.ok(result.stdout.includes('Started: Task from CLI'));
 
         // show
-        result = cp.spawnSync('node', [scriptPath, 'show'], { encoding: 'utf8' });
+        result = cp.spawnSync('node', [scriptPath, 'show'], { 
+          encoding: 'utf8',
+          env: { ...process.env, GEMINI_TASK_DIR: tmpTasksDir }
+        });
         assert.strictEqual(result.status, 0);
         assert.ok(result.stdout.includes('Task from CLI'));
         assert.ok(result.stdout.includes('[/]'));
 
         // done
-        result = cp.spawnSync('node', [scriptPath, 'done'], { encoding: 'utf8' });
+        result = cp.spawnSync('node', [scriptPath, 'done'], { 
+          encoding: 'utf8',
+          env: { ...process.env, GEMINI_TASK_DIR: tmpTasksDir }
+        });
         assert.strictEqual(result.status, 0);
         assert.ok(result.stdout.includes('Task marked as DONE.'));
 
@@ -422,20 +440,4 @@ test('todo.mjs core functions', async (t) => {
       }
     });
   });
-});
-
-test('環境変数 GEMINI_TASK_DIR が設定されている場合、そのディレクトリをタスク保存先として使用する', () => {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gemini-todo-test-'));
-  // 環境変数を設定
-  process.env.GEMINI_TASK_DIR = tmpDir;
-  try {
-    init('Test Env Var');
-    const branchName = getBranchName();
-    const expectedPath = path.join(tmpDir, `TODO-${branchName}.md`);
-    assert.ok(fs.existsSync(expectedPath), `ファイルが ${expectedPath} に存在する必要があります`);
-  } finally {
-    // クリーンアップ
-    fs.rmSync(tmpDir, { recursive: true, force: true });
-    delete process.env.GEMINI_TASK_DIR;
-  }
 });
