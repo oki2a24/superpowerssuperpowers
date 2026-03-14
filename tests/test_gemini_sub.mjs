@@ -24,8 +24,8 @@ describe('YAML Parser', () => {
      * - キー: 値 のペアが正しくオブジェクトに変換されること。
      * - クォートの除去が正しく行われること。
      */
-    const yamlText = 'title: "Hello World"
-mission: "Test Mission"';
+    const yamlText = `title: "Hello World"
+mission: "Test Mission"`;
     const result = parseYamlFrontmatter(yamlText);
     assert.deepStrictEqual(result, { title: 'Hello World', mission: 'Test Mission' });
   });
@@ -47,9 +47,9 @@ describe('Frontmatterバリデーション', () => {
 
   test('必須キー欠落時にエラーがスローされること', () => {
     /** 必須キーの欠落。ミッション作成時の必須要件を確認。 */
-    const content = '---
+    const content = `---
 mission: "Existing"
----';
+---`;
     const data = parseYamlFrontmatter(content);
     assert.throws(() => validateFrontmatter(data, required), {
       message: /Missing required key: task_id/
@@ -58,9 +58,9 @@ mission: "Existing"
 
   test('必須キー欠落時にヘルプテキストが含まれること', () => {
     /** 必須キーの欠落時にヘルプテキストも合わせて表示されることを確認 */
-    const content = '---
+    const content = `---
 mission: "Existing"
----';
+---`;
     const data = parseYamlFrontmatter(content);
     assert.throws(() => validateFrontmatter(data, required), (err) => {
       assert.match(err.message, /Missing required key: task_id/);
@@ -74,12 +74,12 @@ mission: "Existing"
      * 空値の拒否。
      * - エージェントが項目を埋め忘れることを防ぐための重要なチェック。
      */
-    const content = '---
+    const content = `---
 task_id: "ID-1"
 mission: ""
 steps:
   - step1
----';
+---`;
     const data = parseYamlFrontmatter(content);
     assert.throws(() => validateFrontmatter(data, required), {
       message: 'Empty value for key: mission'
@@ -91,11 +91,11 @@ steps:
      * リスト形式の検証。
      * - 'steps' は必ず 1 つ以上の要素を持つリストでなければならない。
      */
-    const content = '---
+    const content = `---
 task_id: "ID-1"
 mission: "M"
 steps: "not a list"
----';
+---`;
     const data = parseYamlFrontmatter(content);
     assert.throws(() => validateFrontmatter(data, required), {
       message: "Key 'steps' must be a non-empty list"
@@ -154,11 +154,11 @@ steps:
     }
   });
 
-  test('required_skills キーがなくても spawn が成功すること (空リストとして扱われる)', () => {
-    /** required_skills が任意項目であることを検証する */
+  test('required_skills キーが含まれている場合に spawn が成功すること', () => {
+    /** required_skills が必須項目であることを前提とした検証 */
     const tempHome = path.join(os.tmpdir(), `gemini-spawn-test-${Date.now()}`);
     const draftPath = path.join(os.tmpdir(), `tmp_task_draft_${Date.now()}.md`);
-    const projectName = 'handoff-project-no-skills';
+    const projectName = 'handoff-project-with-skills';
 
     try {
       const draftContent = `---
@@ -168,6 +168,8 @@ parent_branch: PENDING
 parent_task_tag: test-handoff
 work_dir: /abs/path
 mission: "Implement Handoff"
+required_skills:
+  - test-skill
 steps:
   - Step A
 ---`;
@@ -197,6 +199,14 @@ describe('Helper Functions', () => {
     assert.strictEqual(payload, expected);
   });
 
+  test('createPayload should return correct shell command', () => {
+    /** 起動ペイロードの形式検証 (後方互換性のための古いテストも維持) */
+    const workDir = '/path/to/workdir';
+    const taskId = '20260314-TEST-ABCD';
+    const payload = createPayload(workDir, taskId);
+    assert.ok(payload.includes('node scripts/gemini_sub.mjs show-task'));
+  });
+
   test('findTaskDirectory should find existing task directory', () => {
     /** 指定した ID のディレクトリを見つけられるか検証 */
     const tempHome = path.join(os.tmpdir(), `gemini-test-${Date.now()}`);
@@ -216,12 +226,6 @@ describe('Helper Functions', () => {
 
 describe('Report Handoff', () => {
   test('reportSuccess should create report and delete local draft', () => {
-    /**
-     * 正常な Handoff 方式の report 検証
-     * - 報告書下書きの読み取りとバリデーション (PENDING 置換前)
-     * - 'task_id: PENDING' の指定 ID への置換
-     * - グローバル領域 (~/.gemini/...) への配置とローカル下書きの削除を確認。
-     */
     const tempHome = path.join(os.tmpdir(), `gemini-report-test-${Date.now()}`);
     const draftPath = path.join(os.tmpdir(), `tmp_report_draft_${Date.now()}.md`);
     const taskId = "20260311-REPORT-WXYZ";
@@ -262,11 +266,6 @@ next_actions: []
   });
 
   test('reportOverwriteProtection should block update if status is success', () => {
-    /**
-     * 完了済みタスクへの上書き防止検証
-     * - 既に 'status: success' で提出済みのタスクに対し、別の報告書を提出しようとした場合に
-     *   Error が送出されることを確認する。
-     */
     const tempHome = path.join(os.tmpdir(), `gemini-overwrite-test-${Date.now()}`);
     const draftPath = path.join(os.tmpdir(), `tmp_report_overwrite_${Date.now()}.md`);
     const taskId = "20260311-Completed-Task";
@@ -278,9 +277,9 @@ next_actions: []
 
       // 1. すでに success の報告書を置いておく
       const existingReport = path.join(taskDir, "report.md");
-      fs.writeFileSync(existingReport, "---
+      fs.writeFileSync(existingReport, `-----
 status: success
----");
+---`);
 
       // 2. 新しい報告を出そうとする
       const draftContent = `---
@@ -303,22 +302,21 @@ next_actions: []
   });
 });
 
-describe('List and Show Commands', () => {
-  test('listSessions should output session info', () => {
+describe('リストと表示コマンド', () => {
+  test('listSessionsはセッション情報を出力すること', () => {
     const tempHome = path.join(os.tmpdir(), `gemini-list-test-${Date.now()}`);
     try {
       const projName = 'list-proj';
       const taskId = '20260311-LIST-AAAA';
       const taskDir = path.join(tempHome, '.gemini', 'sub-sessions', projName, taskId);
       fs.mkdirSync(taskDir, { recursive: true });
-      fs.writeFileSync(path.join(taskDir, 'task.md'), '---
+      fs.writeFileSync(path.join(taskDir, 'task.md'), `---
 parent_task_tag: test-tag
----');
+---`);
 
       let output = '';
       const originalLog = console.log;
-      console.log = (msg) => { output += msg + '
-'; };
+      console.log = (msg) => { output += msg + '\n'; };
       
       listSessions(tempHome);
       
@@ -331,7 +329,7 @@ parent_task_tag: test-tag
     }
   });
 
-  test('showFile should print file content', () => {
+  test('showFileはファイル内容を出力すること', () => {
     const tempHome = path.join(os.tmpdir(), `gemini-show-test-${Date.now()}`);
     try {
       const taskId = '20260311-SHOW-TASK';
@@ -342,8 +340,7 @@ parent_task_tag: test-tag
 
       let output = '';
       const originalLog = console.log;
-      console.log = (msg) => { output += msg + '
-'; };
+      console.log = (msg) => { output += msg + '\n'; };
       
       showFile(taskId, 'task.md', tempHome);
       
@@ -355,8 +352,8 @@ parent_task_tag: test-tag
   });
 });
 
-describe('Import Report', () => {
-  test('handleImport should format and print report info', () => {
+describe('レポートのインポート', () => {
+  test('handleImportはレポート情報を整形して出力すること', () => {
     const tempHome = path.join(os.tmpdir(), `gemini-import-test-${Date.now()}`);
     try {
       const taskId = '20260311-IMPORT-WXYZ';
@@ -376,8 +373,7 @@ next_actions:
 
       let output = '';
       const originalLog = console.log;
-      console.log = (msg) => { output += msg + '
-'; };
+      console.log = (msg) => { output += msg + '\n'; };
       
       handleImport(taskId, { projectName: projName, homeDir: tempHome });
       

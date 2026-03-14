@@ -35,8 +35,7 @@ export function parseYamlFrontmatter(content) {
   const data = {};
   let currentKey = null;
 
-  for (const line of yamlText.split('
-')) {
+  for (const line of yamlText.split('\n')) {
     const trimmedLine = line.trim();
     if (!trimmedLine || trimmedLine.startsWith('#')) {
       continue;
@@ -310,15 +309,10 @@ export function launchSession(sessionId, taskPath, workDir, launcherMode = 'manu
   const payload = createPayload(workDir, sessionId);
 
   if (launcherMode === 'manual') {
-    console.log('
-[GPAC Launcher: Manual Mode]');
-    console.log('新しいタブを開き、以下のコマンドをコピー＆ペーストして実行してください：
-');
-    console.log(`  ${payload}
-`);
-    console.log(`作業完了後の統合コマンド:
-  node scripts/gemini_sub.mjs import ${sessionId}
-`);
+    console.log('\n[GPAC Launcher: Manual Mode]');
+    console.log('新しいタブを開き、以下のコマンドをコピー＆ペーストして実行してください：\n');
+    console.log(`  ${payload}\n`);
+    console.log(`作業完了後の統合コマンド:\n  node scripts/gemini_sub.mjs import ${sessionId}\n`);
   } else if (launcherMode === 'tmux') {
     try {
       // tmux new-window -n sub-ID "bash -c 'payload; exec bash'"
@@ -326,9 +320,7 @@ export function launchSession(sessionId, taskPath, workDir, launcherMode = 'manu
       const result = spawnSync('tmux', tmuxCmd);
       if (result.status === 0) {
         console.log(`Launched in new tmux window: sub-${sessionId}`);
-        console.log(`作業完了後の統合コマンド:
-  node scripts/gemini_sub.mjs import ${sessionId}
-`);
+        console.log(`作業完了後の統合コマンド:\n  node scripts/gemini_sub.mjs import ${sessionId}\n`);
       } else {
         throw new Error('tmux failed');
       }
@@ -353,8 +345,7 @@ export function listSessions(homeDir = null) {
     return;
   }
 
-  console.log('
-[GPAC SUB-SESSIONS LIST]');
+  console.log('\n[GPAC SUB-SESSIONS LIST]');
   console.log('-'.repeat(60));
   console.log(`${'PROJECT'.padEnd(15)} ${'TASK_ID'.padEnd(25)} ${'TAG'}`);
   console.log('-'.repeat(60));
@@ -376,8 +367,7 @@ export function listSessions(homeDir = null) {
         // 簡易パースでタグを抽出
         const content = fs.readFileSync(taskFile, 'utf8');
         let tag = 'unknown';
-        for (const line of content.split('
-')) {
+        for (const line of content.split('\n')) {
           if (line.startsWith('parent_task_tag:')) {
             tag = line.split(':')[1].trim().replace(/['"]/g, '');
             break;
@@ -395,8 +385,7 @@ export function listSessions(homeDir = null) {
   if (!found) {
     console.log('(No sessions found)');
   }
-  console.log('-'.repeat(60) + '
-');
+  console.log('-'.repeat(60) + '\n');
 }
 
 /**
@@ -460,8 +449,7 @@ export function handleImport(taskId, options = {}) {
   console.log(`Proposals: ${data.skill_proposals || 'None'}`);
   console.log('-'.repeat(40));
   console.log(`Commits: ${JSON.stringify(data.commits || [])}`);
-  console.log('-'.repeat(40) + '
-');
+  console.log('-'.repeat(40) + '\n');
 }
 
 /**
@@ -530,8 +518,7 @@ export function main() {
       handleImport(taskId, { projectName: project });
     } else {
       console.log('Gemini Peer-Agent Coordination (GPAC) Controller');
-      console.log('
-Commands:');
+      console.log('\nCommands:');
       console.log('  spawn <draft> [-p project]   Spawn a new sub-session');
       console.log('  report <draft> --id <id>     Submit a report');
       console.log('  list                         List all sub-sessions');
