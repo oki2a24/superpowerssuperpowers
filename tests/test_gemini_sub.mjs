@@ -41,19 +41,30 @@ describe('YAML Parser', () => {
   });
 });
 
-describe('Frontmatter Validation', () => {
+describe('Frontmatterバリデーション', () => {
   const required = ["task_id", "mission", "steps"];
 
-  test('should throw error for missing required key', () => {
+  test('必須キー欠落時にエラーがスローされること', () => {
     /** 必須キーの欠落。ミッション作成時の必須要件を確認。 */
     const content = '---\nmission: "Existing"\n---';
     const data = parseYamlFrontmatter(content);
     assert.throws(() => validateFrontmatter(data, required), {
-      message: 'Missing required key: task_id'
+      message: /Missing required key: task_id/
     });
   });
 
-  test('should throw error for empty value', () => {
+  test('必須キー欠落時にヘルプテキストが含まれること', () => {
+    /** 必須キーの欠落時にヘルプテキストも合わせて表示されることを確認 */
+    const content = '---\nmission: "Existing"\n---';
+    const data = parseYamlFrontmatter(content);
+    assert.throws(() => validateFrontmatter(data, required), (err) => {
+      assert.match(err.message, /Missing required key: task_id/);
+      assert.match(err.message, /【正しい Frontmatter の例】/);
+      return true;
+    });
+  });
+
+  test('空値でエラーがスローされること', () => {
     /**
      * 空値の拒否。
      * - エージェントが項目を埋め忘れることを防ぐための重要なチェック。
@@ -78,8 +89,8 @@ describe('Frontmatter Validation', () => {
   });
 });
 
-describe('Helper Functions', () => {
-  test('generateTaskId should return correct format', () => {
+describe('ヘルパー関数', () => {
+  test('generateTaskIdは正しい形式を返すこと', () => {
     /** Task ID の形式検証 (YYYYMMDD-HHMMSS-XXXX) */
     const taskId = generateTaskId();
     assert.match(taskId, /^\d{8}-\d{6}-[A-Z0-9]{4}$/);

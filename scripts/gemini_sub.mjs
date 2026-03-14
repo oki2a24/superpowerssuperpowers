@@ -89,6 +89,25 @@ export function parseYamlFrontmatter(content) {
   return data;
 }
 
+function generateHelpText() {
+  return `
+【正しい Frontmatter の例】
+---
+task_id: PENDING
+parent_project_root: PENDING
+parent_branch: PENDING
+parent_task_tag: "your-feature-tag"
+work_dir: "."
+title: "Your Task Title"
+mission: "Your mission description."
+required_skills: ["using-superpowers", "brainstorming"]
+steps:
+  - "Step 1"
+  - "Step 2"
+---
+`;
+}
+
 /**
  * パース済みの Frontmatter データに対してバリデーションを行います。
  * 
@@ -100,7 +119,7 @@ export function parseYamlFrontmatter(content) {
 export function validateFrontmatter(data, requiredKeys, pendingKeys = []) {
   for (const key of requiredKeys) {
     if (!(key in data)) {
-      throw new Error(`Missing required key: ${key}`);
+      throw new Error(`Missing required key: ${key}\n${generateHelpText()}`);
     }
 
     const val = data[key];
