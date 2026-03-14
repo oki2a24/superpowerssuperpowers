@@ -35,7 +35,8 @@ export function parseYamlFrontmatter(content) {
   const data = {};
   let currentKey = null;
 
-  for (const line of yamlText.split('\n')) {
+  for (const line of yamlText.split('
+')) {
     const trimmedLine = line.trim();
     if (!trimmedLine || trimmedLine.startsWith('#')) {
       continue;
@@ -119,7 +120,8 @@ steps:
 export function validateFrontmatter(data, requiredKeys, pendingKeys = []) {
   for (const key of requiredKeys) {
     if (!(key in data)) {
-      throw new Error(`Missing required key: ${key}\n${generateHelpText()}`);
+      throw new Error(`Missing required key: ${key}
+${generateHelpText()}`);
     }
 
     const val = data[key];
@@ -136,6 +138,11 @@ export function validateFrontmatter(data, requiredKeys, pendingKeys = []) {
       if (!Array.isArray(val) || val.length === 0) {
         throw new Error("Key 'steps' must be a non-empty list");
       }
+    } else if (key === 'required_skills') {
+        // required_skills は空リストを許容する
+        if (!Array.isArray(val)) {
+            throw new Error("Key 'required_skills' must be a list");
+        }
     } else if (!val && !Array.isArray(val)) {
       // 空文字列 "" はエラーだが、空リスト [] は受理
       throw new Error(`Empty value for key: ${key}`);
@@ -196,10 +203,10 @@ export function findTaskDirectory(taskId, homeDir = null) {
 /**
  * 初期プロンプトを含む起動ペイロード（シェルコマンド）を生成します。
  */
-export function createPayload(workDir, taskPath) {
-  const prompt = `GPAC Protocol: Your mission is defined in a file outside the workspace. Please execute 'cat ${taskPath}' to understand your mission.`;
+export function createPayload(workDir, taskId) {
+  const prompt = `GPAC Protocol: Your mission is defined. Please execute 'node scripts/gemini_sub.mjs show-task ${taskId}' to understand your mission.`;
   // プロンプト内のクォートをエスケープ
-  const safePrompt = prompt.replace(/"/g, '\\"');
+  const safePrompt = prompt.replace(/"/g, '"');
   return `cd ${workDir} && gemini "${safePrompt}"`;
 }
 
@@ -259,7 +266,7 @@ export function spawn(localDraftPath, options = {}) {
   const targetPath = path.join(baseHome, '.gemini', 'sub-sessions', resolvedProjectName, taskId, 'task.md');
 
   // 必須項目と置換マップ
-  const required = ["task_id", "parent_project_root", "parent_branch", "parent_task_tag", "work_dir", "mission", "steps"];
+  const required = ["task_id", "parent_project_root", "parent_branch", "parent_task_tag", "work_dir", "mission", "required_skills", "steps"];
   const pendingMap = {
     "task_id": taskId,
     "parent_project_root": parentProjectRoot,
@@ -300,13 +307,18 @@ export function report(localDraftPath, taskId, options = {}) {
  * 指定されたランチャーモードでセッションを起動します。
  */
 export function launchSession(sessionId, taskPath, workDir, launcherMode = 'manual') {
-  const payload = createPayload(workDir, taskPath);
+  const payload = createPayload(workDir, sessionId);
 
   if (launcherMode === 'manual') {
-    console.log('\n[GPAC Launcher: Manual Mode]');
-    console.log('新しいタブを開き、以下のコマンドをコピー＆ペーストして実行してください：\n');
-    console.log(`  ${payload}\n`);
-    console.log(`作業完了後の統合コマンド:\n  node scripts/gemini_sub.mjs import ${sessionId}\n`);
+    console.log('
+[GPAC Launcher: Manual Mode]');
+    console.log('新しいタブを開き、以下のコマンドをコピー＆ペーストして実行してください：
+');
+    console.log(`  ${payload}
+`);
+    console.log(`作業完了後の統合コマンド:
+  node scripts/gemini_sub.mjs import ${sessionId}
+`);
   } else if (launcherMode === 'tmux') {
     try {
       // tmux new-window -n sub-ID "bash -c 'payload; exec bash'"
@@ -314,7 +326,9 @@ export function launchSession(sessionId, taskPath, workDir, launcherMode = 'manu
       const result = spawnSync('tmux', tmuxCmd);
       if (result.status === 0) {
         console.log(`Launched in new tmux window: sub-${sessionId}`);
-        console.log(`作業完了後の統合コマンド:\n  node scripts/gemini_sub.mjs import ${sessionId}\n`);
+        console.log(`作業完了後の統合コマンド:
+  node scripts/gemini_sub.mjs import ${sessionId}
+`);
       } else {
         throw new Error('tmux failed');
       }
@@ -339,7 +353,8 @@ export function listSessions(homeDir = null) {
     return;
   }
 
-  console.log('\n[GPAC SUB-SESSIONS LIST]');
+  console.log('
+[GPAC SUB-SESSIONS LIST]');
   console.log('-'.repeat(60));
   console.log(`${'PROJECT'.padEnd(15)} ${'TASK_ID'.padEnd(25)} ${'TAG'}`);
   console.log('-'.repeat(60));
@@ -361,7 +376,8 @@ export function listSessions(homeDir = null) {
         // 簡易パースでタグを抽出
         const content = fs.readFileSync(taskFile, 'utf8');
         let tag = 'unknown';
-        for (const line of content.split('\n')) {
+        for (const line of content.split('
+')) {
           if (line.startsWith('parent_task_tag:')) {
             tag = line.split(':')[1].trim().replace(/['"]/g, '');
             break;
@@ -379,7 +395,8 @@ export function listSessions(homeDir = null) {
   if (!found) {
     console.log('(No sessions found)');
   }
-  console.log('-'.repeat(60) + '\n');
+  console.log('-'.repeat(60) + '
+');
 }
 
 /**
@@ -424,7 +441,8 @@ export function handleImport(taskId, options = {}) {
   const content = fs.readFileSync(reportFile, 'utf8');
   const data = parseYamlFrontmatter(content);
 
-  console.log(`\n[GPAC IMPORT REPORT: ${taskId}]`);
+  console.log(`
+[GPAC IMPORT REPORT: ${taskId}]`);
   console.log('-'.repeat(40));
   console.log(`Status: ${data.status || 'unknown'}`);
   console.log(`Summary: ${data.summary || 'No summary provided.'}`);
@@ -442,7 +460,8 @@ export function handleImport(taskId, options = {}) {
   console.log(`Proposals: ${data.skill_proposals || 'None'}`);
   console.log('-'.repeat(40));
   console.log(`Commits: ${JSON.stringify(data.commits || [])}`);
-  console.log('-'.repeat(40) + '\n');
+  console.log('-'.repeat(40) + '
+');
 }
 
 /**
@@ -511,7 +530,8 @@ export function main() {
       handleImport(taskId, { projectName: project });
     } else {
       console.log('Gemini Peer-Agent Coordination (GPAC) Controller');
-      console.log('\nCommands:');
+      console.log('
+Commands:');
       console.log('  spawn <draft> [-p project]   Spawn a new sub-session');
       console.log('  report <draft> --id <id>     Submit a report');
       console.log('  list                         List all sub-sessions');

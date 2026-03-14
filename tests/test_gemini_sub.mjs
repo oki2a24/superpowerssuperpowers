@@ -24,7 +24,8 @@ describe('YAML Parser', () => {
      * - キー: 値 のペアが正しくオブジェクトに変換されること。
      * - クォートの除去が正しく行われること。
      */
-    const yamlText = 'title: "Hello World"\nmission: "Test Mission"';
+    const yamlText = 'title: "Hello World"
+mission: "Test Mission"';
     const result = parseYamlFrontmatter(yamlText);
     assert.deepStrictEqual(result, { title: 'Hello World', mission: 'Test Mission' });
   });
@@ -46,7 +47,9 @@ describe('Frontmatterバリデーション', () => {
 
   test('必須キー欠落時にエラーがスローされること', () => {
     /** 必須キーの欠落。ミッション作成時の必須要件を確認。 */
-    const content = '---\nmission: "Existing"\n---';
+    const content = '---
+mission: "Existing"
+---';
     const data = parseYamlFrontmatter(content);
     assert.throws(() => validateFrontmatter(data, required), {
       message: /Missing required key: task_id/
@@ -55,7 +58,9 @@ describe('Frontmatterバリデーション', () => {
 
   test('必須キー欠落時にヘルプテキストが含まれること', () => {
     /** 必須キーの欠落時にヘルプテキストも合わせて表示されることを確認 */
-    const content = '---\nmission: "Existing"\n---';
+    const content = '---
+mission: "Existing"
+---';
     const data = parseYamlFrontmatter(content);
     assert.throws(() => validateFrontmatter(data, required), (err) => {
       assert.match(err.message, /Missing required key: task_id/);
@@ -69,7 +74,12 @@ describe('Frontmatterバリデーション', () => {
      * 空値の拒否。
      * - エージェントが項目を埋め忘れることを防ぐための重要なチェック。
      */
-    const content = '---\ntask_id: "ID-1"\nmission: ""\nsteps:\n  - step1\n---';
+    const content = '---
+task_id: "ID-1"
+mission: ""
+steps:
+  - step1
+---';
     const data = parseYamlFrontmatter(content);
     assert.throws(() => validateFrontmatter(data, required), {
       message: 'Empty value for key: mission'
@@ -81,44 +91,15 @@ describe('Frontmatterバリデーション', () => {
      * リスト形式の検証。
      * - 'steps' は必ず 1 つ以上の要素を持つリストでなければならない。
      */
-    const content = '---\ntask_id: "ID-1"\nmission: "M"\nsteps: "not a list"\n---';
+    const content = '---
+task_id: "ID-1"
+mission: "M"
+steps: "not a list"
+---';
     const data = parseYamlFrontmatter(content);
     assert.throws(() => validateFrontmatter(data, required), {
       message: "Key 'steps' must be a non-empty list"
     });
-  });
-});
-
-describe('ヘルパー関数', () => {
-  test('generateTaskIdは正しい形式を返すこと', () => {
-    /** Task ID の形式検証 (YYYYMMDD-HHMMSS-XXXX) */
-    const taskId = generateTaskId();
-    assert.match(taskId, /^\d{8}-\d{6}-[A-Z0-9]{4}$/);
-  });
-
-  test('createPayload should return correct shell command', () => {
-    /** 起動ペイロードの形式検証 */
-    const workDir = '/path/to/workdir';
-    const taskPath = '/path/to/task.md';
-    const payload = createPayload(workDir, taskPath);
-    const expected = `cd ${workDir} && gemini "GPAC Protocol: Your mission is defined in a file outside the workspace. Please execute 'cat ${taskPath}' to understand your mission."`;
-    assert.strictEqual(payload, expected);
-  });
-
-  test('findTaskDirectory should find existing task directory', () => {
-    /** 指定した ID のディレクトリを見つけられるか検証 */
-    const tempHome = path.join(os.tmpdir(), `gemini-test-${Date.now()}`);
-    const taskId = '20260311-TEST-XXXX';
-    const projName = 'test-proj';
-    const taskDir = path.join(tempHome, '.gemini', 'sub-sessions', projName, taskId);
-    
-    try {
-      fs.mkdirSync(taskDir, { recursive: true });
-      const found = findTaskDirectory(taskId, tempHome);
-      assert.strictEqual(found, taskDir);
-    } finally {
-      fs.rmSync(tempHome, { recursive: true, force: true });
-    }
   });
 });
 
@@ -143,6 +124,7 @@ parent_branch: PENDING
 parent_task_tag: test-handoff
 work_dir: /abs/path
 mission: "Implement Handoff"
+required_skills: []
 steps:
   - Step A
   - Step B
@@ -169,6 +151,65 @@ steps:
     } finally {
       if (fs.existsSync(draftPath)) fs.unlinkSync(draftPath);
       if (fs.existsSync(tempHome)) fs.rmSync(tempHome, { recursive: true, force: true });
+    }
+  });
+
+  test('required_skills キーがなくても spawn が成功すること (空リストとして扱われる)', () => {
+    /** required_skills が任意項目であることを検証する */
+    const tempHome = path.join(os.tmpdir(), `gemini-spawn-test-${Date.now()}`);
+    const draftPath = path.join(os.tmpdir(), `tmp_task_draft_${Date.now()}.md`);
+    const projectName = 'handoff-project-no-skills';
+
+    try {
+      const draftContent = `---
+task_id: PENDING
+parent_project_root: PENDING
+parent_branch: PENDING
+parent_task_tag: test-handoff
+work_dir: /abs/path
+mission: "Implement Handoff"
+steps:
+  - Step A
+---`;
+      fs.writeFileSync(draftPath, draftContent);
+
+      assert.doesNotThrow(() => spawn(draftPath, { projectName, homeDir: tempHome }));
+    } finally {
+      if (fs.existsSync(draftPath)) fs.unlinkSync(draftPath);
+      if (fs.existsSync(tempHome)) fs.rmSync(tempHome, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('Helper Functions', () => {
+  test('generateTaskId should return correct format', () => {
+    /** Task ID の形式検証 (YYYYMMDD-HHMMSS-XXXX) */
+    const taskId = generateTaskId();
+    assert.match(taskId, /^\d{8}-\d{6}-[A-Z0-9]{4}$/);
+  });
+
+  test('createPayloadは抽象化されたコマンドを生成すること (show-task 推奨)', () => {
+    /** 起動ペイロードが cat <path> ではなく show-task <id> を推奨する形式になっているか検証 */
+    const workDir = '/path/to/workdir';
+    const taskId = '20260314-TEST-ABCD';
+    const payload = createPayload(workDir, taskId);
+    const expected = `cd ${workDir} && gemini "GPAC Protocol: Your mission is defined. Please execute 'node scripts/gemini_sub.mjs show-task ${taskId}' to understand your mission."`;
+    assert.strictEqual(payload, expected);
+  });
+
+  test('findTaskDirectory should find existing task directory', () => {
+    /** 指定した ID のディレクトリを見つけられるか検証 */
+    const tempHome = path.join(os.tmpdir(), `gemini-test-${Date.now()}`);
+    const taskId = '20260311-TEST-XXXX';
+    const projName = 'test-proj';
+    const taskDir = path.join(tempHome, '.gemini', 'sub-sessions', projName, taskId);
+    
+    try {
+      fs.mkdirSync(taskDir, { recursive: true });
+      const found = findTaskDirectory(taskId, tempHome);
+      assert.strictEqual(found, taskDir);
+    } finally {
+      fs.rmSync(tempHome, { recursive: true, force: true });
     }
   });
 });
@@ -237,10 +278,18 @@ next_actions: []
 
       // 1. すでに success の報告書を置いておく
       const existingReport = path.join(taskDir, "report.md");
-      fs.writeFileSync(existingReport, "---\nstatus: success\n---");
+      fs.writeFileSync(existingReport, "---
+status: success
+---");
 
       // 2. 新しい報告を出そうとする
-      const draftContent = `---\nstatus: failure\ntask_id: PENDING\nsummary: 'retry'\ncommits: []\nnext_actions: []\n---`;
+      const draftContent = `---
+status: failure
+task_id: PENDING
+summary: 'retry'
+commits: []
+next_actions: []
+---`;
       fs.writeFileSync(draftPath, draftContent);
 
       // 3. 呼び出し。Error（メッセージ: already reported as success）を期待
@@ -262,11 +311,14 @@ describe('List and Show Commands', () => {
       const taskId = '20260311-LIST-AAAA';
       const taskDir = path.join(tempHome, '.gemini', 'sub-sessions', projName, taskId);
       fs.mkdirSync(taskDir, { recursive: true });
-      fs.writeFileSync(path.join(taskDir, 'task.md'), '---\nparent_task_tag: test-tag\n---');
+      fs.writeFileSync(path.join(taskDir, 'task.md'), '---
+parent_task_tag: test-tag
+---');
 
       let output = '';
       const originalLog = console.log;
-      console.log = (msg) => { output += msg + '\n'; };
+      console.log = (msg) => { output += msg + '
+'; };
       
       listSessions(tempHome);
       
@@ -290,7 +342,8 @@ describe('List and Show Commands', () => {
 
       let output = '';
       const originalLog = console.log;
-      console.log = (msg) => { output += msg + '\n'; };
+      console.log = (msg) => { output += msg + '
+'; };
       
       showFile(taskId, 'task.md', tempHome);
       
@@ -323,7 +376,8 @@ next_actions:
 
       let output = '';
       const originalLog = console.log;
-      console.log = (msg) => { output += msg + '\n'; };
+      console.log = (msg) => { output += msg + '
+'; };
       
       handleImport(taskId, { projectName: projName, homeDir: tempHome });
       
