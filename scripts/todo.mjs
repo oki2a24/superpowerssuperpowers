@@ -48,11 +48,11 @@ export function getTodoPath() {
  * @param {string} title - タスクリストのタイトル。
  */
 export function init(title) {
-  const todoPath = getTodoPath();
-  const dir = path.dirname(todoPath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  const taskDir = getTaskDir();
+  if (!fs.existsSync(taskDir)) {
+    fs.mkdirSync(taskDir, { recursive: true });
   }
+  const todoPath = getTodoPath();
   const date = new Date().toISOString().split('T')[0];
   const branchName = getBranchName();
   const content = `# TASK: ${title}\n- Branch: ${branchName}\n- Created: ${date}\n`;
@@ -142,7 +142,7 @@ export function done() {
   }
 
   const newLines = content.split('\n').map(line => {
-    return line.replace('[ / ]', '[x]').replace('[/]', '[x]');
+    return line.replace('[/]', '[x]');
   });
   
   fs.writeFileSync(todoPath, newLines.join('\n'));
