@@ -71,12 +71,8 @@ function main() {
 }
 
 // エントリポイントのガード
-const scriptPath = fileURLToPath(import.meta.url);
-const isMain = process.argv[1] && (
-  process.argv[1] === scriptPath || 
-  path.resolve(process.argv[1]) === scriptPath
-);
+import { resolve } from 'node:path';
 
-if (isMain) {
+if (resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
   main();
 }

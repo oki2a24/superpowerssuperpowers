@@ -508,7 +508,9 @@ export function main() {
 
 // 直接実行された場合
 import { fileURLToPath } from 'node:url';
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+import { resolve } from 'node:path';
+
+if (resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
   main();
 }
 

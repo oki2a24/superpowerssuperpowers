@@ -200,8 +200,8 @@ export function main(argv = process.argv) {
 }
 
 // メインロジック：直接実行された場合にコマンドを処理します。
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+import { resolve } from 'node:path';
 
-if (isMain) {
+if (resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
   main();
 }
