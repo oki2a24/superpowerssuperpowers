@@ -7,8 +7,6 @@ import { fileURLToPath } from 'node:url';
  * TODO ファイルを保存するディレクトリのパスを取得します。
  * 環境変数 GEMINI_TASK_DIR が設定されている場合はそれを優先し、
  * 設定されていない場合はデフォルトの ".gemini/tasks" を使用します。
- * 
- * @returns {string} タスクディレクトリのパス。
  */
 export function getTaskDir() {
   return process.env.GEMINI_TASK_DIR || ".gemini/tasks";
@@ -18,11 +16,14 @@ export function getTaskDir() {
  * Git から現在のブランチ名を取得し、ファイル名に使用可能な形式に変換します。
  * / は - に置換されます。取得に失敗した場合は "default" を返します。
  * 
- * @returns {string} 変換後のブランチ名。
+ * @param {string} [cwd=process.cwd()] - Git コマンドを実行するディレクトリ。
  */
-export function getBranchName() {
+export function getBranchName(cwd = process.cwd()) {
   try {
-    const result = cp.spawnSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { encoding: 'utf8' });
+    const result = cp.spawnSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { 
+      encoding: 'utf8',
+      cwd: cwd
+    });
     if (result.status !== 0 || !result.stdout) {
       return 'default';
     }
@@ -35,128 +36,224 @@ export function getBranchName() {
 /**
  * 現在のブランチに対応する TODO ファイルのパスを返します。
  * 
- * @returns {string} TODO ファイルへのパス。
+ * @param {string} [cwd=process.cwd()] - Git コマンドを実行するディレクトリ。
  */
-export function getTodoPath() {
-  const branchName = getBranchName();
+export function getTodoPath(cwd = process.cwd()) {
+  const branchName = getBranchName(cwd);
   return path.join(getTaskDir(), `TODO-${branchName}.md`);
 }
 
 /**
- * 新しい TODO ファイルを初期化します。
- * 
- * @param {string} title - タスクリストのタイトル。
+ * タスクの状態（[ ], [x], [/]）を定義する正規表現。
  */
-export function init(title) {
-  const taskDir = getTaskDir();
-  if (!fs.existsSync(taskDir)) {
-    fs.mkdirSync(taskDir, { recursive: true });
+const TASK_REGEX = /^(\s*)-\s*\[( |x|\/)\]\s*(.*)$/;
+
+/**
+ * タスクを表すクラス。階層構造を扱います。
+ */
+class Task {
+  constructor(indent, status, text, lineIndex) {
+    this.indent = indent; // スペースの数
+    this.status = status; // " ", "x", "/"
+    this.text = text;
+    this.lineIndex = lineIndex; // 元のファイルでの行番号
+    this.children = [];
+    this.parent = null;
   }
-  const todoPath = getTodoPath();
+
+  get fullStatus() {
+    return `[${this.status}]`;
+  }
+
+  format() {
+    const spaces = ' '.repeat(this.indent);
+    return `${spaces}- [${this.status}] ${this.text}`;
+  }
+}
+
+/**
+ * TODO ファイルをパースして Task オブジェクトの木構造を返します。
+ */
+function parseTodoFile(todoPath) {
+  if (!fs.existsSync(todoPath)) return { header: [], tasks: [] };
+
+  const content = fs.readFileSync(todoPath, 'utf8');
+  const lines = content.split('\n');
+  const header = [];
+  const tasks = [];
+  const stack = [];
+
+  lines.forEach((line, index) => {
+    const match = line.match(TASK_REGEX);
+    if (match) {
+      const indent = match[1].length;
+      const status = match[2];
+      const text = match[3];
+      const task = new Task(indent, status, text, index);
+
+      // 親子関係の構築
+      while (stack.length > 0 && stack[stack.length - 1].indent >= indent) {
+        stack.pop();
+      }
+      if (stack.length > 0) {
+        task.parent = stack[stack.length - 1];
+        task.parent.children.push(task);
+      }
+      stack.push(task);
+      tasks.push(task);
+    } else if (tasks.length === 0 && line.trim() !== '') {
+      header.push(line);
+    }
+  });
+
+  return { header, tasks };
+}
+
+/**
+ * Task オブジェクトのリストを Markdown 形式に変換します。
+ */
+function serializeTodo(header, tasks) {
+  let content = header.join('\n') + '\n';
+  tasks.forEach(task => {
+    content += task.format() + '\n';
+  });
+  return content;
+}
+
+/**
+ * 新しい TODO ファイルを初期化します。
+ */
+export function init(title = null, cwd = process.cwd()) {
+  const branchName = getBranchName(cwd);
+  if (!title) {
+    // ブランチ名からタイトルを生成 (feat/abc -> Test Branch 等)
+    // ここでは単純にプレフィックス除去とハイフンの置換を行う
+    title = branchName
+      .replace(/^(feat-|fix-|docs-|refactor-)/, '')
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+
+  const todoPath = getTodoPath(cwd);
+  const dir = path.dirname(todoPath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
   const date = new Date().toISOString().split('T')[0];
-  const branchName = getBranchName();
   const content = `# TASK: ${title}\n- Branch: ${branchName}\n- Created: ${date}\n`;
   fs.writeFileSync(todoPath, content);
 }
 
 /**
- * タスクを TODO ファイルに追記します。
- * 
- * @param {string} task - 追加するタスクの内容。
+ * タスクを追加します。
  */
-export function add(task) {
-  const todoPath = getTodoPath();
-  fs.appendFileSync(todoPath, `- [ ] ${task}\n`);
+export function add(taskText, isChild = false, cwd = process.cwd()) {
+  const todoPath = getTodoPath(cwd);
+  const { header, tasks } = parseTodoFile(todoPath);
+
+  if (isChild) {
+    const activeParent = tasks.find(t => t.status === '/');
+    if (!activeParent) {
+      process.stdout.write("ERROR: 子タスクを追加するには、親タスクが実行中 [/] である必要があります。");
+      process.exit(1);
+    }
+    // 親の直後、または親の最後の子の後に挿入
+    const newTask = new Task(activeParent.indent + 2, ' ', taskText);
+    const lastChildIndex = tasks.findLastIndex(t => {
+      let p = t.parent;
+      while (p) {
+        if (p === activeParent) return true;
+        p = p.parent;
+      }
+      return false;
+    });
+    const insertAt = lastChildIndex !== -1 ? lastChildIndex + 1 : tasks.indexOf(activeParent) + 1;
+    tasks.splice(insertAt, 0, newTask);
+  } else {
+    tasks.push(new Task(0, ' ', taskText));
+  }
+
+  fs.writeFileSync(todoPath, serializeTodo(header, tasks));
 }
 
 /**
- * TODO ファイルの内容を表示します。
+ * タスクを開始します。
  */
-export function show() {
-  const todoPath = getTodoPath();
+export function start(pattern, cwd = process.cwd()) {
+  const todoPath = getTodoPath(cwd);
+  const { header, tasks } = parseTodoFile(todoPath);
+  const regex = new RegExp(pattern);
+
+  const targetTask = tasks.find(t => t.status === ' ' && regex.test(t.text));
+  if (!targetTask) {
+    process.stdout.write(`Error: Task matching '${pattern}' not found or already started.`);
+    process.exit(1);
+  }
+
+  // 同時実行チェック
+  const activeTasks = tasks.filter(t => t.status === '/');
+  if (activeTasks.length > 0) {
+    // ターゲットが現在実行中のタスクのいずれかの子孫であるかチェック
+    const isDescendant = activeTasks.some(active => {
+      let p = targetTask.parent;
+      while (p) {
+        if (p === active) return true;
+        p = p.parent;
+      }
+      return false;
+    });
+
+    if (!isDescendant) {
+      process.stdout.write("ERROR: 別の系統のタスクが実行中です。先に完了させてください。");
+      process.exit(1);
+    }
+  }
+
+  targetTask.status = '/';
+  fs.writeFileSync(todoPath, serializeTodo(header, tasks));
+  process.stdout.write(`Started: ${pattern}`);
+}
+
+/**
+ * タスクを完了します。
+ */
+export function done(cwd = process.cwd()) {
+  const todoPath = getTodoPath(cwd);
+  const { header, tasks } = parseTodoFile(todoPath);
+
+  // 最も深い（インデントが大きい）実行中タスクを探す
+  const activeTasks = tasks.filter(t => t.status === '/');
+  if (activeTasks.length === 0) {
+    process.stdout.write("No in-progress task found to mark as DONE.");
+    return;
+  }
+
+  const deepestTask = activeTasks.reduce((prev, curr) => (curr.indent > prev.indent ? curr : prev));
+  deepestTask.status = 'x';
+
+  fs.writeFileSync(todoPath, serializeTodo(header, tasks));
+  process.stdout.write("Task marked as DONE.");
+}
+
+/**
+ * 表示します。
+ */
+export function show(cwd = process.cwd()) {
+  const todoPath = getTodoPath(cwd);
   if (!fs.existsSync(todoPath)) {
     process.stdout.write("No active TODO for this branch.");
     return;
   }
   const content = fs.readFileSync(todoPath, 'utf8').trimEnd();
   const fileName = path.basename(todoPath);
-  // ヘッダーとコンテンツを改行なしで連結
-  process.stdout.write(`\n--- ${fileName} ---${content}`);
+  process.stdout.write(`\n--- ${fileName} ---\n${content}\n`);
 }
 
 /**
- * 指定されたパターンにマッチする最初の未完了タスクを開始状態 [/] にします。
- * 
- * @param {string} pattern - 検索するタスクのパターン。
+ * CLI エントリポイント
  */
-export function start(pattern) {
-  const todoPath = getTodoPath();
-  if (!fs.existsSync(todoPath)) {
-    process.stdout.write(`Error: ${todoPath} not found.`);
-    process.exit(1);
-  }
-
-  const content = fs.readFileSync(todoPath, 'utf8');
-  if (content.includes('[/]')) {
-    process.stdout.write("ERROR: 他のタスクが実行中です。先に完了させてください。");
-    process.exit(1);
-  }
-
-  const lines = content.split('\n');
-  let found = false;
-  const regex = new RegExp(pattern);
-  const newLines = lines.map(line => {
-    if (!found && line.includes('[ ]') && regex.test(line)) {
-      found = true;
-      return line.replace('[ ]', '[/]');
-    }
-    return line;
-  });
-
-  if (!found) {
-    // 一致するタスクが見つからない、または既に開始されている場合
-    process.stdout.write(`Error: Task matching '${pattern}' not found or already started.`);
-    process.exit(1);
-  }
-
-  fs.writeFileSync(todoPath, newLines.join('\n'));
-  // 成功メッセージを表示 (改行なし)
-  process.stdout.write(`Started: ${pattern}`);
-}
-
-/**
- * 進行中のタスク ([/]) を完了状態 ([x]) に変更します。
- */
-export function done() {
-  const todoPath = getTodoPath();
-  if (!fs.existsSync(todoPath)) {
-    process.stdout.write(`Error: ${todoPath} not found.`);
-    process.exit(1);
-  }
-
-  const content = fs.readFileSync(todoPath, 'utf8');
-  if (!content.includes('[/]')) {
-    // 進行中のタスクが見つからない場合
-    process.stdout.write("No in-progress task found to mark as DONE.");
-    return;
-  }
-
-  const newLines = content.split('\n').map(line => {
-    return line.replace('[/]', '[x]');
-  });
-  
-  fs.writeFileSync(todoPath, newLines.join('\n'));
-  // 成功メッセージを表示 (改行なし)
-  process.stdout.write("Task marked as DONE.");
-}
-
-/**
- * CLI エントリポイント。引数を解析し、各コマンドを実行します。
- * Python 版の構造を忠実に移植しています。
- * 
- * @param {string[]} argv - コマンドライン引数の配列。
- */
-export function main(argv = process.argv) {
+export function main(argv = process.argv, cwd = process.cwd()) {
   const command = argv[2];
   const args = argv.slice(3);
 
@@ -167,31 +264,29 @@ export function main(argv = process.argv) {
 
   switch (command) {
     case 'init':
-      if (args.length < 1) {
-        process.stdout.write("Usage: todo.py init <title>");
-        process.exit(1);
-      }
-      init(args[0]);
+      init(args[0], cwd);
       break;
     case 'add':
       if (args.length < 1) {
         process.stdout.write("Usage: todo.py add <task>");
         process.exit(1);
       }
-      add(args[0]);
+      const isChild = args.includes('--child');
+      const text = args.filter(a => a !== '--child')[0];
+      add(text, isChild, cwd);
       break;
     case 'start':
       if (args.length < 1) {
         process.stdout.write("Usage: todo.py start <pattern>");
         process.exit(1);
       }
-      start(args[0]);
+      start(args[0], cwd);
       break;
     case 'done':
-      done();
+      done(cwd);
       break;
     case 'show':
-      show();
+      show(cwd);
       break;
     default:
       process.stdout.write("Usage: todo.py [init|add|start|done|show] [args]");
@@ -199,9 +294,7 @@ export function main(argv = process.argv) {
   }
 }
 
-// メインロジック：直接実行された場合にコマンドを処理します。
 import { resolve } from 'node:path';
-
 if (resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
   main();
 }
