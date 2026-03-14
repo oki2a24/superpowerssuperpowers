@@ -3,7 +3,16 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-const TASK_DIR = ".gemini/tasks";
+/**
+ * TODO ファイルを保存するディレクトリのパスを取得します。
+ * 環境変数 GEMINI_TASK_DIR が設定されている場合はそれを優先し、
+ * 設定されていない場合はデフォルトの ".gemini/tasks" を使用します。
+ * 
+ * @returns {string} タスクディレクトリのパス。
+ */
+export function getTaskDir() {
+  return process.env.GEMINI_TASK_DIR || ".gemini/tasks";
+}
 
 /**
  * Git から現在のブランチ名を取得し、ファイル名に使用可能な形式に変換します。
@@ -30,7 +39,7 @@ export function getBranchName() {
  */
 export function getTodoPath() {
   const branchName = getBranchName();
-  return path.join(TASK_DIR, `TODO-${branchName}.md`);
+  return path.join(getTaskDir(), `TODO-${branchName}.md`);
 }
 
 /**

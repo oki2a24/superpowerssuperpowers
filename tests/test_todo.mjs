@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import cp from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import { mock } from 'node:test';
 
 // scripts/todo.mjs を import する
@@ -421,4 +422,20 @@ test('todo.mjs core functions', async (t) => {
       }
     });
   });
+});
+
+test('環境変数 GEMINI_TASK_DIR が設定されている場合、そのディレクトリをタスク保存先として使用する', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gemini-todo-test-'));
+  // 環境変数を設定
+  process.env.GEMINI_TASK_DIR = tmpDir;
+  try {
+    init('Test Env Var');
+    const branchName = getBranchName();
+    const expectedPath = path.join(tmpDir, `TODO-${branchName}.md`);
+    assert.ok(fs.existsSync(expectedPath), `ファイルが ${expectedPath} に存在する必要があります`);
+  } finally {
+    // クリーンアップ
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    delete process.env.GEMINI_TASK_DIR;
+  }
 });
