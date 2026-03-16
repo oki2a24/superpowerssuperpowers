@@ -14,7 +14,8 @@ import {
   report,
   listSessions,
   showFile,
-  handleImport
+  handleImport,
+  createFromTemplate
 } from '../scripts/gemini_sub.mjs';
 
 describe('YAML Parser', () => {
@@ -383,6 +384,40 @@ next_actions:
       assert.ok(output.includes('Summary: Import Test'));
     } finally {
       if (fs.existsSync(tempHome)) fs.rmSync(tempHome, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('テンプレート生成機能', () => {
+  test('createFromTemplate はデフォルトテンプレートからタスク下書きを作成すること', () => {
+    /** デフォルトテンプレートからのタスク下書き生成をテストします。 */
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gemini-sub-template-test-'));
+    const draftPath = path.join(tempDir, 'task_draft.md');
+
+    try {
+      const resultPath = createFromTemplate('task', draftPath);
+      assert.strictEqual(resultPath, draftPath);
+      assert.strictEqual(fs.existsSync(draftPath), true);
+      const content = fs.readFileSync(draftPath, 'utf8');
+      assert.match(content, /task_id: PENDING/);
+      assert.match(content, /parent_project_root: PENDING/);
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test('ファイルが既に存在する場合、createFromTemplate はエラーをスローすること', () => {
+    /** 同名ファイルが存在する場合の上書き防止をテストします。 */
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gemini-sub-error-test-'));
+    const draftPath = path.join(tempDir, 'report_draft.md');
+
+    try {
+      fs.writeFileSync(draftPath, 'existing');
+      assert.throws(() => createFromTemplate('report', draftPath), {
+        message: /already exists/
+      });
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
     }
   });
 });

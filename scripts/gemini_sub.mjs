@@ -453,6 +453,67 @@ export function handleImport(taskId, options = {}) {
 }
 
 /**
+ * テンプレートから新しいタスク下書きまたは報告書下書きを生成します。
+ * 指定されたパスにファイルが既に存在する場合はエラーをスローします。
+ */
+export function createFromTemplate(type, filename = null, homeDir = null) {
+  const baseHome = homeDir || os.homedir();
+  const templateName = type === 'task' ? 'task_template.md' : 'report_template.md';
+  const defaultFilename = type === 'task' ? 'task_draft.md' : 'report_draft.md';
+  const targetPath = filename || defaultFilename;
+
+  const templatePath = path.join(baseHome, '.gemini', 'sub-sessions', templateName);
+  
+  let content = '';
+  if (fs.existsSync(templatePath)) {
+    content = fs.readFileSync(templatePath, 'utf8');
+  } else {
+    // デフォルトテンプレート (YAML Frontmatter 形式)
+    if (type === 'task') {
+      content = `---
+task_id: PENDING
+parent_project_root: PENDING
+parent_branch: PENDING
+parent_task_tag: "new-feature"
+work_dir: "."
+title: "New Task"
+mission: "Describe your mission here."
+required_skills: ["using-superpowers"]
+steps:
+  - "Step 1"
+---
+# Mission Details
+Add details here.
+`;
+    } else {
+      content = `---
+task_id: PENDING
+status: success
+summary: "Summary of changes"
+commits: ["feat: description"]
+next_actions: ["Action 1"]
+---
+# Report Details
+Add details here.
+`;
+    }
+  }
+
+  if (fs.existsSync(targetPath)) {
+    throw new Error(`File ${targetPath} already exists. (Generation aborted)`);
+  }
+
+  const dir = path.dirname(targetPath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+
+  fs.writeFileSync(targetPath, content);
+  console.log(`Created new ${type} draft: ${targetPath}`);
+  return targetPath;
+}
+
+/**
  * メインエントリーポイント
  */
 export function main() {
@@ -516,6 +577,12 @@ export function main() {
       const project = values.project;
       if (!taskId) throw new Error('Usage: import <task_id> [-p project]');
       handleImport(taskId, { projectName: project });
+    } else if (command === 'new-task') {
+      const { positionals } = parseArgs({ args: args.slice(1), allowPositionals: true });
+      createFromTemplate('task', positionals[0]);
+    } else if (command === 'new-report') {
+      const { positionals } = parseArgs({ args: args.slice(1), allowPositionals: true });
+      createFromTemplate('report', positionals[0]);
     } else {
       console.log('Gemini Peer-Agent Coordination (GPAC) Controller');
       console.log('\nCommands:');
@@ -525,6 +592,8 @@ export function main() {
       console.log('  show-task <id>               Show mission (task.md)');
       console.log('  show-report <id>             Show report (report.md)');
       console.log('  import <id> [-p project]     Import results');
+      console.log('  new-task [filename]          Create new task draft from template');
+      console.log('  new-report [filename]        Create new report draft from template');
     }
   } catch (e) {
     console.error(`Error: ${e.message}`);
