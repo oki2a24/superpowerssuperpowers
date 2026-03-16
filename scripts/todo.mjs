@@ -153,22 +153,26 @@ export function add(taskText, isChild = false, cwd = process.cwd()) {
   const { header, tasks } = parseTodoFile(todoPath);
 
   if (isChild) {
-    const activeParent = tasks.find(t => t.status === '/');
-    if (!activeParent) {
+    const activeTasks = tasks.filter(t => t.status === '/');
+    if (activeTasks.length === 0) {
       process.stdout.write("ERROR: 子タスクを追加するには、親タスクが実行中 [/] である必要があります。");
       process.exit(1);
     }
-    // 親の直後、または親の最後の子の後に挿入
+    // 最も深い（インデントが最大の）実行中タスクを親とする
+    const activeParent = activeTasks.reduce((prev, curr) => (curr.indent > prev.indent ? curr : prev));
+    
+    // 親の直後、または親の最後の子孫の後に挿入
     const newTask = new Task(activeParent.indent + 2, ' ', taskText);
-    const lastChildIndex = tasks.findLastIndex(t => {
-      let p = t.parent;
-      while (p) {
-        if (p === activeParent) return true;
-        p = p.parent;
+    
+    let lastDescendantIndex = tasks.indexOf(activeParent);
+    for (let i = lastDescendantIndex + 1; i < tasks.length; i++) {
+      if (tasks[i].indent > activeParent.indent) {
+        lastDescendantIndex = i;
+      } else {
+        break;
       }
-      return false;
-    });
-    const insertAt = lastChildIndex !== -1 ? lastChildIndex + 1 : tasks.indexOf(activeParent) + 1;
+    }
+    const insertAt = lastDescendantIndex + 1;
     tasks.splice(insertAt, 0, newTask);
   } else {
     tasks.push(new Task(0, ' ', taskText));
@@ -272,7 +276,7 @@ export function main(argv = process.argv, cwd = process.cwd()) {
         process.exit(1);
       }
       const isChild = args.includes('--child');
-      const text = args.filter(a => a !== '--child')[0];
+      const text = args.filter(a => a !== '--child').join(' ');
       add(text, isChild, cwd);
       break;
     case 'start':
