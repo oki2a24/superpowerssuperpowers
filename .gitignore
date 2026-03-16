@@ -1,2 +1,11 @@
 .worktrees/
 __pycache__/
+venv/
+.DS_Store
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+build/
+*.log
