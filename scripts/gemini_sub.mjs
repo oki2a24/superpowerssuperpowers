@@ -450,20 +450,34 @@ export function handleImport(taskId, options = {}) {
   console.log(`Status: ${data.status || 'unknown'}`);
   console.log(`Summary: ${data.summary || 'No summary provided.'}`);
   console.log('Next Actions:');
-  const actions = data.next_actions || [];
-  if (Array.isArray(actions)) {
-    for (const action of actions) {
-      console.log(`  - ${action}`);
-    }
-  } else {
-    console.log(`  - ${actions}`);
-  }
+  renderList(data.next_actions);
   console.log('-'.repeat(40));
-  console.log(`Feedback: ${data.parent_feedback || 'None'}`);
-  console.log(`Proposals: ${data.skill_proposals || 'None'}`);
+  console.log('Skill Proposals:');
+  renderList(data.skill_proposals);
+  console.log('Lessons Learned:');
+  renderList(data.lessons_learned);
   console.log('-'.repeat(40));
   console.log(`Commits: ${JSON.stringify(data.commits || [])}`);
   console.log('-'.repeat(40) + '\n');
+}
+
+/**
+ * リスト形式のデータを標準出力に整形して表示します。
+ */
+function renderList(list) {
+  if (Array.isArray(list)) {
+    if (list.length === 0) {
+      console.log('  (none)');
+    } else {
+      for (const item of list) {
+        console.log(`  - ${item}`);
+      }
+    }
+  } else if (list) {
+    console.log(`  - ${list}`);
+  } else {
+    console.log('  (none)');
+  }
 }
 
 /**
@@ -491,11 +505,18 @@ parent_branch: PENDING
 parent_task_tag: "new-feature"
 work_dir: "."
 title: "New Task"
-mission: "Describe your mission here."
+title_jp: "タスクの日本語タイトル"
+intent: "このタスクの目的と意図を簡潔に記述してください。"
+mission: "ここにミッション（達成すべき最終目標）を記述してください。"
 required_skills: ["using-superpowers"]
 steps:
-  - "Step 1"
+  - "ステップ 1"
 ---
+## [イメージ] (構造や状態遷移の図解)
+\`\`\`text
+(ここに AA や図解を記述)
+\`\`\`
+
 # Mission Details
 Add details here.
 `;
@@ -503,12 +524,19 @@ Add details here.
       content = `---
 task_id: PENDING
 status: success
-summary: "Summary of changes"
-commits: ["feat: description"]
-next_actions: ["Action 1"]
+summary: "作業完了の要約を日本語で記述"
+commits: ["feat: コミットメッセージ"]
+next_actions: ["次のアクション"]
+skill_proposals: []
+lessons_learned: []
 ---
-# Report Details
-Add details here.
+## [イメージ] (完了後の構造や状態遷移の図解)
+\`\`\`text
+(ここに AA や図解を記述)
+\`\`\`
+
+# 作業詳細
+ここに詳細な作業内容を記述してください。
 `;
     }
   }

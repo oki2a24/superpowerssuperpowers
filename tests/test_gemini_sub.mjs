@@ -392,6 +392,10 @@ commits:
   - "commit-1"
 next_actions:
   - "action-1"
+skill_proposals:
+  - "proposal-1"
+lessons_learned:
+  - "lesson-1"
 ---`;
       fs.writeFileSync(path.join(reportDir, 'report.md'), reportContent);
 
@@ -405,6 +409,10 @@ next_actions:
       assert.ok(output.includes(`[GPAC IMPORT REPORT: ${taskId}]`));
       assert.ok(output.includes('Status: success'));
       assert.ok(output.includes('Summary: Import Test'));
+      assert.ok(output.includes('Skill Proposals:'));
+      assert.ok(output.includes('proposal-1'));
+      assert.ok(output.includes('Lessons Learned:'));
+      assert.ok(output.includes('lesson-1'));
     } finally {
       if (fs.existsSync(tempHome)) fs.rmSync(tempHome, { recursive: true, force: true });
     }

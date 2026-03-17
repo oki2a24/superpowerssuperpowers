@@ -1,14 +1,16 @@
 ---
-status: success
 task_id: PENDING
-commits: []
-summary: "..."
-next_actions: []
-parent_feedback: "..."
-skill_proposals: "..."
-blocker_details: "..."
+status: success
+summary: "作業完了の要約を日本語で記述"
+commits: ["feat: コミットメッセージ"]
+next_actions: ["次のアクション"]
+skill_proposals: []
+lessons_learned: []
 ---
-# 実施報告
+## [イメージ] (完了後の構造や状態遷移の図解)
+```text
+(ここに AA や図解を記述)
+```
 
-## 概要
-ここに作業の概要を記述してください。
+# 作業詳細
+ここに詳細な作業内容を記述してください。
