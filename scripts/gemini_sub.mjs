@@ -66,22 +66,36 @@ export function parseYamlFrontmatter(content) {
     const key = trimmedLine.slice(0, colonIndex).trim();
     let val = trimmedLine.slice(colonIndex + 1).trim();
 
-    // クォートの除去
-    val = removeQuotes(val);
-
-    // 値の中に裸のコロンが含まれているかチェック (クォート除去後)
-    if (val.includes(':')) {
-      throw new Error(`YAML syntax error: Invalid value '${val}' (Try quoting it)`);
-    }
-
-    if (!val) {
-      // 空の値。現時点では文字列かリストか不明。
-      // 次の行がリストアイテムならリストになる。
-      data[key] = '';
-    } else if (val === '[]') {
-      data[key] = [];
+    // Flow Sequence ([...]) の処理
+    if (val.startsWith('[') && val.endsWith(']')) {
+      // 1. 剥離: [ と ] を除去
+      const inner = val.slice(1, -1);
+      // 2. 分割: カンマで分割し、3. 洗浄 (trim & removeQuotes & trim) & 4. 抽出 (空文字除外)
+      data[key] = inner.split(',')
+        .map(item => {
+          const trimmed = item.trim();
+          const unquoted = removeQuotes(trimmed);
+          return unquoted.trim();
+        })
+        .filter(item => item !== '');
     } else {
-      data[key] = val;
+      // 通常の値の処理 (クォートの除去)
+      val = removeQuotes(val);
+
+      // 値の中に裸のコロンが含まれているかチェック (クォート除去後)
+      if (val.includes(':')) {
+        throw new Error(`YAML syntax error: Invalid value '${val}' (Try quoting it)`);
+      }
+
+      if (!val) {
+        // 空の値。現時点では文字列かリストか不明。
+        // 次の行がリストアイテムならリストになる。
+        data[key] = '';
+      } else if (val === '[]') {
+        data[key] = [];
+      } else {
+        data[key] = val;
+      }
     }
     currentKey = key;
   }

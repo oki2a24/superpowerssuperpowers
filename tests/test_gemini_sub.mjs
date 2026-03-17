@@ -41,6 +41,29 @@ mission: "Test Mission"`;
       message: "YAML syntax error: Invalid value ': yaml' (Try quoting it)"
     });
   });
+
+  test('Flow Sequence ([...]) 形式のリストを正しくパースできること', () => {
+    /**
+     * Flow Sequence ([...]) 形式のリストパースをテストします。
+     * - ダブルクォート、シングルクォート、クォートなしが混在しても正しくパースされること。
+     * - 余分な空白や空要素が適切に処理されること。
+     */
+    const yamlText = `
+list_dq: ["a", "b"]
+list_sq: ['c', 'd']
+list_none: [e, f]
+list_mixed: ["g", ' h ', i]
+list_empty: [j, , k]
+list_spaces: [  l  ,  m  ]
+`;
+    const result = parseYamlFrontmatter(yamlText);
+    assert.deepStrictEqual(result.list_dq, ['a', 'b']);
+    assert.deepStrictEqual(result.list_sq, ['c', 'd']);
+    assert.deepStrictEqual(result.list_none, ['e', 'f']);
+    assert.deepStrictEqual(result.list_mixed, ['g', 'h', 'i']);
+    assert.deepStrictEqual(result.list_empty, ['j', 'k']);
+    assert.deepStrictEqual(result.list_spaces, ['l', 'm']);
+  });
 });
 
 describe('Frontmatterバリデーション', () => {
