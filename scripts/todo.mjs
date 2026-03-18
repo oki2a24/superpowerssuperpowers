@@ -275,6 +275,21 @@ export function getProgressBar(done, total, width = 10) {
 }
 
 /**
+ * タスクのサマリー情報を計算します。
+ */
+export function calculateSummary(tasks) {
+  const summary = {
+    total: tasks.length,
+    done: tasks.filter(t => t.status === 'x').length,
+    focus: tasks.filter(t => t.status === '/'),
+    active: tasks.filter(t => t.status !== 'x'),
+    history: tasks.filter(t => t.status === 'x')
+  };
+  summary.percent = summary.total > 0 ? Math.round((summary.done / summary.total) * 100) : 0;
+  return summary;
+}
+
+/**
  * CLI エントリポイント
  */
 export function main(argv = process.argv, cwd = process.cwd()) {
