@@ -290,6 +290,40 @@ export function calculateSummary(tasks) {
 }
 
 /**
+ * ダッシュボード表示用の文字列をフォーマットします。
+ */
+export function formatDashboard(summary) {
+  let output = `\n--- TODO: ${summary.title} ---\n`;
+  output += `${getProgressBar(summary.done, summary.total)} ${summary.percent}% (${summary.done}/${summary.total} Tasks)\n\n`;
+
+  if (summary.focus.length > 0) {
+    const focusItems = summary.focus.map(t => {
+      const parentText = t.parent ? `[ ${t.parent.text} ] > ` : '';
+      return `${parentText}${COLORS.YELLOW}${COLORS.BOLD}${t.text}${COLORS.RESET}`;
+    });
+    output += `Focus: ${focusItems.join(', ')}\n\n`;
+  }
+
+  output += `${COLORS.CYAN}Active Tasks:${COLORS.RESET}\n`;
+  summary.active.forEach(t => {
+    let line = t.format();
+    if (t.status === '/') {
+      line = line.replace(/\[\/\]/, `[${COLORS.YELLOW}${COLORS.BOLD}/${COLORS.RESET}]`);
+    }
+    output += `${line}\n`;
+  });
+
+  if (summary.history.length > 0) {
+    output += `\n--- Completed Tasks ---\n`;
+    summary.history.forEach(t => {
+      output += `${COLORS.GREEN}[x] ${t.text}${COLORS.RESET}\n`;
+    });
+  }
+
+  return output;
+}
+
+/**
  * CLI エントリポイント
  */
 export function main(argv = process.argv, cwd = process.cwd()) {

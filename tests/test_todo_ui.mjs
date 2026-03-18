@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getProgressBar, calculateSummary } from '../scripts/todo.mjs';
+import { getProgressBar, calculateSummary, formatDashboard } from '../scripts/todo.mjs';
 
 test('UI ヘルパー: getProgressBar', () => {
   assert.strictEqual(getProgressBar(0, 10), '[░░░░░░░░░░]');
@@ -21,4 +21,23 @@ test('ロジック: タスクの分類', () => {
   assert.strictEqual(summary.focus.length, 1);
   assert.strictEqual(summary.active.length, 2);
   assert.strictEqual(summary.history.length, 1);
+});
+
+test('UI: formatDashboard のレイアウト検証', () => {
+  const summary = {
+    title: 'Test Project',
+    total: 2, done: 1, percent: 50,
+    focus: [{ status: '/', text: 'Task B', parent: { text: 'Task A' } }],
+    active: [
+      { status: '/', text: 'Task A', indent: 0, format: () => '- [/] Task A' },
+      { status: '/', text: 'Task B', indent: 2, format: () => '  - [/] Task B' }
+    ],
+    history: [{ text: 'Done Task' }]
+  };
+  const output = formatDashboard(summary);
+  assert.match(output, /--- TODO: Test Project ---/);
+  assert.match(output, /\[▓▓▓▓▓░░░░░\] 50%/);
+  assert.match(output, /Focus: \[ Task A \] > .*Task B/);
+  assert.match(output, /Active Tasks:/);
+  assert.match(output, /--- Completed Tasks ---/);
 });
