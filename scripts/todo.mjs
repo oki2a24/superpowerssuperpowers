@@ -246,12 +246,16 @@ export function done(cwd = process.cwd()) {
 export function show(cwd = process.cwd()) {
   const todoPath = getTodoPath(cwd);
   if (!fs.existsSync(todoPath)) {
-    process.stdout.write("No active TODO for this branch.");
+    process.stdout.write("No active TODO for this branch.\n");
     return;
   }
-  const content = fs.readFileSync(todoPath, 'utf8').trimEnd();
-  const fileName = path.basename(todoPath);
-  process.stdout.write(`\n--- ${fileName} ---\n${content}\n`);
+  const { header, tasks } = parseTodoFile(todoPath);
+  const summary = calculateSummary(tasks);
+  // タイトルをヘッダーから抽出（既存の init タイトルを想定）
+  summary.title = header.find(l => l.startsWith('# TASK:'))?.replace('# TASK:', '').trim() || 'Task List';
+  
+  const output = formatDashboard(summary);
+  process.stdout.write(output);
 }
 
 /**
