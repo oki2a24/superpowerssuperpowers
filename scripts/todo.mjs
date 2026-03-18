@@ -255,6 +255,26 @@ export function show(cwd = process.cwd()) {
 }
 
 /**
+ * ANSI カラーコード
+ */
+export const COLORS = {
+  RESET: '\x1b[0m',
+  BOLD: '\x1b[1m',
+  YELLOW: '\x1b[33m',
+  GREEN: '\x1b[32m',
+  CYAN: '\x1b[36m'
+};
+
+/**
+ * プログレスバーの文字列を生成します。
+ */
+export function getProgressBar(done, total, width = 10) {
+  if (total === 0) return '[' + '░'.repeat(width) + ']';
+  const filled = Math.round((done / total) * width);
+  return '[' + '▓'.repeat(filled) + '░'.repeat(width - filled) + ']';
+}
+
+/**
  * CLI エントリポイント
  */
 export function main(argv = process.argv, cwd = process.cwd()) {
