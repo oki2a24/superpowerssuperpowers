@@ -147,3 +147,37 @@ git commit -m "feat: add specific feature"
         3.  `gemini-sub spawn` コマンドを生成し、ユーザーに提示（または実行許可を求める）。
         4.  サブセッション側では、配布された指示書に基づき `activate_skill(name="executing-plans")` を起動して作業を開始するよう明記する。
 
+<!-- IMPROVED_ON: 2026-03-18 | REASON: タスク間の依存関係やデータフローを設計する際、テキストのみでは認知の齟齬が生じやすいため、AAテンプレートを導入。 -->
+### AIエージェントへの指示 (Gemini固有)
+- **[イメージ] 図解の規律 (Visual Discipline)**: 複雑なタスクの依存関係やデータ処理フローを記述する際は、必ず以下の AA テンプレートを参考に構造（状態遷移、データフロー、ディレクトリ構成等）を可視化せよ。
+
+#### 1. 状態遷移図 (State Transition)
+複雑なオブジェクトのライフサイクル（例：タスクのステータス遷移）に使用。
+```text
+( Initial ) --[ Start ]--> / Running / --[ Success ]--> [ Completed ]
+                             ^    |
+                             |    v
+                             | [ Failure ] --> [ Error ]
+                             |                   |
+                             +----[ Retry ]------+
+```
+
+#### 2. 直列・分岐フロー (Data Flow / Process)
+処理の順序や条件分岐（例：エラーハンドリング）に使用。
+```text
+          +--( If: A )--> [ Process A ] --+
+[ Input ] |                               |--> [ Output ]
+          +--( If: B )--> [ Process B ] --+
+```
+
+#### 3. 構造図 (Structure / Hierarchy)
+ファイルディレクトリ構成や、データの親子関係に使用。
+```text
+Root/
+├── parent/
+│   ├── child_A (Status: [/])
+│   └── child_B (Status: [ ])
+└── common/
+```
+
+
