@@ -49,10 +49,18 @@ export function getTodoPath(cwd = process.cwd()) {
 const TASK_REGEX = /^(\s*)-\s*\[( |x|\/)\]\s*(.*)$/;
 
 /**
- * タスクを表すクラス。階層構造を扱います。
+ * 個別のタスクを表すクラス。階層構造（親子関係）とステータスを管理します。
  */
 class Task {
-  constructor(indent, status, text, lineIndex) {
+  /**
+   * Task クラスのコンストラクタ。
+   * 
+   * @param {number} indent - インデントのスペース数。
+   * @param {string} status - タスクのステータス。' '（未着手）, 'x'（完了）, '/'（実行中）。
+   * @param {string} text - タスクの内容（テキスト）。
+   * @param {number|null} [lineIndex=null] - 元のファイルでの 0 から始まる行番号。
+   */
+  constructor(indent, status, text, lineIndex = null) {
     this.indent = indent; // スペースの数
     this.status = status; // " ", "x", "/"
     this.text = text;
@@ -61,10 +69,21 @@ class Task {
     this.parent = null;
   }
 
+  /**
+   * ステータスを角括弧で囲んだ形式（例: [x]）を取得します。
+   * 
+   * @returns {string} 角括弧付きのステータス文字列。
+   */
   get fullStatus() {
     return `[${this.status}]`;
   }
 
+  /**
+   * タスクを Markdown 形式の 1 行（例: "- [ ] Task content"）にフォーマットします。
+   * インデントも反映されます。
+   * 
+   * @returns {string} フォーマット済みのタスク文字列。
+   */
   format() {
     const spaces = ' '.repeat(this.indent);
     return `${spaces}- [${this.status}] ${this.text}`;
@@ -72,7 +91,11 @@ class Task {
 }
 
 /**
- * TODO ファイルをパースして Task オブジェクトの木構造を返します。
+ * TODO ファイルをパースして、ヘッダー行のリストと Task オブジェクトのリストを返します。
+ * 親子関係もこのフェーズで構築されます。
+ * 
+ * @param {string} todoPath - パース対象の TODO ファイルのパス。
+ * @returns {Object} { header: string[], tasks: Task[] } 形式のオブジェクト。
  */
 function parseTodoFile(todoPath) {
   if (!fs.existsSync(todoPath)) return { header: [], tasks: [] };
@@ -110,7 +133,11 @@ function parseTodoFile(todoPath) {
 }
 
 /**
- * Task オブジェクトのリストを Markdown 形式に変換します。
+ * ヘッダーとタスクのリストを受け取り、単一の Markdown 文字列にシリアライズします。
+ * 
+ * @param {string[]} header - ファイルのヘッダー行（# TASK: 等）の配列。
+ * @param {Task[]} tasks - Task オブジェクトの配列。
+ * @returns {string} シリアライズされた Markdown コンテンツ。
  */
 function serializeTodo(header, tasks) {
   let content = header.join('\n') + '\n';
@@ -121,7 +148,11 @@ function serializeTodo(header, tasks) {
 }
 
 /**
- * 新しい TODO ファイルを初期化します。
+ * 新しい TODO ファイルを現在のブランチ（または指定された cwd）に対応するパスに初期化します。
+ * タイトルが指定されない場合、ブランチ名から自動生成します。
+ * 
+ * @param {string|null} [title=null] - タスクのタイトル。
+ * @param {string} [cwd=process.cwd()] - Git コマンドを実行する基準ディレクトリ。
  */
 export function init(title = null, cwd = process.cwd()) {
   const branchName = getBranchName(cwd);
@@ -146,7 +177,12 @@ export function init(title = null, cwd = process.cwd()) {
 }
 
 /**
- * タスクを追加します。
+ * TODO ファイルに新しいタスクを追加します。
+ * isChild が true の場合、現在実行中（[/]）のタスクの子タスクとして適切なインデントで挿入されます。
+ * 
+ * @param {string} taskText - 追加するタスクのテキスト。
+ * @param {boolean} [isChild=false] - 子タスクとして追加するかどうか。
+ * @param {string} [cwd=process.cwd()] - Git コマンドを実行する基準ディレクトリ。
  */
 export function add(taskText, isChild = false, cwd = process.cwd()) {
   const todoPath = getTodoPath(cwd);
@@ -182,7 +218,11 @@ export function add(taskText, isChild = false, cwd = process.cwd()) {
 }
 
 /**
- * タスクを開始します。
+ * 指定されたパターン（正規表現）に一致する最初の未着手タスクを「開始 (/)」状態にします。
+ * 既に別の独立した系統のタスクが実行中の場合は、エラーを出力して終了します。
+ * 
+ * @param {string} pattern - 開始するタスクを特定するための検索パターン。
+ * @param {string} [cwd=process.cwd()] - Git コマンドを実行する基準ディレクトリ。
  */
 export function start(pattern, cwd = process.cwd()) {
   const todoPath = getTodoPath(cwd);
@@ -220,7 +260,9 @@ export function start(pattern, cwd = process.cwd()) {
 }
 
 /**
- * タスクを完了します。
+ * 現在実行中（[/]）のタスクのうち、最も階層の深い（インデントの大きい）ものを「完了 (x)」にします。
+ * 
+ * @param {string} [cwd=process.cwd()] - Git コマンドを実行する基準ディレクトリ。
  */
 export function done(cwd = process.cwd()) {
   const todoPath = getTodoPath(cwd);
@@ -241,7 +283,10 @@ export function done(cwd = process.cwd()) {
 }
 
 /**
- * 表示します。
+ * 現在のブランチのタスク状況をダッシュボード形式で標準出力に表示します。
+ * プログレスバー、現在注目中のタスク、アクティブなタスク一覧、完了履歴が含まれます。
+ * 
+ * @param {string} [cwd=process.cwd()] - Git コマンドを実行する基準ディレクトリ。
  */
 export function show(cwd = process.cwd()) {
   const todoPath = getTodoPath(cwd);
@@ -270,7 +315,12 @@ export const COLORS = {
 };
 
 /**
- * プログレスバーの文字列を生成します。
+ * 進捗状況を表す ASCII プログレスバー（例: [▓▓▓░░░░░░░]）を生成します。
+ * 
+ * @param {number} done - 完了済みタスク数。
+ * @param {number} total - 全タスク数。
+ * @param {number} [width=10] - バーの全体の文字数（括弧内）。
+ * @returns {string} フォーマット済みのプログレスバー文字列。
  */
 export function getProgressBar(done, total, width = 10) {
   if (total === 0) return '[' + '░'.repeat(width) + ']';
@@ -279,7 +329,16 @@ export function getProgressBar(done, total, width = 10) {
 }
 
 /**
- * タスクのサマリー情報を計算します。
+ * タスクのリストから進捗統計を計算します。
+ * 
+ * @param {Task[]} tasks - 統計計算の対象となる Task 配列。
+ * @returns {Object} 以下のプロパティを持つ統計オブジェクト。
+ *   - total: 全タスク数。
+ *   - done: 完了済みタスク数。
+ *   - focus: 現在実行中（[/]）の Task 配列。
+ *   - active: 未完了（[ ] または [/]）の Task 配列。
+ *   - history: 完了済み（[x]）の Task 配列。
+ *   - percent: 進捗率（0-100 の整数）。
  */
 export function calculateSummary(tasks) {
   const summary = {
@@ -294,7 +353,11 @@ export function calculateSummary(tasks) {
 }
 
 /**
- * ダッシュボード表示用の文字列をフォーマットします。
+ * 計算されたサマリー統計を元に、ダッシュボード表示用の文字列（カラーコード含む）を生成します。
+ * 
+ * @param {Object} summary - calculateSummary で計算されたサマリーオブジェクト。
+ * @param {string} summary.title - ダッシュボードのタイトル。
+ * @returns {string} 標準出力に表示可能なフォーマット済み文字列。
  */
 export function formatDashboard(summary) {
   let output = `\n--- TODO: ${summary.title} ---\n`;
@@ -328,7 +391,11 @@ export function formatDashboard(summary) {
 }
 
 /**
- * CLI エントリポイント
+ * todo.mjs CLI のメインエントリーポイントです。
+ * コマンド（init, add, start, done, show）をパースし、対応する関数を呼び出します。
+ * 
+ * @param {string[]} [argv=process.argv] - 実行時の引数配列。
+ * @param {string} [cwd=process.cwd()] - 基準となるカレントディレクトリ。
  */
 export function main(argv = process.argv, cwd = process.cwd()) {
   const command = argv[2];

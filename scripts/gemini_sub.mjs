@@ -25,6 +25,9 @@ import { spawnSync } from 'node:child_process';
  * 【パース制限】
  * - インデントは無視されます（フラットな構造のみサポート）。
  * - 値の中にコロン ':' を含む場合は、必ずクォート（"..."）で囲んでください。
+ * 
+ * @param {string} content - パース対象の Markdown コンテンツ（または Frontmatter 文字列）。
+ * @returns {Object} パースされたキーと値のペアを含むオブジェクト。
  */
 export function parseYamlFrontmatter(content) {
   const parts = content.split('---');
@@ -103,6 +106,11 @@ export function parseYamlFrontmatter(content) {
   return data;
 }
 
+/**
+ * Frontmatter の正しい記述例を含むヘルプテキストを生成します。
+ * 
+ * @returns {string} ヘルプテキスト文字列。
+ */
 function generateHelpText() {
   return `
 【正しい Frontmatter の例】
@@ -125,10 +133,11 @@ steps:
 /**
  * パース済みの Frontmatter データに対してバリデーションを行います。
  * 
- * @param {Object} data パース済みデータ
- * @param {string[]} requiredKeys 必須キーのリスト
- * @param {string[]} [pendingKeys=[]] PENDING であるべきキーのリスト
- * @returns {Object} バリデーション済みのデータ
+ * @param {Object} data - パース済みの Frontmatter データオブジェクト。
+ * @param {string[]} requiredKeys - 存在が必須とされるキーのリスト。
+ * @param {string[]} [pendingKeys=[]] - 値が "PENDING" であることが期待されるキーのリスト。
+ * @returns {Object} バリデーションに成功したパース済みデータ（data 引数そのもの）。
+ * @throws {Error} 必須キーの欠如、PENDING チェック失敗、または空値が許可されないキーに値がない場合にスローされます。
  */
 export function validateFrontmatter(data, requiredKeys, pendingKeys = []) {
   for (const key of requiredKeys) {
@@ -166,7 +175,10 @@ ${generateHelpText()}`);
 }
 
 /**
- * YYYYMMDD-HHMMSS-XXXX 形式のタスク ID を生成します。
+ * ユニークなタスク ID を生成します。
+ * 形式: YYYYMMDD-HHMMSS-XXXX (XXXX は 4 文字のランダムな英数字)
+ * 
+ * @returns {string} 生成されたタスク ID。
  */
 export function generateTaskId() {
   const now = new Date();
@@ -186,7 +198,11 @@ export function generateTaskId() {
 }
 
 /**
- * ~/.gemini/sub-sessions/ 下から task_id ディレクトリを探し出します。
+ * グローバルなセッション保存先から、指定されたタスク ID に対応するディレクトリを検索します。
+ * 
+ * @param {string} taskId - 検索対象のタスク ID。
+ * @param {string|null} [homeDir=null] - 基準となるホームディレクトリのパス。null の場合は os.homedir() が使用されます。
+ * @returns {string|null} タスクディレクトリの絶対パス。見つからない場合は null。
  */
 export function findTaskDirectory(taskId, homeDir = null) {
   const baseHome = homeDir || os.homedir();
@@ -214,7 +230,11 @@ export function findTaskDirectory(taskId, homeDir = null) {
 }
 
 /**
- * 初期プロンプトを含む起動ペイロード（シェルコマンド）を生成します。
+ * 新しいセッションを起動するためのシェルコマンド（ペイロード）を生成します。
+ * 
+ * @param {string} workDir - セッション起動時のワーキングディレクトリ。
+ * @param {string} taskId - 起動対象のタスク ID。
+ * @returns {string} 実行されるシェルコマンド。
  */
 export function createPayload(workDir, taskId) {
   const prompt = `GPAC Protocol: Your mission is defined. Please execute 'node scripts/gemini_sub.mjs show-task ${taskId}' to understand your mission.`;
@@ -224,7 +244,14 @@ export function createPayload(workDir, taskId) {
 }
 
 /**
- * ローカルの下書きを検証・置換し、グローバル領域へ配置する共通ロジック。
+ * ローカルの下書きドキュメントを検証し、PENDING 値を置換してグローバル領域へ転送（Handoff）します。
+ * 
+ * @param {string} localDraftPath - ワークスペース内にある下書きファイルのパス。
+ * @param {string} targetPath - 転送先となるグローバル領域のパス。
+ * @param {string[]} requiredKeys - Frontmatter で必須とされるキーのリスト。
+ * @param {Object} pendingMap - PENDING 値を実値に置換するためのマップ。
+ * @returns {string} 転送後のファイルの絶対パス。
+ * @throws {Error} 下書きが見つからない、またはバリデーションに失敗した場合にスローされます。
  */
 export function handoffDocument(localDraftPath, targetPath, requiredKeys, pendingMap) {
   if (!fs.existsSync(localDraftPath)) {
@@ -255,7 +282,14 @@ export function handoffDocument(localDraftPath, targetPath, requiredKeys, pendin
 }
 
 /**
- * ワークスペース内の下書きファイルを読み込み、検証した上でグローバル領域へ配置（Handoff）します。
+ * 新しいサブセッションを「生成 (spawn)」します。
+ * ローカルのタスク下書きをグローバル領域へ転送し、新しいタスク ID を割り当てます。
+ * 
+ * @param {string} localDraftPath - ワークスペース内のタスク下書き (task_draft.md) のパス。
+ * @param {Object} [options={}] - オプション引数。
+ * @param {string|null} [options.projectName=null] - プロジェクト名。デフォルトはカレントディレクトリ名。
+ * @param {string|null} [options.homeDir=null] - ホームディレクトリのパス。
+ * @returns {string} 転送後のタスクファイルのパス。
  */
 export function spawn(localDraftPath, options = {}) {
   const { projectName = null, homeDir = null } = options;
@@ -290,7 +324,15 @@ export function spawn(localDraftPath, options = {}) {
 }
 
 /**
- * ワークスペース内の報告書下書きを検証し、グローバル領域へ配置（Handoff）します。
+ * 完了したサブセッションの報告書を「提出 (report)」します。
+ * ワークスペース内の報告書下書きを検証し、対象タスクのディレクトリへ転送します。
+ * 
+ * @param {string} localDraftPath - ワークスペース内の報告書下書き (report_draft.md) のパス。
+ * @param {string} taskId - 報告対象のタスク ID。
+ * @param {Object} [options={}] - オプション引数。
+ * @param {string|null} [options.homeDir=null] - ホームディレクトリのパス。
+ * @returns {string} 転送後の報告書ファイルのパス。
+ * @throws {Error} タスクディレクトリが見つからない、または既に成功（success）として報告済みのタスクへの再提出が試みられた場合にスローされます。
  */
 export function report(localDraftPath, taskId, options = {}) {
   const { homeDir = null } = options;
@@ -317,7 +359,12 @@ export function report(localDraftPath, taskId, options = {}) {
 }
 
 /**
- * 指定されたランチャーモードでセッションを起動します。
+ * 指定されたランチャーモード（manual/tmux）を使用して、サブセッションを起動します。
+ * 
+ * @param {string} sessionId - 起動するタスク ID（セッション ID）。
+ * @param {string} taskPath - グローバル領域にあるタスクファイルのパス。
+ * @param {string} workDir - セッション起動時のワーキングディレクトリ。
+ * @param {string} [launcherMode='manual'] - 起動モード。'manual'（手動コピー）または 'tmux'（新規 tmux ウィンドウ）。
  */
 export function launchSession(sessionId, taskPath, workDir, launcherMode = 'manual') {
   const payload = createPayload(workDir, sessionId);
@@ -348,7 +395,10 @@ export function launchSession(sessionId, taskPath, workDir, launcherMode = 'manu
 }
 
 /**
- * グローバル領域にあるサブセッションを一覧表示します。
+ * グローバル領域に保存されているすべてのサブセッション（タスク）を一覧表示します。
+ * プロジェクト名、タスク ID、およびタスクのタグ（parent_task_tag）を表示します。
+ * 
+ * @param {string|null} [homeDir=null] - ホームディレクトリのパス。
  */
 export function listSessions(homeDir = null) {
   const baseHome = homeDir || os.homedir();
@@ -403,7 +453,12 @@ export function listSessions(homeDir = null) {
 }
 
 /**
- * 指定されたタスクのファイル（task.md または report.md）を表示します。
+ * 指定されたタスク ID に関連する特定のファイル（例: task.md, report.md）の内容を表示します。
+ * 
+ * @param {string} taskId - 情報を表示するタスク ID。
+ * @param {string} filename - 表示対象のファイル名。
+ * @param {string|null} [homeDir=null] - ホームディレクトリのパス。
+ * @throws {Error} タスクディレクトリまたはファイルが見つからない場合にスローされます。
  */
 export function showFile(taskId, filename, homeDir = null) {
   const taskDir = findTaskDirectory(taskId, homeDir);
@@ -420,7 +475,13 @@ export function showFile(taskId, filename, homeDir = null) {
 }
 
 /**
- * 指定されたタスクの報告書を読み込み、要約を表示します。
+ * 指定されたタスクの報告書（report.md）を読み込み、ステータス、要約、次のアクションなどの情報を表示します。
+ * インポート（情報の取り込み）プロセスのための要約確認に使用されます。
+ * 
+ * @param {string} taskId - インポート対象のタスク ID。
+ * @param {Object} [options={}] - オプション引数。
+ * @param {string|null} [options.projectName=null] - プロジェクト名。
+ * @param {string|null} [options.homeDir=null] - ホームディレクトリのパス。
  */
 export function handleImport(taskId, options = {}) {
   const { projectName = null, homeDir = null } = options;
@@ -463,6 +524,9 @@ export function handleImport(taskId, options = {}) {
 
 /**
  * リスト形式のデータを標準出力に整形して表示します。
+ * 配列、単一文字列、または null/undefined を受け取り、適切にインデントして表示します。
+ * 
+ * @param {Array|string|null|undefined} list - 表示するリストデータ。
  */
 function renderList(list) {
   if (Array.isArray(list)) {
@@ -481,8 +545,14 @@ function renderList(list) {
 }
 
 /**
- * テンプレートから新しいタスク下書きまたは報告書下書きを生成します。
- * 指定されたパスにファイルが既に存在する場合はエラーをスローします。
+ * テンプレート（task_template.md または report_template.md）から新しい下書きファイルを生成します。
+ * グローバルなテンプレートが存在しない場合は、内蔵のデフォルトコンテンツが使用されます。
+ * 
+ * @param {'task'|'report'} type - 生成するドキュメントの種類。
+ * @param {string|null} [filename=null] - 生成される下書きファイルのパス。指定がない場合は defaultFilename が使用されます。
+ * @param {string|null} [homeDir=null] - ホームディレクトリのパス。
+ * @returns {string} 生成された下書きファイルの絶対パス。
+ * @throws {Error} 生成先のパスに既にファイルが存在する場合にスローされます。
  */
 export function createFromTemplate(type, filename = null, homeDir = null) {
   const baseHome = homeDir || os.homedir();
@@ -556,7 +626,8 @@ lessons_learned: []
 }
 
 /**
- * メインエントリーポイント
+ * gemini_sub CLI のメインエントリーポイントです。
+ * コマンドライン引数をパースし、対応する関数（spawn, report, list 等）を呼び出します。
  */
 export function main() {
   const args = process.argv.slice(2);
@@ -651,6 +722,12 @@ if (resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
   main();
 }
 
+/**
+ * 文字列の前後にあるダブルクォート (") またはシングルクォート (') を除去し、トリミングします。
+ * 
+ * @param {string} val - 処理対象の文字列。
+ * @returns {string} クォートが除去された文字列。
+ */
 function removeQuotes(val) {
   if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
     return val.slice(1, -1).trim();

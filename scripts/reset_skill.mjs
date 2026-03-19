@@ -38,7 +38,8 @@ export function resetSkillFile(filePath) {
 }
 
 /**
- * CLI のエントリポイント。
+ * reset_skill CLI のメインエントリーポイントです。
+ * 引数として受け取ったすべてのスキルファイルに対して、ローカル・アダプテーションセクションの削除を実行します。
  */
 function main() {
   const args = process.argv.slice(2);
