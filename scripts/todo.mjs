@@ -402,7 +402,7 @@ export function main(argv = process.argv, cwd = process.cwd()) {
   const args = argv.slice(3);
 
   if (!command) {
-    process.stdout.write("Usage: todo.py [init|add|start|done|show] [args]");
+    process.stdout.write("Usage: todo.mjs [init|add|start|done|show] [args]");
     process.exit(1);
   }
 
@@ -412,7 +412,7 @@ export function main(argv = process.argv, cwd = process.cwd()) {
       break;
     case 'add':
       if (args.length < 1) {
-        process.stdout.write("Usage: todo.py add <task>");
+        process.stdout.write("Usage: todo.mjs add <task>");
         process.exit(1);
       }
       const isChild = args.includes('--child');
@@ -421,7 +421,7 @@ export function main(argv = process.argv, cwd = process.cwd()) {
       break;
     case 'start':
       if (args.length < 1) {
-        process.stdout.write("Usage: todo.py start <pattern>");
+        process.stdout.write("Usage: todo.mjs start <pattern>");
         process.exit(1);
       }
       start(args[0], cwd);
@@ -433,7 +433,7 @@ export function main(argv = process.argv, cwd = process.cwd()) {
       show(cwd);
       break;
     default:
-      process.stdout.write("Usage: todo.py [init|add|start|done|show] [args]");
+      process.stdout.write("Usage: todo.mjs [init|add|start|done|show] [args]");
       process.exit(1);
   }
 }

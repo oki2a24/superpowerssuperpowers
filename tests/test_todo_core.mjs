@@ -118,7 +118,7 @@ test('todo.mjs コア機能 (階層管理以外)', async (t) => {
         encoding: 'utf8' 
       });
       assert.strictEqual(result.status, 1);
-      assert.match(result.stdout, /Usage: todo.py/);
+      assert.match(result.stdout, /Usage: todo.mjs/);
       teardownTmpDir(tmpDir);
     });
 
