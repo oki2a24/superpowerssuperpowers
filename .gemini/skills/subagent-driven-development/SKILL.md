@@ -51,13 +51,13 @@ graph TD
 
 1.  **計画ファイルの特定:** ユーザーに実装計画が記述されたファイルのパスを尋ねてください。
 2.  **計画の読み込みとタスクの抽出:** `read_file`ツールで計画ファイルを読み込み、実行すべき個別のタスクをすべて特定・抽出します。
-3.  **ToDoリストの作成:** `run_shell_command`を使い、`python3 scripts/todo.py init <タイトル>` でToDoファイルを初期化した後、抽出した各タスクを `python3 scripts/todo.py add <タスク内容>` でリストアップしてください。
+3.  **ToDoリストの作成:** `run_shell_command`を使い、`node scripts/todo.mjs init <タイトル>` でToDoファイルを初期化した後、抽出した各タスクを `node scripts/todo.mjs add <タスク内容>` でリストアップしてください。
 
 ### フェーズ 2: タスク実行サイクル
 
 **指示:** ToDoリストの未完了タスクがなくなるまで、タスクごとに以下のサイクルを繰り返します。
 
-1.  **次のタスクの特定:** `python3 scripts/todo.py show` でToDoリストを確認し、次の未完了タスクを `python3 scripts/todo.py start <検索パターン>` で実行中状態（`[/]`）に更新します。
+1.  **次のタスクの特定:** `node scripts/todo.mjs show` でToDoリストを確認し、次の未完了タスクを `node scripts/todo.mjs start <検索パターン>` で実行中状態（`[/]`）に更新します。
 2.  **役割変更: 実装者 (Implementer):**
     *   `./implementer-prompt.md` を使用して、実装サブエージェントをディスパッチします。
 
@@ -68,11 +68,11 @@ graph TD
     *   `./code-quality-reviewer-prompt.md` を使用して、コード品質レビューアサブエージェントをディスパッチします。
 
 5.  **タスク完了:**
-    *   仕様レビューと品質レビューの両方で承認されたら、`run_shell_command`を使い `python3 scripts/todo.py done` を実行して、該当タスクを完了状態（`[x]`）に更新します。
+    *   仕様レビューと品質レビューの両方で承認されたら、`run_shell_command`を使い `node scripts/todo.mjs done` を実行して、該当タスクを完了状態（`[x]`）に更新します。
 
 ### フェーズ 3: 最終化
 
-1.  **全タスク完了の確認:** `python3 scripts/todo.py show` でToDoリストを確認し、すべてのタスクが完了（`[x]`）したことを確認します。
+1.  **全タスク完了の確認:** `node scripts/todo.mjs show` でToDoリストを確認し、すべてのタスクが完了（`[x]`）したことを確認します。
 2.  **最終レビュー:** 全体の実装に矛盾がないか、統合上の問題がないかを確認します。
 3.  **開発ブランチの完了:**
     *   `activate_skill`ツールを使い、`finishing-a-development-branch`スキルを起動します。

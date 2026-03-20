@@ -577,8 +577,8 @@ helper1, helper2, step3, pattern4
 
 ## スキル作成チェックリスト（TDD適応版）
 
-**重要：以下の各チェックリスト項目のために `scripts/todo.py` を使用してToDoを作成してください。**
-(`python3 scripts/todo.py init "Create Skill: [Name]"`, `add`, `start`, `done` を使用します。)
+**重要：以下の各チェックリスト項目のために `scripts/todo.mjs` を使用してToDoを作成してください。**
+(`node scripts/todo.mjs init "Create Skill: [Name]"`, `add`, `start`, `done` を使用します。)
 
 **REDフェーズ - 失敗するテストを書く：**
 - [ ] 圧力シナリオを作成する（規律を強制するスキルには3つ以上の圧力を組み合わせる）

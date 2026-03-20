@@ -18,16 +18,16 @@ description: "書かれた実装計画をバッチで実行し、レビューチ
 *   **AIエージェントへの指示**: ユーザーに「実行する計画ファイル（Markdown形式）へのパス」を尋ねてください。取得後、そのファイルを読み込み、内容をユーザーに提示し、問題がないか確認してください。
 *   読み込んだ計画ファイルを批判的にレビューし、計画に関する質問や懸念点があれば特定します。
 *   懸念点がある場合、作業を開始する前にユーザーに質問します。
-*   懸念がない場合、計画ファイルからTodoリストを抽出します。`run_shell_command` を使い、`python3 scripts/todo.py init <タイトル>` でToDoファイルを初期化した後、各タスクを `python3 scripts/todo.py add <タスク内容>` で登録してください。
+*   懸念がない場合、計画ファイルからTodoリストを抽出します。`run_shell_command` を使い、`node scripts/todo.mjs init <タイトル>` でToDoファイルを初期化した後、各タスクを `node scripts/todo.mjs add <タスク内容>` で登録してください。
 
 ### 2. バッチ実行
 
 *   **デフォルト**: 最初の3タスクをバッチとして実行します。
 *   各タスクについて:
-    1.  `run_shell_command` を使い、`python3 scripts/todo.py start <検索パターン>` でタスクを `[/]` (実行中) にマークします。
+    1.  `run_shell_command` を使い、`node scripts/todo.mjs start <検索パターン>` でタスクを `[/]` (実行中) にマークします。
     2.  計画に指定された各ステップを正確に実行します（計画は一口サイズのステップで構成されています）。
     3.  指定された検証を実行します。
-    4.  `run_shell_command` を使い、`python3 scripts/todo.py done` でタスクを `[x]` (完了) にマークします。
+    4.  `run_shell_command` を使い、`node scripts/todo.mjs done` でタスクを `[x]` (完了) にマークします。
 
 ### 3. レポート
 
