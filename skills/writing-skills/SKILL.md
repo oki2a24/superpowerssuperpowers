@@ -148,7 +148,7 @@ Before/afterのコード比較
 *   `REASON`: なぜこの改善が必要だったのか、具体的な理由を簡潔に記述します。
 *   `AIエージェントへの指示 (Gemini固有)`: 将来のAIエージェントが従うべき、更新された具体的な指示を記述します。
 
-**注意:** このセクションを追加する前に、`scripts/reset_skill.py` が存在し、このセクションを削除できることを確認してください。
+**注意:** このセクションを追加する前に、`scripts/reset_skill.mjs` が存在し、このセクションを削除できることを確認してください。
 ```
 
 
@@ -577,8 +577,9 @@ helper1, helper2, step3, pattern4
 
 ## スキル作成チェックリスト（TDD適応版）
 
-**重要：以下の各チェックリスト項目のために `scripts/todo.mjs` を使用してToDoを作成してください。**
-(`node scripts/todo.mjs init "Create Skill: [Name]"`, `add`, `start`, `done` を使用します。)
+**重要：以下の各チェックリスト項目のために `todo.mjs` を使用してToDoを作成してください。**
+*   **重要**: `scripts/todo.mjs` は、現在のワークスペースの `scripts/` またはこのスキルの `Location` に隣接する（あるいは親ディレクトリの） `scripts/` に存在します。AIはまずこれらの場所を確認し、正しいフルパスを特定してください。
+*   `node <todo.mjsのパス> init "Create Skill: [Name]"`, `add`, `start`, `done` を使用します。
 
 **REDフェーズ - 失敗するテストを書く：**
 - [ ] 圧力シナリオを作成する（規律を強制するスキルには3つ以上の圧力を組み合わせる）
