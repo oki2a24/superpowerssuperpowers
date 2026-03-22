@@ -46,10 +46,10 @@ test('todo.mjs コア機能 (階層管理以外)', async (t) => {
       teardownTmpDir(tmpDir);
     });
 
-    await t.test('Git エラー時は "default" を返す', () => {
+    await t.test('Git エラー時は null を返す', () => {
       const tmpDir = setupTmpDir();
       const branch = getBranchName(tmpDir);
-      assert.strictEqual(branch, 'default');
+      assert.strictEqual(branch, null);
       teardownTmpDir(tmpDir);
     });
   });
@@ -57,9 +57,10 @@ test('todo.mjs コア機能 (階層管理以外)', async (t) => {
   await t.test('初期化', async (t) => {
     await t.test('正しいタイトルでTODOファイルを初期化する', () => {
       const tmpDir = setupTmpDir();
-      setupRepo(tmpDir);
+      // setupRepo を行わない（Git 非依存のテスト）
       init('Custom Title', tmpDir);
-      const content = fs.readFileSync(getTodoPath(tmpDir), 'utf8');
+      const todoPath = path.join(tmpDir, 'TODO.md');
+      const content = fs.readFileSync(todoPath, 'utf8');
       assert.match(content, /# TASK: Custom Title/);
       teardownTmpDir(tmpDir);
     });
@@ -140,11 +141,12 @@ test('todo.mjs コア機能 (階層管理以外)', async (t) => {
 
     await t.test('TODOファイルが存在しない場合に show がメッセージを表示する', () => {
       const tmpDir = setupTmpDir();
+      // Git がない環境での show
       const stdout = cp.spawnSync('node', [scriptPath, 'show'], { 
         env: { ...process.env, GEMINI_TASK_DIR: tmpDir },
         encoding: 'utf8' 
       }).stdout;
-      assert.match(stdout, /No active TODO for this branch/);
+      assert.match(stdout, /No active TODO for this project/);
       teardownTmpDir(tmpDir);
     });
   });

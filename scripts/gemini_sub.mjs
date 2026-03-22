@@ -621,7 +621,8 @@ lessons_learned: []
   }
 
   fs.writeFileSync(targetPath, content);
-  console.log(`Created new ${type} draft: ${targetPath}`);
+  const absolutePath = path.resolve(targetPath);
+  console.log(`\x1b[32mCreated new ${type} draft:\x1b[0m \x1b[1m${absolutePath}\x1b[0m`);
   return targetPath;
 }
 

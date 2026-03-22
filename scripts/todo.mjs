@@ -22,14 +22,27 @@ export function getBranchName(cwd = process.cwd()) {
   try {
     const result = cp.spawnSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { 
       encoding: 'utf8',
-      cwd: cwd
+      cwd: cwd,
+      stdio: ['ignore', 'pipe', 'ignore'] // stderr を無視
     });
     if (result.status !== 0 || !result.stdout) {
-      return 'default';
+      return null;
     }
     return result.stdout.trim().replace(/\//g, '-');
   } catch (e) {
-    return 'default';
+    return null;
+  }
+}
+
+/**
+ * TODO ファイルを保存するディレクトリが存在することを確認し、なければ作成します。
+ * 
+ * @param {string} todoPath - TODO ファイルのパス。
+ */
+function ensureDir(todoPath) {
+  const dir = path.dirname(todoPath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
   }
 }
 
@@ -40,7 +53,8 @@ export function getBranchName(cwd = process.cwd()) {
  */
 export function getTodoPath(cwd = process.cwd()) {
   const branchName = getBranchName(cwd);
-  return path.join(getTaskDir(), `TODO-${branchName}.md`);
+  const fileName = branchName ? `TODO-${branchName}.md` : 'TODO.md';
+  return path.join(getTaskDir(), fileName);
 }
 
 /**
@@ -157,22 +171,23 @@ function serializeTodo(header, tasks) {
 export function init(title = null, cwd = process.cwd()) {
   const branchName = getBranchName(cwd);
   if (!title) {
-    // ブランチ名からタイトルを生成 (feat/abc -> Test Branch 等)
-    // ここでは単純にプレフィックス除去とハイフンの置換を行う
-    title = branchName
-      .replace(/^(feat-|fix-|docs-|refactor-)/, '')
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+    if (branchName) {
+      // ブランチ名からタイトルを生成 (feat/abc -> Test Branch 等)
+      title = branchName
+        .replace(/^(feat-|fix-|docs-|refactor-)/, '')
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    } else {
+      title = 'Project Task List';
+    }
   }
 
   const todoPath = getTodoPath(cwd);
-  const dir = path.dirname(todoPath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
+  ensureDir(todoPath);
   const date = new Date().toISOString().split('T')[0];
-  const content = `# TASK: ${title}\n- Branch: ${branchName}\n- Created: ${date}\n`;
+  const branchLine = branchName ? `- Branch: ${branchName}\n` : '';
+  const content = `# TASK: ${title}\n${branchLine}- Created: ${date}\n`;
   fs.writeFileSync(todoPath, content);
 }
 
@@ -189,17 +204,14 @@ export function add(taskText, isChild = false, cwd = process.cwd()) {
   const { header, tasks } = parseTodoFile(todoPath);
 
   if (isChild) {
+    // ... (既存ロジック)
     const activeTasks = tasks.filter(t => t.status === '/');
     if (activeTasks.length === 0) {
       process.stdout.write("ERROR: 子タスクを追加するには、親タスクが実行中 [/] である必要があります。");
       process.exit(1);
     }
-    // 最も深い（インデントが最大の）実行中タスクを親とする
     const activeParent = activeTasks.reduce((prev, curr) => (curr.indent > prev.indent ? curr : prev));
-    
-    // 親の直後、または親の最後の子孫の後に挿入
     const newTask = new Task(activeParent.indent + 2, ' ', taskText);
-    
     let lastDescendantIndex = tasks.indexOf(activeParent);
     for (let i = lastDescendantIndex + 1; i < tasks.length; i++) {
       if (tasks[i].indent > activeParent.indent) {
@@ -214,6 +226,7 @@ export function add(taskText, isChild = false, cwd = process.cwd()) {
     tasks.push(new Task(0, ' ', taskText));
   }
 
+  ensureDir(todoPath);
   fs.writeFileSync(todoPath, serializeTodo(header, tasks));
 }
 
@@ -255,16 +268,17 @@ export function start(pattern, cwd = process.cwd()) {
   }
 
   targetTask.status = '/';
+  ensureDir(todoPath);
   fs.writeFileSync(todoPath, serializeTodo(header, tasks));
-  process.stdout.write(`Started: ${pattern}`);
-}
+  process.stdout.write(`Started: \${pattern}`);
+  }
 
-/**
- * 現在実行中（[/]）のタスクのうち、最も階層の深い（インデントの大きい）ものを「完了 (x)」にします。
- * 
- * @param {string} [cwd=process.cwd()] - Git コマンドを実行する基準ディレクトリ。
- */
-export function done(cwd = process.cwd()) {
+  /**
+  * 現在実行中（[/]）のタスクのうち、最も階層の深い（インデントの大きい）ものを「完了 (x)」にします。
+  * 
+  * @param {string} [cwd=process.cwd()] - Git コマンドを実行する基準ディレクトリ。
+  */
+  export function done(cwd = process.cwd()) {
   const todoPath = getTodoPath(cwd);
   const { header, tasks } = parseTodoFile(todoPath);
 
@@ -278,9 +292,11 @@ export function done(cwd = process.cwd()) {
   const deepestTask = activeTasks.reduce((prev, curr) => (curr.indent > prev.indent ? curr : prev));
   deepestTask.status = 'x';
 
+  ensureDir(todoPath);
   fs.writeFileSync(todoPath, serializeTodo(header, tasks));
   process.stdout.write("Task marked as DONE.");
-}
+  }
+
 
 /**
  * 現在のブランチのタスク状況をダッシュボード形式で標準出力に表示します。
@@ -291,7 +307,7 @@ export function done(cwd = process.cwd()) {
 export function show(cwd = process.cwd()) {
   const todoPath = getTodoPath(cwd);
   if (!fs.existsSync(todoPath)) {
-    process.stdout.write("No active TODO for this branch.\n");
+    process.stdout.write("No active TODO for this project.\n");
     return;
   }
   const { header, tasks } = parseTodoFile(todoPath);
