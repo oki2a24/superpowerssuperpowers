@@ -9,3 +9,7 @@ node_modules/
 dist/
 build/
 *.log
+
+# Gemini CLI Temporary Tasks
+.gemini/tasks/*
+!.gemini/tasks/.gitkeep
