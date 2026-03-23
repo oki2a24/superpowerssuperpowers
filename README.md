@@ -1,111 +1,82 @@
-# Gemini CLI スキル製造基地 & 実験場
+# Superpowers for Gemini CLI 🚀
 
-本プロジェクトは、[obra/superpowers](https://github.com/obra/superpowers) の Gemini CLI への移植・最適化、および AI エージェントの自律的改善プロセスの確立を目的とした「実験場」です。
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-v20+-green.svg)](https://nodejs.org/)
 
-単なるスキルの移植に留まらず、Gemini CLI 環境での最適な動作、運用の記憶 (`GEMINI.md`)、および AI 自身によるスキルの自律的アップデートという「自己改善ループ」の構築を目指しています。
-
-## 1. 前提条件 (Requirements)
-
-本プロジェクトの運用、スキルの実行、およびテストには以下の環境が必要です。外部ライブラリへの依存を排除し、Node.js 標準機能のみで動作するよう設計されています。
-
-- **Gemini CLI**: スキルの実行環境として必須。最新バージョンの利用を推奨。
-- **Node.js (v20+)**: `scripts/` 内の運用ツール（`reset_skill.mjs`, `todo.mjs`）およびテストの実行に必要。
-- **Git**: 隔離環境での安全な開発・検証を行うためのワークツリー機能 (`using-git-worktrees`) の活用に必要。
-
-## 2. スキル・カタログ
-
-カテゴリー別に移植済みスキルを分類しています。各スキルの詳細は、`.gemini/skills/<skill-name>/SKILL.md` を参照してください。
-
-### 2.1. プロセス・思考系
-複雑なタスクを分解し、確実な実行を支援するスキル。
-- **`brainstorming`**: ユーザーの意図と設計を探求し、実装前に要件を固める。大規模タスクの戦略的分割を提案する。
-- **`writing-plans`**: タスクの仕様に基づき、一口サイズの実行可能な計画を作成する。GPAC v3 によるセッション分割を自動判定する。
-- **`executing-plans`**: 実装計画をバッチで実行し、レビューと検証を繰り返す。サブセッションでの実務エンジン。
-- **`roadmap-management`**: 長期セッションにおける「現在地」と「目標」を可視化し、進捗を同期する。
-- **`systematic-debugging`**: バグやテスト失敗に対し、根拠に基づいた体系的なデバッグを行う。
-- **`test-driven-development`**: 実装前にテストを書き、最小限のコードでパスさせる TDD を強制する。
-
-### 2.2. 基盤・ワークフロー系
-安全な開発環境と標準的な作業フローを提供するスキル。
-- **`using-superpowers`**: 適切なスキルの起動を促し、1% の可能性でもスキルを活用する。
-- **`session-coordination`**: GPAC v3 プロトコルに基づき、サブセッションへのタスク委譲（Spawn）と報告の統合（Import）を管理する。
-- **`using-git-worktrees`**: 隔離された Git ワークツリーをセットアップし、安全に開発・テストを行う。
-- **`port-superpowers-skill`**: `obra/superpowers` からスキルを移植するための標準作業手順（SOP）。
-- **`finishing-a-development-branch`**: 作業完了後のブランチ整理、マージ、および改善提案プロセス。
-- **`session-retrospective`**: セッション終了時にミスと学びを抽出し、物理的なガードレール（GEMINI.md 等）へ昇華させる。
-- **`update-superpowers-ports-doc`**: 移植済みスキルと元コミットの記録を更新する。
-
-### 2.3. 品質・レビュー系
-コード品質の維持と、マルチエージェントによる検証を行うスキル。
-- **`subagent-driven-development`**: 実装、仕様レビュー、コード品質レビューの 3 段階で品質を担保する。
-- **`verification-before-completion`**: 作業完了の主張前に、必ず証拠（テスト出力等）の提示を義務付ける。
-- **`requesting-code-review` / `receiving-code-review`**: 効果的なコードレビューの依頼と、建設的なフィードバックの受容。
-- **`dispatching-parallel-agents`**: 独立したタスクを複数のエージェントで並行処理する。
-
-## 3. 自律的運用・自己改善システム
-
-本プロジェクトでは、AI エージェントが自身の行動を律し、継続的に学習するための仕組みを導入しています。
-
-### 3.1. 運用記憶 (`GEMINI.md`)
-プロジェクトルートの `GEMINI.md` は、エージェントの「外部記憶」です。以下の内容を永続的に記録します。
-- **実戦からの学び**: 遭遇した問題と解決策、特定のツール使用時の注意点（例: ワークツリーでの `dir_path` 指定の徹底）。
-- **ワークフローの原則**: ブランチ戦略、テスト実施手順、セッション管理（リフレッシュと再起動）のルール。
-- **意思決定の記録**: 採用したアーキテクチャや技術的選択の背景。
-
-### 3.2. スキルの自己改善と保護
-- **改善のトリガー**: 開発完了時 (`finishing-a-development-branch`)、エージェントは振り返りを行い、必要に応じてスキル (`SKILL.md`) を更新します。
-- **スキルのリセット**: `scripts/reset_skill.mjs` を使用して、スキル内のローカルな改変（Gemini 固有のアダプテーション）をリセットし、移植直後の状態に戻すことができます。
-- **アップデート保護**: 移植元からのアップデート時、ローカルでの改善内容を一時退避し、アップデート後に安全に再結合する手順を `port-superpowers-skill` に定義しています。
-
-## 4. 標準作業手順 (SOP)
-
-確実かつ安全な開発のための標準フローです。
-
-### 4.1. スキル移植・開発
-1. **移植開始**: `activate_skill(name="port-superpowers-skill")` を起動し、SOP に従う。
-2. **実装**: フィーチャーブランチを作成し、スキル定義を記述・コミットする。
-3. **テスト**: `using-git-worktrees` で隔離環境を作成し、`activate_skill` で動作を確認する。
-4. **完了**: `finishing-a-development-branch` を起動し、検証、マージ、改善提案を行う。
-
-### 4.2. 隔離環境での検証
-実際のファイル操作や破壊的な変更を伴うタスクは、必ず `using-git-worktrees` を用いた隔離環境で実行します。これにより、メインの開発環境を汚染することなく、安全に実証テストを行えます。
-
-## 5. スキルのグローバル展開
-
-移植・改善したスキルを他のプロジェクトでも利用できるようにするための手順です。
-
-### 5.1. 全プロジェクトへの適用 (シンボリックリンク)
-Gemini CLI のグローバルなスキルディレクトリ (`~/.gemini/skills/`) に、本リポジトリのスキルディレクトリへのシンボリックリンクを作成することで、すべてのプロジェクトでこれらのスキルが利用可能になります。
-
-```bash
-# 例: brainstorming スキルをグローバルに登録する
-ln -s /path/to/your/superpowerssuperpowers/.gemini/skills/brainstorming ~/.gemini/skills/brainstorming
-```
-
-これにより、本リポジトリでスキルを改善すると、すべてのプロジェクトに即座に反映されます。
-
-### 5.2. 個別プロジェクトへの適用
-特定のプロジェクトのみに適用したい場合は、そのプロジェクトの `.gemini/skills/` 内にシンボリックリンクを作成してください。
-
-## 6. 技術スタックの完全統一 (Node.js)
-
-本プロジェクトは、Gemini CLI との親和性を最大化するため、Node.js への完全移行を完了しました。
-
-- **目的**: 環境の統一によるセットアップ負荷の軽減と、エコシステムの統合。
-- **方針**: 外部ライブラリへの依存を避け、Node.js 標準機能（`node:test`, `node:assert`, `node:fs` 等）のみで完結させる。
-- **成果**: Python 依存を完全に排除し、ポータビリティを向上。
-
-## 7. ディレクトリ構造
-
-本プロジェクトの主要なディレクトリ構成です。
-
-- **`.gemini/skills/`**: 移植済みスキルの実体 (`SKILL.md` 等) が格納されています。
-- **`agents/`**: `subagent-driven-development` 等で使用される、特定役割を持つサブエージェントのプロンプト定義。
-- **`docs/`**: デザインドキュメント、実装計画、および移植記録 (`superpowers_ports.md`)。
-- **`scripts/`**: 運用を支援する Node.js スクリプト群 (例: `todo.mjs`, `reset_skill.mjs`)。
-- **`superpowers-original/`**: 移植元の [obra/superpowers](https://github.com/obra/superpowers) をサブモジュールとして管理。
-- **`tests/`**: スクリプトやスキルの動作を検証するためのテストコード (Node.js 標準ランナー)。
-- **`GEMINI.md`**: AI エージェントの運用記憶と学習記録（最重要ファイル）。
+Gemini CLI の能力を極限まで引き出すための「スキル」の集合体。
+[obra/superpowers](https://github.com/obra/superpowers) の高度な思考プロセスを Gemini CLI へ移植し、さらに自律的な自己改善ループを追加した拡張機能です。
 
 ---
-*Created by Gemini CLI Agent as a partner in exploration.*
+
+## 📦 インストール (Installation)
+
+Gemini CLI の拡張機能として直接インストールできます。
+
+```bash
+gemini extensions install https://github.com/oki2a24/superpowerssuperpowers
+```
+
+---
+
+## 🛠 スキル・カタログ (Skill Catalog)
+
+本リポジトリは、強力な移植スキルと、それらを管理・強化する独自のオリジナル・スキルで構成されています。
+
+### 1. 移植スキル (Ported Skills)
+[obra/superpowers](https://github.com/obra/superpowers) から Gemini CLI 向けに最適化して移植された、高度なエンジニアリング・スキルです。
+
+| スキル名 | 概要 |
+| :--- | :--- |
+| **`brainstorming`** | ユーザーの意図と設計を探求し、実装前に要件を固める。 |
+| **`writing-plans`** | タスクの仕様に基づき、実行可能な「一口サイズ」の計画を作成。 |
+| **`executing-plans`** | 実装計画をバッチ実行し、レビューと検証を繰り返す。 |
+| **`systematic-debugging`** | 根拠に基づいた体系的なデバッグと根本原因の特定。 |
+| **`subagent-driven-development`** | 実装・仕様・品質の3段階レビューで品質を担保。 |
+| **`test-driven-development`** | 実装前にテストを書く TDD 原則を強制。 |
+| **`using-git-worktrees`** | 隔離された Git ワークツリーで安全に開発・検証。 |
+| **`finishing-a-development-branch`** | 作業完了後の整理、マージ、改善提案プロセス。 |
+| **`verification-before-completion`** | 完了主張前に必ず物理的な証拠（テスト等）を提示。 |
+| **`dispatching-parallel-agents`** | 独立したタスクを複数のエージェントで並行処理。 |
+| **`using-superpowers`** | 常にスキルの活用を模索し、最適なタイミングで起動。 |
+
+> [!IMPORTANT]  
+> **Respect for Original**: これらのスキルは、[obra/superpowers](https://github.com/obra/superpowers) の優れた設計思想に基づいています。オリジナルの構造を尊重しつつ、Gemini CLI の特性に合わせて調整されています。
+
+### 2. オリジナル・スキル (Original/Meta Skills)
+本プロジェクト独自の、運用管理や自己改善を支えるメタ・スキルです。
+
+| スキル名 | 概要 |
+| :--- | :--- |
+| **`roadmap-management`** | 長期セッションの進捗と目標を可視化し同期。 |
+| **`session-coordination`** | GPAC プロトコルによるサブセッションへの委譲と統合。 |
+| **`observation-distiller`** | セッションの経験を再利用可能な知見として永続化。 |
+| **`session-retrospective`** | 終了時にミスと学びを抽出し、物理的なガードレールへ昇華。 |
+| **`port-superpowers-skill`** | 移植元からのアップデート追随と新規移植の SOP。 |
+| **`update-superpowers-ports-doc`** | 移植履歴とコミットハッシュの正確な記録。 |
+
+---
+
+## 🧠 コア・コンセプト (Core Concepts)
+
+### 1. 運用記憶 (`GEMINI.md`)
+プロジェクトルートの `GEMINI.md` は、エージェントの「外部記憶」です。実戦から得た学び、ワークフローの原則、意思決定の背景を記録し、セッションを跨いで成長します。
+
+### 2. 自己改善ループ
+`session-retrospective` と `observation-distiller` により、AI 自身が自分の行動を振り返り、スキルや憲法をアップデートし続ける仕組みを構築しています。
+
+### 3. Node.js への統一
+環境のセットアップ負荷を最小限にするため、すべてのスクリプトとテストは Node.js (標準機能) に統一されています。Python への依存は完全に排除されています。
+
+---
+
+## 📂 ディレクトリ構造
+
+- **`.gemini/skills/`**: オリジナル・スキル (Meta Skills)
+- **`skills/`**: 移植済みスキル (Ported Skills)
+- **`agents/`**: サブエージェントのプロンプト定義
+- **`scripts/`**: 運用支援ツール (`todo.mjs`, `reset_skill.mjs` 等)
+- **`docs/`**: デザインドキュメント、実装計画、移植記録
+- **`GEMINI.md`**: AI エージェントの運用記憶と学習記録（最重要）
+
+---
+*Created by Gemini CLI Agent — A partner in self-evolving software engineering.*
