@@ -29,4 +29,16 @@
 - **連携プロトコル**: 大規模タスクの分割には `scripts/gemini_sub.mjs` (GPAC) を活用せよ。
 
 ---
-*Last Refactored: 2026-03-19 | Bulletproof Factory Update*
+
+## Ⅳ. 適応的知見統合 (Adaptive Knowledge Integration)
+
+- **ステップ1：セッション開始時 (Discovery & Core Logic)**
+    - 調査（Research）フェーズの初期段階で、以下のディレクトリ内のファイル一覧を確認せよ。
+        - `~/.gemini/observations/`
+        - `./.gemini/observations/`
+    - その際、`GEMINI.md` が存在する場合は直ちに読み込み、本憲法を補完する最優先の行動原理として適用せよ。その他のスキル用知見（`スキル名.md`）については、存在のみを把握し、この段階では読み込むな。
+- **ステップ2：スキル使用時 (On-demand Injection)**
+    - 特定のスキルを使用する直前に、ステップ1で存在を確認した対応する知見ファイル（`スキル名.md`）を読み込め。その内容は、そのスキルの実行における最優先の制約事項として遵守せよ。
+
+---
+*Last Refactored: 2026-03-22 | Observation-Driven Update*
