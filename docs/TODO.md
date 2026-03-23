@@ -12,16 +12,13 @@
 ## 2. スキル定義の継続的進化
 - [ ] **`session-coordination` スキルの高度化**: `skill_proposals` や `lessons_learned` フィールドの活用方法を詳細化し、エージェントが「失敗を恐れず言語化する」規律をさらに強化する。
 
-## 3. 自己進化の規律 (Self-Evolutionary Discipline) - 人間のコスト削減
-- [ ] **[スキル] `writing-skills` / `writing-plans` の「TDD 防弾化」**:
-    - **現状**: 本日の堅牢化作業では TDD を完遂したが、スキル側の説明（instructions）に具体的な「防弾化（正当化への対抗策）」がまだ反映されていない。
-    - **具体策**: 「レッドフラグ：『テストするには単純すぎる/複雑すぎる』と思ったら、それは規律違反の兆候である」という警告をスキルに追記し、ロジック分離による TDD を強制する。
-- [ ] **[スキル] `session-coordination` のスキーマ保護**:
-    - **失敗事例**: `new-task` で生成されたテンプレートの YAML キーを、確認を怠り独自フォーマットで上書き。
-    - **具体策**: テンプレートの YAML キーを「聖域」と定義。`spawn` 前に `read_file` で `task_template.md` とのキー一致を確認する物理的チェックを手順に導入する。
-- [ ] **[検証] AA 図解の「空間的スキャン」プロトコルの強化**:
-    - **失敗事例**: 物理的に繋がっていない、論理的に破綻した AA を提示し、人間に修正させた。
-    - **具体策**: 「空間的スキャン：矢印の始点と終点、ループの閉鎖性を、送信前に物理的に再確認する」という規律を `brainstorming` 等の図解セクションに追記し、検品コストをエージェント側へ内部化する。
+## 3. 自己進化の規律 (Self-Evolutionary Discipline) - Observations による自律化
+- [x] **[基盤] Observations 駆動型アダプテーションの導入**:
+    - **成果**: 知見を外部化し、本体を汚染せず進化させる `observation-distiller` スキルと憲法プラグインを実装。
+- [ ] **[運用] 各スキルの「知見」の蓄積と本体への昇華**:
+    - **TDD 防弾化**: `writing-skills` 等への改善知見（レッドフラグの追加等）を `observations/` に蓄積し、十分熟成した段階で開発者モードとして本体へ統合する。
+    - **スキーマ保護**: `session-coordination` の YAML キー保護ルールを `observations/session-coordination.md` に蒸留する。
+    - **図解検品**: AA 図解の「空間的スキャン」プロトコルを `observations/brainstorming.md` 等に記録し、送信前の自律チェックを習慣化する。
 
 ## 4. 未来の布石：システムワイドな知見統合 (System-wide Observation Integration)
 - [ ] **[フェーズ 2]Observations のグローバル展開と自己改善ループの完成**:
