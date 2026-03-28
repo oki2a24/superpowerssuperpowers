@@ -60,4 +60,19 @@
 <!-- @observation-distiller:end:strata -->
 
 ---
-*Last Refactored: 2026-03-22 | Observation-Driven Update*
+
+## Ⅳ. 完了の定義 (Definition of Done / DoD)
+
+**「『完了』を宣言する前に、以下のプロトコルを自律的に踏まなければならない。」**
+
+1.  **物理チェックの実行**: 
+    - `node scripts/finish_check.mjs` を実行し、客観的な不整合（未コミット、バージョン更新漏れ等）がないか物理的に確認せよ。
+2.  **チェックリストの提示**: 
+    - スクリプトの実行結果に基づき、以下の 4 項目をユーザーに報告せよ。
+    - [ ] **Cleanup**: 一時ファイル、一時ブランチ等の削除状況。
+    - [ ] **Doc Sync**: 物理ファイル構成と `README.md` 等の同期状況。
+    - [ ] **Versioning**: 変更内容に応じた `gemini-extension.json` の更新状況。
+    - [ ] **Git Integrity**: 未コミット変更の有無。
+
+---
+*Last Refactored: 2026-03-28 | Completion Protocol Integrated*
