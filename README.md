@@ -91,7 +91,7 @@ gemini extensions install https://github.com/oki2a24/superpowerssuperpowers
 - **`.gemini/skills/`**: 開発中のメタ・スキル
 - **`.gemini/observations/`**: プロジェクト固有の知見 (L4: Project Local)
 - **`agents/`**: サブエージェントのプロンプト定義
-- **`scripts/`**: 運用支援ツール (`todo.mjs`, `reset_skill.mjs` 等)
+- **`scripts/`**: 運用支援ツール (`todo.mjs` 等)
 - **`docs/`**: デザインドキュメント、実装計画、移植記録
 
 ---

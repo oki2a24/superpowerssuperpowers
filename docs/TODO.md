@@ -5,10 +5,10 @@
 ## 1. 優先課題：階層化アーキテクチャの運用と遺産の整理
 - [x] **[基盤] 階層化 Observations アーキテクチャ (The Strata) の導入**:
     - **成果**: L1-L4 の四層構造を確立し、`observation-distiller` をコアスキルへ昇格させた。
-- [ ] **[移行] 旧 Local Adaptation の Observations への統合**:
-    - 各移植済みスキルの末尾にある「ローカル・アダプテーション」を、`observations/` (L2) または `~/.gemini/observations/` (L3) へ移動し、本体（SKILL.md）をクリーンにする。
-- [ ] **[整理] 不要になった旧世代ツールの削除**:
-    - `reset_skill.mjs` および `reset-skill` スキルの役割を Observations が完全に代替したことを確認し、物理的に削除する。
+- [x] **[移行] 旧 Local Adaptation の Observations への統合**:
+    - **成果**: 各移植済みスキルの末尾にあった「ローカル・アダプテーション」を `observations/` (L2) へ移動し、本体をクリーンにした。
+- [x] **[整理] 不要になった旧世代ツールの削除**:
+    - **成果**: `reset_skill.mjs` およびそのテストを物理削除し、各スキルや README からの依存も解消した。
 
 ## 2. スキル定義の継続的進化
 - [ ] **`session-coordination` スキルの高度化**: 
