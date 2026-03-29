@@ -25,6 +25,7 @@
 *   `receiving-code-review`
 *   `dispatching-parallel-agents`
 *   `using-superpowers`
+*   `SessionStart Hook`
 
 ## 今後の移植の記録方法
 
