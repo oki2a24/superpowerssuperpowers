@@ -237,7 +237,7 @@ export function findTaskDirectory(taskId, homeDir = null) {
  * @returns {string} 実行されるシェルコマンド。
  */
 export function createPayload(workDir, taskId) {
-  const prompt = `GPAC Protocol: Your mission is defined. Please execute 'node scripts/gemini_sub.mjs show-task ${taskId}' to understand your mission.`;
+  const prompt = `GPACプロトコル：任務を定義しました。任務内容を確認するために 'node scripts/gemini_sub.mjs show-task ${taskId}' を実行してください。`;
   // プロンプト内のクォートをエスケープ
   const safePrompt = prompt.replace(/"/g, '"');
   return `cd ${workDir} && gemini "${safePrompt}"`;
