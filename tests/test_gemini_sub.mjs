@@ -219,7 +219,7 @@ describe('Helper Functions', () => {
     const workDir = '/path/to/workdir';
     const taskId = '20260314-TEST-ABCD';
     const payload = createPayload(workDir, taskId);
-    const expected = `cd ${workDir} && gemini "GPAC Protocol: Your mission is defined. Please execute 'node scripts/gemini_sub.mjs show-task ${taskId}' to understand your mission."`;
+    const expected = `cd ${workDir} && gemini "GPACプロトコル：任務を定義しました。任務内容を確認するために 'node scripts/gemini_sub.mjs show-task ${taskId}' を実行してください。"`;
     assert.strictEqual(payload, expected);
   });
 
