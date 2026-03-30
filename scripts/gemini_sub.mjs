@@ -237,7 +237,11 @@ export function findTaskDirectory(taskId, homeDir = null) {
  * @returns {string} 実行されるシェルコマンド。
  */
 export function createPayload(workDir, taskId) {
-  const prompt = `GPACプロトコル：任務を定義しました。任務内容を確認するために 'node scripts/gemini_sub.mjs show-task ${taskId}' を実行してください。`;
+  const prompt = `GPACプロトコル：任務を定義しました。任務内容を確認するために 'node scripts/gemini_sub.mjs show-task ${taskId}' を実行してください。
+
+【サブセッションの重要制約】
+1. あなたは一時的なサブセッションです。任務完了後は速やかに 'report' を行うよう人間に促し、親セッションへの帰還（import）を誘導してください。
+2. 作業が長引く場合は、定期的に「この作業はサブセッションで行っている」ことを人間にリマインドし、没入を防いでください。`;
   // プロンプト内のクォートをエスケープ
   const safePrompt = prompt.replace(/"/g, '"');
   return `cd ${workDir} && gemini "${safePrompt}"`;

@@ -214,13 +214,16 @@ describe('Helper Functions', () => {
     assert.match(taskId, /^\d{8}-\d{6}-[A-Z0-9]{4}$/);
   });
 
-  test('createPayloadは抽象化されたコマンドを生成すること (show-task 推奨)', () => {
-    /** 起動ペイロードが cat <path> ではなく show-task <id> を推奨する形式になっているか検証 */
+  test('createPayloadは抽象化されたコマンドと帰還制約を生成すること', () => {
+    /** 起動ペイロードに show-task 推奨と、サブセッションの重要制約が含まれているか検証 */
     const workDir = '/path/to/workdir';
     const taskId = '20260314-TEST-ABCD';
     const payload = createPayload(workDir, taskId);
-    const expected = `cd ${workDir} && gemini "GPACプロトコル：任務を定義しました。任務内容を確認するために 'node scripts/gemini_sub.mjs show-task ${taskId}' を実行してください。"`;
-    assert.strictEqual(payload, expected);
+    
+    assert.ok(payload.includes(`cd ${workDir}`));
+    assert.ok(payload.includes('node scripts/gemini_sub.mjs show-task ' + taskId));
+    assert.ok(payload.includes('【サブセッションの重要制約】'));
+    assert.ok(payload.includes("任務完了後は速やかに 'report' を行うよう人間に促し"));
   });
 
   test('createPayload should return correct shell command', () => {
