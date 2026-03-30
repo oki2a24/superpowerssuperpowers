@@ -362,6 +362,25 @@ export function report(localDraftPath, taskId, options = {}) {
   return handoffDocument(localDraftPath, targetPath, required, pendingMap);
 }
 
+export function getReturnReminderAA() {
+  const cyan = '\x1b[36m';
+  const yellow = '\x1b[33m';
+  const bold = '\x1b[1m';
+  const reset = '\x1b[0m';
+
+  return `
+${cyan}  ┌──────────────────────────────────────────┐${reset}
+${cyan}  │${reset}  サブセッションへ 行ってらっしゃい！     ${cyan}│${reset}
+${cyan}  │${reset}  終わったら${yellow}${bold}【親セッション】${reset}へ戻るのを    ${cyan}│${reset}
+${cyan}  │${reset}  忘れないでね！待ってるよ！              ${cyan}│${reset}
+${cyan}  └─┬───────────────────────────────────────┘${reset}
+${cyan}    │${reset}
+${cyan}    │${reset}   (\\__/)
+${cyan}    │${reset}   ( •ω•)  ＜ ${cyan}迷子にならないでね！${reset}
+${cyan}    │${reset}   /    \\
+`;
+}
+
 /**
  * 指定されたランチャーモード（manual/tmux）を使用して、サブセッションを起動します。
  * 
@@ -374,6 +393,7 @@ export function launchSession(sessionId, taskPath, workDir, launcherMode = 'manu
   const payload = createPayload(workDir, sessionId);
 
   if (launcherMode === 'manual') {
+    console.log(getReturnReminderAA());
     console.log('\n[GPAC Launcher: Manual Mode]');
     console.log('新しいタブを開き、以下のコマンドをコピー＆ペーストして実行してください：\n');
     console.log(`  ${payload}\n`);
