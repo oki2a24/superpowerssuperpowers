@@ -37,13 +37,19 @@ if (status) {
 const diff = runGit(['diff', '--name-only', `${baseRef}..HEAD`]);
 if (diff !== null) {
   const files = diff.split('\n').filter(f => f.length > 0);
-  const hasSkillChanges = files.some(f => f.startsWith('skills/') || f.startsWith('observations/'));
+  const coreDirectories = ['skills/', 'observations/', 'scripts/', 'agents/'];
+  const coreFiles = ['GEMINI.md'];
+
+  const hasCoreChanges = files.some(f => 
+    coreDirectories.some(dir => f.startsWith(dir)) || 
+    coreFiles.includes(f)
+  );
   const hasVersionUpdate = files.some(f => f === 'gemini-extension.json');
 
-  if (hasSkillChanges && !hasVersionUpdate) {
-    console.error('❌ FAIL: スキルまたは知見に変更がありますが、gemini-extension.json のバージョンが更新されていません。');
+  if (hasCoreChanges && !hasVersionUpdate) {
+    console.error('❌ FAIL: スキル、知見、またはコアロジックに変更がありますが、gemini-extension.json のバージョンが更新されていません。');
     hasError = true;
-  } else if (hasSkillChanges) {
+  } else if (hasCoreChanges) {
     console.log('✅ Version: Updated');
   }
 
