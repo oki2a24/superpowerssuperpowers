@@ -35,6 +35,7 @@ gemini extensions install https://github.com/oki2a24/superpowerssuperpowers
 
 | スキル名 | 出自 (Origin) | 目的 (Intent) |
 | :--- | :--- | :--- |
+| **`session-handoff`** | **Original** | **[重要]** セッション肥大化時の「無損失」なコンテキスト引き継ぎ。 |
 | **`observation-distiller`** | **Original** | **[最重要]** 経験を「知見の地層」として採取・昇格・ポータブル化する。 |
 | **`brainstorming`** | Ported | 実装前の要件定義と設計の探索。 |
 | **`writing-plans`** | Ported | 実行可能な「一口サイズ」の計画作成。 |
