@@ -11,9 +11,16 @@
     - **成果**: `reset_skill.mjs` およびそのテストを物理削除し、各スキルや README からの依存も解消した。
 
 ## 2. スキル定義の継続的進化
+- [ ] **`session-retrospective` の高度化**: 
+    - **[成果] 構造化された振り返りプロセスの導入 (2026-04-03)**: 物理的証拠に基づく RED と資産マッピングを実装。
+    - **[残題] `observation-distiller` との密結合**: 振り返り時に特定された改善案を、`observation-distiller` に直接引き渡して実行するプロンプトの自動化。
 - [ ] **`session-coordination` スキルの高度化**: 
-    - **スキーマ保護**: YAML キー保護ルール（インデント厳格化等）を `observations/session-coordination.md` (L2/L3) に蒸留し、パースエラーを未然に防ぐ。
-    - **運用改善**: `skill_proposals` フィールド等の活用方法を詳細化し、エージェントの自律的な言語化を促す。
+...
+## 5. ツールの堅牢化 (Tool Hardening)
+- [ ] **`scripts/todo.mjs` の操作 UX 改善**:
+    - **課題 (2026-04-03)**: `init` -> `start` -> `done` の状態遷移において、タスク名（pattern）での指定が曖昧な場合や、状態の不一致によるエラーが頻発した。
+    - **物理的証拠**: `Error: Task matching '...' not found or already started.`
+    - **対策案**: `show` コマンドで ID を優先表示し、すべてのコマンドで ID 指定を第一選択とするよう、ヘルプおよびスキル（`roadmap-management`）を更新する。
 
 ## 3. 自己進化の規律 (Self-Evolutionary Discipline) - Observations による自律化
 - [x] **[基盤] Observations 駆動型アダプテーションの導入**:
