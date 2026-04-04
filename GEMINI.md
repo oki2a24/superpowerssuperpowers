@@ -39,7 +39,7 @@
 ```text
 [ 低優先 ]                                                                                                          [ 高優先 ]
   L1: Core (Skills)             L2: Extension (Shared)                L3: Personal (Global)         L4: Project (Local)
-  (~/.gemini/extensions/skills) (~/.gemini/extensions/observations)   (~/.gemini/observations/)     (./.gemini/observations/)
+  [Extension Root]/skills       [Extension Root]/observations         ~/.gemini/observations/       ./.gemini/observations/
           |                             |                             |                             |
           +-----------------------------+-----------------------------+-----------------------------+
                                         |
