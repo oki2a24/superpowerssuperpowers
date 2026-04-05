@@ -31,6 +31,59 @@ mission: "Test Mission"`;
     assert.deepStrictEqual(result, { title: 'Hello World', mission: 'Test Mission' });
   });
 
+  test('should allow colon inside quoted values', () => {
+    /**
+     * 【修正理由】
+     * 指示の中に "1. something: value" のようにコロンが含まれる場合、
+     * 明示的にクォートされていればパースを許可すべき。
+     */
+    const yamlText = `mission: "Step 1: Research"`;
+    const result = parseYamlFrontmatter(yamlText);
+    assert.strictEqual(result.mission, "Step 1: Research");
+  });
+
+  test('should parse multiline string using |', () => {
+    /**
+     * 【修正理由】
+     * 複雑なミッション記述などを複数行に分けて記述できるようにするため、
+     * 標準的な YAML の | 記法（インデント継続）をサポートする。
+     */
+    const yamlText = `---
+mission: |
+  Step 1: Research
+  Step 2: Implement
+---`;
+    const result = parseYamlFrontmatter(yamlText);
+    assert.strictEqual(result.mission, "Step 1: Research\nStep 2: Implement");
+  });
+
+  test('should parse multiline string followed by another key', () => {
+    const yamlText = `---
+mission: |
+  Multi-line content
+next_key: value
+---`;
+    const result = parseYamlFrontmatter(yamlText);
+    assert.strictEqual(result.mission, "Multi-line content");
+    assert.strictEqual(result.next_key, "value");
+  });
+
+  test('マルチライン文字列 (|) の中に空行が含まれていても正しくパースできること', () => {
+    /**
+     * 【修正理由】
+     * 段落を分けるための空行がマルチライン記述に含まれる場合でも、
+     * パースを継続し、改行として保持すべき。
+     */
+    const yamlText = `---
+mission: |
+  Line 1
+
+  Line 3
+---`;
+    const result = parseYamlFrontmatter(yamlText);
+    assert.strictEqual(result.mission, "Line 1\n\nLine 3");
+  });
+
   test('should throw error for invalid yaml syntax', () => {
     /**
      * YAML 構文エラーの検知をテストします。

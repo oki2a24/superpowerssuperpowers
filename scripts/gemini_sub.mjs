@@ -23,7 +23,8 @@ import { spawnSync } from 'node:child_process';
  *      'steps:'（次にリストが続く正常な記述）を正確に区別できるようになりました。
  * 
  * 【パース制限】
- * - インデントは無視されます（フラットな構造のみサポート）。
+ * - インデントは原則無視されますが、マルチライン記法 (|) を使用する場合は、
+ *   継続行の先頭に 2 スペースのインデントが必要です（空行は許容されます）。
  * - 値の中にコロン ':' を含む場合は、必ずクォート（"..."）で囲んでください。
  * 
  * @param {string} content - パース対象の Markdown コンテンツ（または Frontmatter 文字列）。
@@ -37,8 +38,22 @@ export function parseYamlFrontmatter(content) {
 
   const data = {};
   let currentKey = null;
+  let isMultiLine = false;
 
   for (const line of yamlText.split('\n')) {
+    // マルチラインモードの処理
+    if (isMultiLine) {
+      // 2 スペースのインデントがあるか、あるいは空行であれば継続
+      if (line.startsWith('  ') || line.trim() === '') {
+        const val = line.startsWith('  ') ? line.slice(2) : '';
+        data[currentKey] = (data[currentKey] ? data[currentKey] + '\n' : '') + val;
+        continue;
+      } else {
+        isMultiLine = false;
+        // 次の行の処理へ進む（新しいキーの場合がある）
+      }
+    }
+
     const trimmedLine = line.trim();
     if (!trimmedLine || trimmedLine.startsWith('#')) {
       continue;
@@ -69,6 +84,14 @@ export function parseYamlFrontmatter(content) {
     const key = trimmedLine.slice(0, colonIndex).trim();
     let val = trimmedLine.slice(colonIndex + 1).trim();
 
+    // マルチライン記法 (|) の開始検知
+    if (val === '|') {
+      isMultiLine = true;
+      currentKey = key;
+      data[key] = '';
+      continue;
+    }
+
     // Flow Sequence ([...]) の処理
     if (val.startsWith('[') && val.endsWith(']')) {
       // 1. 剥離: [ と ] を除去
@@ -83,21 +106,19 @@ export function parseYamlFrontmatter(content) {
         .filter(item => item !== '');
     } else {
       // 通常の値の処理 (クォートの除去)
-      val = removeQuotes(val);
+      const unquotedVal = removeQuotes(val);
 
-      // 値の中に裸のコロンが含まれているかチェック (クォート除去後)
-      if (val.includes(':')) {
+      // 裸の値（クォートされていない）の場合のみ、コロンの存在を制限する
+      if (val === unquotedVal && val.includes(':')) {
         throw new Error(`YAML syntax error: Invalid value '${val}' (Try quoting it)`);
       }
 
-      if (!val) {
-        // 空の値。現時点では文字列かリストか不明。
-        // 次の行がリストアイテムならリストになる。
+      if (!unquotedVal) {
         data[key] = '';
-      } else if (val === '[]') {
+      } else if (unquotedVal === '[]') {
         data[key] = [];
       } else {
-        data[key] = val;
+        data[key] = unquotedVal;
       }
     }
     currentKey = key;
