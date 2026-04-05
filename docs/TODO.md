@@ -28,10 +28,9 @@
     - **図解検品**: AA 図解の「空間的スキャン」プロトコルを `observations/brainstorming.md` 等に記録し、送信前の自律チェックを習慣化する。
 
 ## 4. ツールの堅牢化 (Tool Hardening)
-- [ ] **`scripts/todo.mjs` の操作 UX 改善**:
-    - **課題 (2026-04-03)**: `init` -> `start` -> `done` の状態遷移において、タスク名（pattern）での指定が曖昧な場合や、状態の不一致によるエラーが頻発した。
-    - **物理的証拠**: `Error: Task matching '...' not found or already started.`
-    - **対策案**: `show` コマンドで ID を優先表示し、すべてのコマンドで ID 指定を第一選択とするよう、ヘルプおよびスキル（`roadmap-management`）を更新する。
+- [x] **`scripts/todo.mjs` の操作 UX 改善 (2026-04-05)**:
+    - **成果**: ID ベースの一意な操作、Auto-suspend、構造化ヘルプ、および AI 操作ガイド（`TODO_GUIDE.md`）を実装。状態遷移エラーを根本的に排除し、AI との共鳴を強化した。
+    - **検証**: すべての回帰テストがパスし、ID 操作の安定性を TDD で証明。
 
 ---
 *Created by Gemini CLI Agent. 過去の完了済みセクションは、プロジェクトの歴史としてコミット履歴に保存されています。*
