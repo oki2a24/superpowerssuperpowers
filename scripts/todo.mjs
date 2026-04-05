@@ -93,14 +93,16 @@ class Task {
   }
 
   /**
-   * タスクを Markdown 形式の 1 行（例: "- [ ] Task content"）にフォーマットします。
+   * タスクを Markdown 形式の 1 行（例: "- [ ] (1) Task content"）にフォーマットします。
    * インデントも反映されます。
    * 
+   * @param {number|null} [id=null] - 表示するタスク ID。
    * @returns {string} フォーマット済みのタスク文字列。
    */
-  format() {
+  format(id = null) {
     const spaces = ' '.repeat(this.indent);
-    return `${spaces}- [${this.status}] ${this.text}`;
+    const idStr = id ? ` (${id})` : '';
+    return `${spaces}- [${this.status}]${idStr} ${this.text}`;
   }
 }
 
@@ -231,24 +233,35 @@ export function add(taskText, isChild = false, cwd = process.cwd()) {
 }
 
 /**
- * 指定されたパターン（正規表現）に一致する最初の未着手タスクを「開始 (/)」状態にします。
- * 既に別の独立した系統のタスクが実行中の場合は、エラーを出力して終了します。
+ * 指定されたパターン（正規表現または数値 ID）に一致する最初の未着手タスクを「開始 (/)」状態にします。
+ * 既に別の独立した系統のタスクが実行中の場合は、それらを自動的に「未着手 ( )」に戻します（Auto-suspend）。
  * 
- * @param {string} pattern - 開始するタスクを特定するための検索パターン。
+ * @param {string} pattern - 開始するタスクを特定するための検索パターンまたは ID。
  * @param {string} [cwd=process.cwd()] - Git コマンドを実行する基準ディレクトリ。
  */
 export function start(pattern, cwd = process.cwd()) {
   const todoPath = getTodoPath(cwd);
   const { header, tasks } = parseTodoFile(todoPath);
-  const regex = new RegExp(pattern);
+  
+  let targetTask;
+  if (/^\d+$/.test(pattern)) {
+    const id = parseInt(pattern, 10);
+    targetTask = tasks[id - 1];
+    if (targetTask && targetTask.status === 'x') {
+      process.stdout.write(`Error: Task (${id}) is already COMPLETED. Use 'add' for new tasks.`);
+      process.exit(1);
+    }
+  } else {
+    const regex = new RegExp(pattern);
+    targetTask = tasks.find(t => t.status !== 'x' && regex.test(t.text));
+  }
 
-  const targetTask = tasks.find(t => t.status === ' ' && regex.test(t.text));
   if (!targetTask) {
-    process.stdout.write(`Error: Task matching '${pattern}' not found or already started.`);
+    process.stdout.write(`Error: Task matching '${pattern}' not found or already started.\nHint: Run 'node scripts/todo.mjs show' to confirm available Task IDs.`);
     process.exit(1);
   }
 
-  // 同時実行チェック
+  // 同時実行チェック & Auto-suspend
   const activeTasks = tasks.filter(t => t.status === '/');
   if (activeTasks.length > 0) {
     // ターゲットが現在実行中のタスクのいずれかの子孫であるかチェック
@@ -262,16 +275,27 @@ export function start(pattern, cwd = process.cwd()) {
     });
 
     if (!isDescendant) {
-      process.stdout.write("ERROR: 別の系統のタスクが実行中です。先に完了させてください。");
-      process.exit(1);
+      // 親子関係にないタスクが実行中の場合、それらをサスペンドする
+      activeTasks.forEach(t => {
+        // ターゲットの祖先はサスペンドしない（階層的なフォーカス維持のため）
+        let isAncestor = false;
+        let p = targetTask.parent;
+        while (p) {
+          if (p === t) isAncestor = true;
+          p = p.parent;
+        }
+        if (!isAncestor) {
+          t.status = ' ';
+        }
+      });
     }
   }
 
   targetTask.status = '/';
   ensureDir(todoPath);
   fs.writeFileSync(todoPath, serializeTodo(header, tasks));
-  process.stdout.write(`Started: \${pattern}`);
-  }
+  process.stdout.write(`Started: ${targetTask.text}`);
+}
 
   /**
   * 現在実行中（[/]）のタスクのうち、最も階層の深い（インデントの大きい）ものを「完了 (x)」にします。
@@ -315,7 +339,7 @@ export function show(cwd = process.cwd()) {
   // タイトルをヘッダーから抽出（既存の init タイトルを想定）
   summary.title = header.find(l => l.startsWith('# TASK:'))?.replace('# TASK:', '').trim() || 'Task List';
   
-  const output = formatDashboard(summary);
+  const output = formatDashboard(summary, tasks);
   process.stdout.write(output);
 }
 
@@ -372,24 +396,27 @@ export function calculateSummary(tasks) {
  * 計算されたサマリー統計を元に、ダッシュボード表示用の文字列（カラーコード含む）を生成します。
  * 
  * @param {Object} summary - calculateSummary で計算されたサマリーオブジェクト。
- * @param {string} summary.title - ダッシュボードのタイトル。
+ * @param {Task[]} allTasks - 全タスクの配列（ID計算用）。
  * @returns {string} 標準出力に表示可能なフォーマット済み文字列。
  */
-export function formatDashboard(summary) {
+export function formatDashboard(summary, allTasks = []) {
   let output = `\n--- TODO: ${summary.title} ---\n`;
   output += `${getProgressBar(summary.done, summary.total)} ${summary.percent}% (${summary.done}/${summary.total} Tasks)\n\n`;
 
   if (summary.focus.length > 0) {
     const focusItems = summary.focus.map(t => {
+      const id = allTasks.indexOf(t) + 1;
+      const idPrefix = id > 0 ? `(${id}) ` : '';
       const parentText = t.parent ? `[ ${t.parent.text} ] > ` : '';
-      return `${parentText}${COLORS.YELLOW}${COLORS.BOLD}${t.text}${COLORS.RESET}`;
+      return `${parentText}${COLORS.YELLOW}${COLORS.BOLD}${idPrefix}${t.text}${COLORS.RESET}`;
     });
     output += `Focus: ${focusItems.join(', ')}\n\n`;
   }
 
   output += `${COLORS.CYAN}Active Tasks:${COLORS.RESET}\n`;
   summary.active.forEach(t => {
-    let line = t.format();
+    const id = allTasks.indexOf(t) + 1;
+    let line = t.format(id > 0 ? id : null);
     if (t.status === '/') {
       line = line.replace(/\[\/\]/, `[${COLORS.YELLOW}${COLORS.BOLD}/${COLORS.RESET}]`);
     }
@@ -399,11 +426,40 @@ export function formatDashboard(summary) {
   if (summary.history.length > 0) {
     output += `\n--- Completed Tasks ---\n`;
     summary.history.forEach(t => {
-      output += `${COLORS.GREEN}[x] ${t.text}${COLORS.RESET}\n`;
+      const id = allTasks.indexOf(t) + 1;
+      const idPrefix = id > 0 ? `(${id}) ` : '';
+      output += `${COLORS.GREEN}[x] ${idPrefix}${t.text}${COLORS.RESET}\n`;
     });
   }
 
   return output;
+}
+
+/**
+ * ヘルプメッセージを表示します。AI エージェント向けの規律も含まれます。
+ */
+export function printHelp() {
+  const help = `
+Usage: todo.mjs [init|add|start|done|show] [args] [-h | --help]
+
+# todo.mjs 使用方法
+
+## コマンド
+- init <タイトル>: TODO を初期化します。
+- add <内容> [--child]: タスクを追加します。
+- start <ID|パターン>: タスクを開始します。
+- done: 最も深い階層のアクティブなタスクを完了にします。
+- show: 現在の状況を表示します。
+
+## AI 向けの核心的規律 (### AI-Specific Rules)
+1. アクションの前に必ず \`show\` を実行して ID を確認せよ。
+2. ID ベースの操作を優先せよ (start 1 等)。
+3. 自動サスペンドを理解せよ (別のタスクを開始すると前のタスクは自動的に中断される)。
+
+---
+詳細は scripts/TODO_GUIDE.md を参照してください。
+`;
+  process.stdout.write(help);
 }
 
 /**
@@ -418,8 +474,13 @@ export function main(argv = process.argv, cwd = process.cwd()) {
   const args = argv.slice(3);
 
   if (!command) {
-    process.stdout.write("Usage: todo.mjs [init|add|start|done|show] [args]");
+    printHelp();
     process.exit(1);
+  }
+
+  if (command === '--help' || command === '-h') {
+    printHelp();
+    return;
   }
 
   switch (command) {

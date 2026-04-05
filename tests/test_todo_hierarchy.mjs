@@ -96,22 +96,24 @@ test('todo.mjs 階層タスク管理 (P1-P9)', async (t) => {
    * - [/] A (系統1)
    * - [ ] B (系統2: ブロックされる)
    */
-  await t.test('P3/P7: 独立系統の同時実行ブロック', async (t) => {
+  await t.test('P3/P7: 独立系統の同時実行における Auto-suspend', async (t) => {
     const tmpDir = setupTmpDir();
     setupRepo(tmpDir);
     init('P3/P7 Test', tmpDir);
     add('A', false, tmpDir);
     add('B', false, tmpDir);
-    start('A', tmpDir);
     
-    const mockExit = mock.fn((code) => { if (code !== 0) throw new Error('Exit ' + code); });
-    const originalExit = process.exit;
-    process.exit = mockExit;
-    try {
-      assert.throws(() => start('B', tmpDir), /Exit 1/);
-    } finally {
-      process.exit = originalExit;
-    }
+    // A を開始
+    start('A', tmpDir);
+    let content = fs.readFileSync(getTodoPath(tmpDir), 'utf8');
+    assert.match(content, /- \[\/\] A/);
+
+    // B を開始。エラーにならずに A が [ ] に戻り、B が [/] になるべき
+    start('B', tmpDir);
+    content = fs.readFileSync(getTodoPath(tmpDir), 'utf8');
+    assert.match(content, /- \[ \] A/, '前のタスク A は自動的に中断されるべき');
+    assert.match(content, /- \[\/\] B/, '新しいタスク B が開始されるべき');
+
     teardownTmpDir(tmpDir);
   });
 
