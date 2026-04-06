@@ -78,6 +78,8 @@ fi
 SESSION_ID="$$-$(date +%s)"
 
 if [[ -n "$PROJECT_DIR" ]]; then
+  # Resolve to absolute path so it survives cd below
+  PROJECT_DIR="$(cd "$PROJECT_DIR" && pwd)"
   SESSION_DIR="${PROJECT_DIR}/.superpowers/brainstorm/${SESSION_ID}"
 else
   SESSION_DIR="/tmp/brainstorm-${SESSION_ID}"
