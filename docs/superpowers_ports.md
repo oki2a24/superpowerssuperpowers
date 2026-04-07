@@ -32,6 +32,7 @@
 **移植済みスキル:**
 
 *   `brainstorming` (v1.7.0 update: HARD-GATE, 9-step checklist, Visual Companion, Spec Self-Review)
+*   `systematic-debugging` (v1.7.3 update: Iron Law, Multi-component evidence collection, Architecture re-evaluation)
 
 ## 今後の移植の記録方法
 
