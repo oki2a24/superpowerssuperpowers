@@ -57,7 +57,7 @@ gemini extensions install https://github.com/oki2a24/superpowerssuperpowers
 | スキル名 | ステータス | 目的 (Intent) | プロンプト例 |
 | :--- | :---: | :--- | :--- |
 | **`using-superpowers`** | `Ported` | **[規律の核]** 作業に最適なスキルの自発的提案と起動を強制。 | 「この作業に適切なスキルはある？」 |
-| **`brainstorming`** | `Ported` | 要件の曖昧さを排除し、堅牢な設計を探索。 | 「[アイデア] の構成案を練って」 |
+| **`brainstorming`** | `Ported` | **[Flagship]** 要件の曖昧さを排除し、堅牢な設計を探索。ブラウザ連携による視覚的な提案（Visual Companion）や、仕様書の自己レビュー機能を搭載。 | 「[アイデア] の構成案を練って」 |
 | **`writing-plans`** | `Ported` | 実行可能で検証可能な「一口サイズ」の計画作成。 | 「[設計] に基づく実装計画を書いて」 |
 | **`executing-plans`** | `Ported` | 計画のバッチ実行と、ステップごとの確実な検証。 | 「現在の計画をバッチで実行して」 |
 | **`systematic-debugging`** | `Ported` | 推測を排し、根拠に基づいた体系的なデバッグ。 | 「このエラーの根本原因を特定して」 |
