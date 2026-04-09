@@ -27,12 +27,13 @@
 *   `using-superpowers`
 *   `SessionStart Hook`
 
-### コミットハッシュ: `b7a8f76c8c5c7d8a6b4a2d8e4f5a3b2c1d0e9f8a` (Upstream b7a8f76 準拠)
+### コミットハッシュ: `b7a8f76985f1e93e75dd2f2a3b424dc731bd9d37` (Upstream b7a8f76 準拠)
 
 **移植済みスキル:**
 
 *   `brainstorming` (v1.7.0 update: HARD-GATE, 9-step checklist, Visual Companion, Spec Self-Review)
 *   `systematic-debugging` (v1.7.3 update: Iron Law, Multi-component evidence collection, Architecture re-evaluation)
+*   `writing-plans` (v5.0.7 update: Scope Check, File Structure, No Placeholders, Self-Review, Execution Handoff)
 
 ## 今後の移植の記録方法
 
