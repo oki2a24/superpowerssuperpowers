@@ -49,7 +49,7 @@ graph TD
         QUAL_OK -->|はい| DONE_TASK[TodoWrite でタスク完了マーク]
     end
 
-    START[計画を読み込み、全タスクを抽出、TodoWrite を作成] --> NEXT{未完了タスクあり?}
+    START[計画を読み込み、全タスクを抽出、todo.mjs を作成] --> NEXT{未完了タスクあり?}
     NEXT -->|はい| IMP
     DONE_TASK --> NEXT
     NEXT -->|いいえ| FINAL[実装全体に対する最終レビュー]
@@ -62,7 +62,7 @@ graph TD
 
 1.  **計画ファイルの特定:** ユーザーに実装計画が記述されたファイルのパスを尋ねてください。
 2.  **計画の読み込みとタスクの抽出:** `read_file`ツールで計画ファイルを読み込み、実行すべき個別のタスクをすべて特定・抽出します。
-3.  **ToDoリストの作成:** 
+3.  **ToDoリスト (todo.mjs) の作成:** 
     *   **重要**: `scripts/todo.mjs` は、現在のワークスペースの `scripts/` またはこのスキルの `Location` に隣接する（あるいは親ディレクトリの） `scripts/` に存在します。AIはまずこれらの場所を確認し、正しいフルパスを特定してください。
     *   `run_shell_command`を使い、`node <todo.mjsのパス> init <タイトル>` でToDoファイルを初期化した後、抽出した各タスクを `node <todo.mjsのパス> add <タスク内容>` でリストアップしてください。
 

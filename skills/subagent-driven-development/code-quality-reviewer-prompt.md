@@ -7,14 +7,10 @@
 **注意:** 仕様準拠レビューが合格した後のみディスパッチしてください。
 
 ```
-Task ツール (code-reviewer):
-  requesting-code-review/code-reviewer.md のテンプレートを使用します。
+### コード品質レビュー指示テンプレート (Code Quality Review Instructions)
 
-  WHAT_WAS_IMPLEMENTED: [実装者のレポートより]
-  PLAN_OR_REQUIREMENTS: [計画ファイル]のタスク N
-  BASE_SHA: [タスク実行前のコミットハッシュ]
-  HEAD_SHA: [現在のコミットハッシュ]
-  DESCRIPTION: [タスクの概要]
+この指示を新しいサブエージェント（または役割を切り替えた自分自身）に提示してください。
+
 ```
 
 **標準的なコード品質の懸念事項に加えて、レビューアは以下の点を確認する必要があります：**
