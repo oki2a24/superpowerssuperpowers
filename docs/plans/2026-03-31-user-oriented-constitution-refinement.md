@@ -99,10 +99,10 @@ git commit -m "docs: 開発者向け運営規定を docs/FACTORY.md に分離す
 
 ## Ⅲ. 階層化 Observations アーキテクチャ (Tiered Observation)
 
-<!-- @observation-distiller:start:strata -->
+<!-- observation-distiller:start:strata -->
 **「知見は地層として積み重なり、現在のコンテキストへと動的に合成される。」**
 (Strata セクションを維持)
-<!-- @observation-distiller:end:strata -->
+<!-- observation-distiller:end:strata -->
 
 ---
 

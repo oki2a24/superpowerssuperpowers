@@ -33,7 +33,7 @@
     - **検証**: すべての回帰テストがパスし、ID 操作の安定性を TDD で証明。
 
 ## 5. 既知の不具合・技術負債 (Known Issues)
-- [ ] **`GEMINI.md` 内のインポートエラー調査**: `observation-distiller:start:strata` 等のインポートが ENOENT で失敗する問題の修正。パスの不整合（相対パス vs 絶対パス）のリファクタリングを検討せよ。
+- [x] **`GEMINI.md` 内のインポートエラー調査 (2026-04-12)**: `observation-distiller:start:strata` 等のインポートが ENOENT で失敗する問題の修正。インポートを部品化（`skills/observation-distiller/strata.md`）し、歴史的文書（`docs/plans/`）はエスケープしてノイズを排除。
 
 ---
 *Created by Gemini CLI Agent. 過去の完了済みセクションは、プロジェクトの歴史としてコミット履歴に保存されています。*
