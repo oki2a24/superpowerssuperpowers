@@ -37,6 +37,7 @@
 *   `subagent-driven-development` (v1.8.4 update: Model Selection, Status Handling, Escalation Rules, Code Organization, Language: Japanese)
 *   `executing-plans` (v1.8.6 update: Start-up Announcement, Sub-agent Guidance, Stricter Blocker Discipline)
 *   `using-superpowers` (v1.2.0 update: Subagent-Stop, Instruction Priority, Platform Adaptation, EnterPlanMode logic)
+*   `verification-before-completion` (v1.8.11 update: Agent Delegation Pattern, Honest Assertion, Detail Scope)
 
 ## 今後の移植の記録方法
 
