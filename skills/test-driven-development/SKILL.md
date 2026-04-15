@@ -47,15 +47,20 @@ description: "実装コードを書く前に、テストを先に書き、それ
 ## レッド・グリーン・リファクタ
 
 ```mermaid
-graph TD
-    RED[RED: 失敗するテストを書く] --> V_RED{正しく失敗するか?}
-    V_RED -->|いいえ| RED
-    V_RED -->|はい| GREEN[GREEN: 最小限のコードを書く]
+graph LR
+    RED[RED: 失敗するテストを書く]:::red --> V_RED{正しく失敗するか?}
+    V_RED -->|いいえ (失敗の仕方が不適切)| RED
+    V_RED -->|はい| GREEN[GREEN: 最小限のコードを書く]:::green
     GREEN --> V_GREEN{すべてパスするか?}
     V_GREEN -->|いいえ| GREEN
-    V_GREEN -->|はい| REFACTOR[REFACTOR: クリーンアップ]
-    REFACTOR --> V_GREEN
-    V_GREEN -->|完了| NEXT[次のタスクへ]
+    V_GREEN -->|はい| REFACTOR[REFACTOR: クリーンアップ]:::blue
+    REFACTOR -->|グリーンを維持| V_GREEN
+    V_GREEN -->|完了| NEXT([次のタスクへ])
+    NEXT --> RED
+
+    classDef red fill:#ffcccc
+    classDef green fill:#ccffcc
+    classDef blue fill:#ccccff
 ```
 
 `todo.mjs` を使用して各ステップを管理し、厳格に進行してください。
@@ -64,6 +69,45 @@ graph TD
 1.  **RED (レッド) - 失敗するテストを書く**:
     *   **AIエージェントへの指示**: `node <todo.mjsのパス> add "RED: [タスク名] の失敗テスト作成"` で登録し、`node <todo.mjsのパス> start "RED"` で作業を開始します。
     *   何が起こるべきかを示す、最小限のテストを一つ書きます。
+
+**要件:**
+*   **1つの振る舞い**: 1つのテストで1つのことだけを確認します。
+*   **明確な名前**: 期待される挙動をそのまま名前にします。
+*   **実際のコード**: 回避できない場合を除き、モックではなく実際のプロダクションコードと同様のAPIを使用します。
+
+<良い例>
+```typescript
+test('失敗した操作を3回リトライする', async () => {
+  let attempts = 0;
+  const operation = () => {
+    attempts++;
+    if (attempts < 3) throw new Error('fail');
+    return 'success';
+  };
+
+  const result = await retryOperation(operation);
+
+  expect(result).toBe('success');
+  expect(attempts).toBe(3);
+});
+```
+明確な名前、実際の挙動をテスト、一つの関心事
+</良い例>
+
+<悪い例>
+```typescript
+test('リトライが機能する', async () => {
+  const mock = jest.fn()
+    .mockRejectedValueOnce(new Error())
+    .mockRejectedValueOnce(new Error())
+    .mockResolvedValueOnce('success');
+  await retryOperation(mock);
+  expect(mock).toHaveBeenCalledTimes(3);
+});
+```
+曖昧な名前、コードではなくモックをテストしている
+</悪い例>
+
     *   **AIエージェントへの指示**: ユーザーに、テストの目的と、期待される失敗挙動について尋ね、その内容を反映したテストコードを作成してください。
 
 2.  **Verify RED (レッド検証) - 正しく失敗することを確認する**:
@@ -80,6 +124,39 @@ graph TD
 3.  **GREEN (グリーン) - 最小限のコードを書く**:
     *   **AIエージェントへの指示**: `node <todo.mjsのパス> add "GREEN: [タスク名] の最小実装"` を登録し、`node <todo.mjsのパス> start "GREEN"` で着手します。
     *   テストをパスさせるための最もシンプルなコードを書きます。
+
+<良い例>
+```typescript
+async function retryOperation<T>(fn: () => Promise<T>): Promise<T> {
+  for (let i = 0; i < 3; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      if (i === 2) throw e;
+    }
+  }
+  throw new Error('unreachable');
+}
+```
+テストをパスさせるのに十分な最小限のコード
+</良い例>
+
+<悪い例>
+```typescript
+async function retryOperation<T>(
+  fn: () => Promise<T>,
+  options?: {
+    maxRetries?: number;
+    backoff?: 'linear' | 'exponential';
+    onRetry?: (attempt: number) => void;
+  }
+): Promise<T> {
+  // YAGNI (今は必要ない)
+}
+```
+オーバーエンジニアリング（作り込みすぎ）
+</悪い例>
+
     *   **AIエージェントへの指示**: ユーザーに、テストをパスさせるための最小限の実装コードを作成するよう促してください。
     *   機能の追加、他のコードのリファクタリング、テストを超える「改善」は行わないでください。
 
@@ -104,6 +181,14 @@ graph TD
 ### 繰り返し
 
 次の機能のために、次の失敗するテストを書きます。
+
+## 良いテストの条件
+
+| 品質 | 良い例 | 悪い例 |
+|---------|------|-----|
+| **最小限** | 一つのことだけをテストする。名前に「and」が含まれていたら分割を検討する。 | `test('validates email and domain and whitespace')` |
+| **明確** | 名前が挙動を記述している | `test('test1')` |
+| **意図を示す** | 望ましい API の使用方法を示している | コードが何をすべきかを不明瞭にする |
 
 ## なぜ順序が重要なのか
 

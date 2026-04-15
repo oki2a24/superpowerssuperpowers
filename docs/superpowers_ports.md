@@ -39,6 +39,7 @@
 *   `using-superpowers` (v1.2.0 update: Subagent-Stop, Instruction Priority, Platform Adaptation, EnterPlanMode logic)
 *   `verification-before-completion` (v1.8.11 update: Agent Delegation Pattern, Honest Assertion, Detail Scope)
 *   `finishing-a-development-branch` (v1.8.8 update: Code Blocks, GitHub CLI (gh) template, Cleanup logic sync)
+*   `test-driven-development` (v1.8.12 update: Iron Law, Why Order Matters, Red Flags, Bug Fix Example)
 
 ## 今後の移植の記録方法
 
