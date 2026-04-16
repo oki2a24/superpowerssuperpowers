@@ -1,6 +1,6 @@
 {
  "name": "superpowerssuperpowers",
  "description": "コアスキル・ライブラリ：TDD、デバッグ、協調パターン、および実証済みのテクニック。obra/superpowers から日本語および Node.js に最適化して移植されたスキルに加え、独自のオリジナルスキルも含まれています。",
- "version": "1.8.15",
+ "version": "1.8.16",
  "contextFileName": "GEMINI.md"
 }
