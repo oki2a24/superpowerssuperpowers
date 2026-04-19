@@ -41,6 +41,7 @@
 *   `finishing-a-development-branch` (v1.8.8 update: Code Blocks, GitHub CLI (gh) template, Cleanup logic sync)
 *   `test-driven-development` (v1.8.12 update: Iron Law, Why Order Matters, Red Flags, Bug Fix Example)
 *   `using-git-worktrees` (v1.1.0 update: GEMINI.md check, Jesse's rule for .gitignore, Red Flags sync, code block refactoring)
+*   `requesting-code-review` (Major sync: code-reviewer.md template, placeholder detail, Red Flags, Example section)
 *   `writing-skills` (Major sync: Upstream best practices, Mermaid conversion, Source Adaptation Guide in observations/writing-skills.md)
 *   `testing-skills-with-subagents` (Professional Japanese translation, Terminology adaptation: generalist subagent, GEMINI.md)
 
