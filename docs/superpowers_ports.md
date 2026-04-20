@@ -44,6 +44,7 @@
 *   `requesting-code-review` (Major sync: code-reviewer.md template, placeholder detail, Red Flags, Example section)
 *   `writing-skills` (Major sync: Upstream best practices, Mermaid conversion, Source Adaptation Guide in observations/writing-skills.md)
 *   `testing-skills-with-subagents` (Professional Japanese translation, Terminology adaptation: generalist subagent, GEMINI.md)
+*   `receiving-code-review` (v1.9.0 update: Technical Rigor, Pushback Protocol, No Thanks, Real Examples, GitHub Thread Replies)
 
 ## 今後の移植の記録方法
 
