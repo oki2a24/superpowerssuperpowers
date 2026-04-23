@@ -331,7 +331,11 @@ export function start(pattern, cwd = process.cwd()) {
 export function show(flags = [], cwd = process.cwd()) {
   const todoPath = getTodoPath(cwd);
   if (!fs.existsSync(todoPath)) {
-    process.stdout.write("No active TODO for this project.\n");
+    if (flags.includes('--json')) {
+      process.stdout.write(JSON.stringify({ error: "No active TODO" }) + '\n');
+    } else {
+      process.stdout.write("No active TODO for this project.\n");
+    }
     return;
   }
   const { header, tasks } = parseTodoFile(todoPath);
@@ -339,8 +343,23 @@ export function show(flags = [], cwd = process.cwd()) {
   // タイトルをヘッダーから抽出（既存の init タイトルを想定）
   summary.title = header.find(l => l.startsWith('# TASK:'))?.replace('# TASK:', '').trim() || 'Task List';
   
-  const output = formatDashboard(summary, tasks);
-  process.stdout.write(output);
+  if (flags.includes('--json')) {
+    const output = {
+      title: summary.title,
+      percent: summary.percent,
+      tasks: tasks.map((t, index) => ({
+        id: index + 1,
+        text: t.text,
+        status: t.status,
+        indent: t.indent,
+        parentId: t.parent ? tasks.indexOf(t.parent) + 1 : null
+      }))
+    };
+    process.stdout.write(JSON.stringify(output, null, 2) + '\n');
+  } else {
+    const output = formatDashboard(summary, tasks);
+    process.stdout.write(output);
+  }
 }
 
 /**

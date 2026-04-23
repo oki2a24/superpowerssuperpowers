@@ -34,13 +34,15 @@ try {
 
 // 2. フラグ順序のテスト
 console.log("\n2. Testing flag order independence...");
-// 以前の実装では --child が位置引数（テキスト）の後にないと正しく処理されなかった
+runTodo(['add', 'Parent Task']);
+runTodo(['start', '1']); // 親タスクを開始
 runTodo(['add', '--child', 'Subtask']);
 const resList = runTodo(['show']);
 if (resList.stdout.includes('Subtask') && resList.stdout.includes('  - [ ]')) {
     console.log("  PASS: Flag order independent add works");
 } else {
-    console.log("  FAIL (Expected): Flag order dependent add failed or subtask not created correctly");
+    console.log("  FAIL: Flag order independent add failed or subtask not created correctly");
+    console.log("  Stdout:", resList.stdout);
 }
 
 // 3. stderr のテスト
