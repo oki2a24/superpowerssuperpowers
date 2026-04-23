@@ -22,6 +22,12 @@ function runTodo(args) {
 test('todo.mjs AIフレンドリー機能 (v2)', async (t) => {
   setupTestEnv();
 
+  t.after(() => {
+    if (fs.existsSync(TEST_TASK_DIR)) {
+      fs.rmSync(TEST_TASK_DIR, { recursive: true, force: true });
+    }
+  });
+
   await t.test('show --json: 正しい JSON 構造を出力する', () => {
     runTodo(['init', 'AI Test']);
     const result = runTodo(['show', '--json']);
