@@ -206,10 +206,9 @@ export function add(taskText, isChild = false, cwd = process.cwd()) {
   const { header, tasks } = parseTodoFile(todoPath);
 
   if (isChild) {
-    // ... (既存ロジック)
     const activeTasks = tasks.filter(t => t.status === '/');
     if (activeTasks.length === 0) {
-      process.stdout.write("ERROR: 子タスクを追加するには、親タスクが実行中 [/] である必要があります。");
+      process.stderr.write("ERROR: 子タスクを追加するには、親タスクが実行中 [/] である必要があります。\n");
       process.exit(1);
     }
     const activeParent = activeTasks.reduce((prev, curr) => (curr.indent > prev.indent ? curr : prev));
@@ -248,7 +247,7 @@ export function start(pattern, cwd = process.cwd()) {
     const id = parseInt(pattern, 10);
     targetTask = tasks[id - 1];
     if (targetTask && targetTask.status === 'x') {
-      process.stdout.write(`Error: Task (${id}) is already COMPLETED. Use 'add' for new tasks.`);
+      process.stderr.write(`Error: Task (${id}) is already COMPLETED. Use 'add' for new tasks.\n`);
       process.exit(1);
     }
   } else {
@@ -257,7 +256,7 @@ export function start(pattern, cwd = process.cwd()) {
   }
 
   if (!targetTask) {
-    process.stdout.write(`Error: Task matching '${pattern}' not found or already started.\nHint: Run 'node scripts/todo.mjs show' to confirm available Task IDs.`);
+    process.stderr.write(`Error: Task matching '${pattern}' not found or already started.\nHint: Run 'node scripts/todo.mjs show' to confirm available Task IDs.\n`);
     process.exit(1);
   }
 
@@ -294,7 +293,7 @@ export function start(pattern, cwd = process.cwd()) {
   targetTask.status = '/';
   ensureDir(todoPath);
   fs.writeFileSync(todoPath, serializeTodo(header, tasks));
-  process.stdout.write(`Started: ${targetTask.text}`);
+  process.stdout.write(`Started: ${targetTask.text}\n`);
 }
 
   /**
@@ -309,8 +308,8 @@ export function start(pattern, cwd = process.cwd()) {
   // 最も深い（インデントが大きい）実行中タスクを探す
   const activeTasks = tasks.filter(t => t.status === '/');
   if (activeTasks.length === 0) {
-    process.stdout.write("No in-progress task found to mark as DONE.");
-    return;
+    process.stderr.write("No in-progress task found to mark as DONE.\n");
+    process.exit(1);
   }
 
   const deepestTask = activeTasks.reduce((prev, curr) => (curr.indent > prev.indent ? curr : prev));
@@ -318,7 +317,7 @@ export function start(pattern, cwd = process.cwd()) {
 
   ensureDir(todoPath);
   fs.writeFileSync(todoPath, serializeTodo(header, tasks));
-  process.stdout.write("Task marked as DONE.");
+  process.stdout.write("Task marked as DONE.\n");
   }
 
 
@@ -326,9 +325,10 @@ export function start(pattern, cwd = process.cwd()) {
  * 現在のブランチのタスク状況をダッシュボード形式で標準出力に表示します。
  * プログレスバー、現在注目中のタスク、アクティブなタスク一覧、完了履歴が含まれます。
  * 
+ * @param {string[]} [flags=[]] - コマンドフラグの配列。
  * @param {string} [cwd=process.cwd()] - Git コマンドを実行する基準ディレクトリ。
  */
-export function show(cwd = process.cwd()) {
+export function show(flags = [], cwd = process.cwd()) {
   const todoPath = getTodoPath(cwd);
   if (!fs.existsSync(todoPath)) {
     process.stdout.write("No active TODO for this project.\n");
@@ -471,8 +471,6 @@ Usage: todo.mjs [init|add|start|done|show] [args] [-h | --help]
  */
 export function main(argv = process.argv, cwd = process.cwd()) {
   const command = argv[2];
-  const args = argv.slice(3);
-
   if (!command) {
     printHelp();
     process.exit(1);
@@ -480,37 +478,41 @@ export function main(argv = process.argv, cwd = process.cwd()) {
 
   if (command === '--help' || command === '-h') {
     printHelp();
-    return;
+    process.exit(0);
   }
+
+  const rawArgs = argv.slice(3);
+  const flags = rawArgs.filter(a => a.startsWith('--'));
+  const positional = rawArgs.filter(a => !a.startsWith('--'));
 
   switch (command) {
     case 'init':
-      init(args[0], cwd);
+      init(positional[0], cwd);
       break;
     case 'add':
-      if (args.length < 1) {
-        process.stdout.write("Usage: todo.mjs add <task>");
+      if (positional.length < 1) {
+        process.stderr.write("Usage: todo.mjs add <task> [--child]\n");
         process.exit(1);
       }
-      const isChild = args.includes('--child');
-      const text = args.filter(a => a !== '--child').join(' ');
+      const isChild = flags.includes('--child');
+      const text = positional.join(' ');
       add(text, isChild, cwd);
       break;
     case 'start':
-      if (args.length < 1) {
-        process.stdout.write("Usage: todo.mjs start <pattern>");
+      if (positional.length < 1) {
+        process.stderr.write("Usage: todo.mjs start <ID|pattern>\n");
         process.exit(1);
       }
-      start(args[0], cwd);
+      start(positional[0], cwd);
       break;
     case 'done':
       done(cwd);
       break;
     case 'show':
-      show(cwd);
+      show(flags, cwd);
       break;
     default:
-      process.stdout.write("Usage: todo.mjs [init|add|start|done|show] [args]");
+      process.stderr.write(`Unknown command: ${command}\n`);
       process.exit(1);
   }
 }
