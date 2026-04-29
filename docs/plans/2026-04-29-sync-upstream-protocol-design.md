@@ -40,16 +40,10 @@ Modified および Added の全てのファイルに対し、`port-superpowers-s
 ### 3.2. 引き継ぎプロトコル (Handoff Protocol)
 セッションを分割する場合、`session-handoff` スキルを使用し、同期状況、適用済みの重要判断、次回の着手ポイントを要約した再開プロンプトを作成する。`todo.mjs` は使用しない。
 
-## 4. 実装形態： `sync-upstream-skill`
-
-### 4.1. スキルの役割
-- 同期プロセスの管理と、規律の強制。
-- `port-superpowers-skill` の SOP を「エンジンの心臓部」として呼び出し、同期プロセス全体をオーケストレートする。
-
-### 4.2. 完了の定義 (DoD)
-- 全スキルの同期が完了している。
-- `docs/superpowers_ports.md` が最新のコミットハッシュで更新されている。
-- 物理的な動作検証（スキルのロード確認）が完了している。
+## 4. 完了の定義 (DoD)
+- **物理的整合性**: 全スキルの同期が完了し、`docs/superpowers_ports.md` が最新のコミットハッシュで更新されている。
+- **品質の証明**: `code-reviewer` による全ファイルのレビューが完了し、承認（Approved）を得ている。
+- **再現性の確保**: `sync-upstream-skill` が作成され、次回以降の「一言での同期」が保証されている。
 
 ## 5. 次回以降のショートカット
 - `activate_skill("sync-upstream-skill")` により、本プロトコルを即座に起動する。

@@ -47,6 +47,26 @@
 *   `receiving-code-review` (v1.9.0 update: Technical Rigor, Pushback Protocol, No Thanks, Real Examples, GitHub Thread Replies)
 *   `dispatching-parallel-agents` (v1.8.5 update: Agent Prompt Structure, Real Example (2025-10-03), Verification Section)
 
+### コミットハッシュ: `6efe32c9e2dd002d0c394e861e0529675d1ab32e` (Upstream 6efe32c 準拠)
+
+**同期・アップデート済みスキル:**
+
+*   `brainstorming` (HARD-GATE 強化, アンチパターン追加)
+*   `systematic-debugging` (デバッグの4フェーズ, 鉄則: バグの再現必須化)
+*   `writing-plans` (セルフレビュー・チェックリストの導入, タスク粒度の詳細化)
+*   `subagent-driven-development` (モデル選択ガイドの追加, ステータスハンドリングの詳細化)
+*   `executing-plans` (批判的レビューの義務化, サブエージェント優先の注記強化)
+*   `using-superpowers` (SUBAGENT-STOP ルールの明文化, 自己正当化の禁止)
+*   `verification-before-completion` (鉄の掟: 最新の検証証拠の必須化)
+*   `finishing-a-development-branch` (アンチパターン: 「後で直す」の禁止)
+*   `test-driven-development` (鉄則: 失敗の確認必須化)
+*   `using-git-worktrees` (開始時の宣言の追加)
+*   `requesting-code-review` (成果物集中レビューの設計思想強化)
+*   `writing-skills` (スキル定義の最新化)
+*   `receiving-code-review` (技術的な厳格さと Pushback Protocol の強化)
+*   `dispatching-parallel-agents` (サブエージェント活用の論理的背景の更新)
+*   `testing-skills-with-subagents` (TDD マッピングと圧力シナリオの具体化)
+
 ## 今後の移植の記録方法
 
 新しいスキルを移植する際には、以下のテンプレートを参考にこのドキュメントに追記してください。
