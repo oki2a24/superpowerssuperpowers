@@ -53,18 +53,19 @@ gemini extensions install https://github.com/oki2a24/superpowerssuperpowers
 
 > [!IMPORTANT]  
 > **Respect for Original**: 以下のスキルは `Ported` (移植済み) であり、オリジナルのワークフローと規律を尊重しつつ、Gemini CLI のランタイムに最適化されています。
+> Upstream `6efe32c` (2026-04) 準拠。最新の規律が物理的に反映されています。
 
 | スキル名 | ステータス | 目的 (Intent) | プロンプト例 |
 | :--- | :---: | :--- | :--- |
 | **`using-superpowers`** | `Ported` | **[規律の核]** 作業に最適なスキルの自発的提案と起動を強制。 | 「この作業に適切なスキルはある？」 |
-| **`brainstorming`** | `Ported` | **[Flagship]** 要件の曖昧さを排除し、堅牢な設計を探索。ブラウザ連携による視覚的な提案（Visual Companion）や、仕様書の自己レビュー機能を搭載。 | 「[アイデア] の構成案を練って」 |
+| **`brainstorming`** | `Ported` | **[HARD-GATE]** 構築前に設計の合意を物理的に得ること。曖昧さを排除する設計の守護者。ブラウザ連携による視覚的な提案や、仕様書の自己レビュー機能を搭載。 | 「[アイデア] の構成案を練って」 |
 | **`writing-plans`** | `Ported` | 実行可能で検証可能な「一口サイズ」の計画作成。 | 「[設計] に基づく実装計画を書いて」 |
 | **`executing-plans`** | `Ported` | 計画のバッチ実行と、ステップごとの確実な検証。 | 「現在の計画をバッチで実行して」 |
-| **`systematic-debugging`** | `Ported` | 推測を排し、根拠に基づいた体系的なデバッグ。 | 「このエラーの根本原因を特定して」 |
+| **`systematic-debugging`** | `Ported` | **[鉄則]** 推測を排し、バグの再現と多角的な証拠収集を絶対条件とする体系的デバッグ。 | 「このエラーの根本原因を特定して」 |
 | **`subagent-driven-development`** | `Ported` | 3 段階の相互レビューによる、実装品質の極大化。 | 「この機能をサブエージェントに任せて」 |
-| **`test-driven-development`** | `Ported` | RED-GREEN-REFACTOR の TDD 原則を物理的に強制。 | 「TDD スキルで [機能] を実装して」 |
+| **`test-driven-development`** | `Ported` | **[鉄の掟]** 変更前に失敗を物理的に確認し、検証を成功の唯一の証明とする TDD 原則を強制。 | 「TDD スキルで [機能] を実装して」 |
 | **`using-git-worktrees`** | `Ported` | 隔離された環境での安全な開発・検証の実施。 | 「この作業用に Git ワークツリーを作成して」 |
-| **`verification-before-completion`** | `Ported` | 完了宣言の前に「物理的な検証」を物理的に強制。 | 「完了の前に検証を行いたい」 |
+| **`verification-before-completion`** | `Ported` | **[鉄則]** 最新の検証証拠なき主張を認めない、完了の最終ゲート。 | 「完了の前に検証を行いたい」 |
 | **`finishing-a-development-branch`** | `Ported` | 作業完了後のクリーンアップと、改善点の振り返り。 | 「このブランチの作業を完了させて」 |
 | **`requesting-code-review`** | `Ported` | 完了した作業に対し、シニアレビュアーの視点を導入。 | 「この実装をレビューして」 |
 | **`receiving-code-review`** | `Ported` | 指摘事項を技術的に検証し、妥当な修正を適用。 | 「レビュー結果を反映させて」 |
