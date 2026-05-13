@@ -30,16 +30,15 @@ BASE_SHA=$(git rev-parse HEAD~1)  # または origin/main
 HEAD_SHA=$(git rev-parse HEAD)
 ```
 
-**2. `code-reviewer` エージェントの派遣:**
+**2. コードレビュアー・サブエージェントの派遣:**
 
-`code-reviewer` エージェントを派遣（サブセッションを起動）し、`skills/requesting-code-review/code-reviewer.md` にあるテンプレートを使用して `objective` を作成します。
+`general-purpose` タイプのタスクツール（Gemini CLIでは `@generalist`）を使用し、`skills/requesting-code-review/code-reviewer.md` にあるテンプレートを埋めて派遣します。
 
 **プレースホルダ:**
-- `{WHAT_WAS_IMPLEMENTED}` - 今回構築したもの。
-- `{PLAN_OR_REQUIREMENTS}` - 本来どうあるべきか（計画書への参照など）。
+- `{DESCRIPTION}` - 何を構築したかの簡潔な要約。
+- `{PLAN_OR_REQUIREMENTS}` - 本来どうあるべきか（計画ファイル、タスクテキスト、または要件）。
 - `{BASE_SHA}` - 開始コミット。
 - `{HEAD_SHA}` - 終了コミット。
-- `{DESCRIPTION}` - 変更の簡潔な要約。
 
 **3. フィードバックへの対応:**
 - **Critical (致命的)**: 直ちに修正が必要です。
@@ -57,12 +56,11 @@ HEAD_SHA=$(git rev-parse HEAD)
 BASE_SHA=$(git log --oneline | grep "Task 1" | head -1 | awk '{print $1}')
 HEAD_SHA=$(git rev-parse HEAD)
 
-[code-reviewer サブエージェントを派遣]
-  WHAT_WAS_IMPLEMENTED: 会話インデックスの検証・修復機能
+[コードレビュアー・サブエージェントを派遣]
+  DESCRIPTION: 4つの問題タイプを検知する verifyIndex() と repairIndex() を追加
   PLAN_OR_REQUIREMENTS: docs/plans/deployment-plan.md のタスク 2
   BASE_SHA: a7981ec
   HEAD_SHA: 3df7661
-  DESCRIPTION: 4つの問題タイプを検知する verifyIndex() と repairIndex() を追加
 
 [サブエージェントの回答]:
   強み: クリーンなアーキテクチャ、実用的なテスト
@@ -82,8 +80,8 @@ HEAD_SHA=$(git rev-parse HEAD)
 - 修正を完了してから次のタスクへ進みます。
 
 **計画の実行 (Executing Plans):**
-- 数個のタスク（バッチ：3タスク程度）ごとにレビューを受けます。
-- フィードバックを適用してから、次のバッチへ進みます。
+- 各タスクの完了時、または自然なチェックポイントでレビューを受けます。
+- フィードバックを適用してから続行します。
 
 **アドホックな開発:**
 - マージ前に必ずレビューを行います。

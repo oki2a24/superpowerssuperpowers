@@ -67,6 +67,15 @@
 *   `dispatching-parallel-agents` (サブエージェント活用の論理的背景の更新)
 *   `testing-skills-with-subagents` (TDD マッピングと圧力シナリオの具体化)
 
+### コミットハッシュ: `f2cbfbec06004df594589df638a164a66a393c5d` (Upstream f2cbfbe 準拠)
+
+**同期・アップデート済みスキル:**
+
+*   `finishing-a-development-branch` (環境検出・デタッチドHEAD対応の追加, クリーンアップロジックの強化)
+*   `using-git-worktrees` (ネイティブツール優先, 既存隔離環境の検出, サブモジュールガード, サンドボックスフォールバックの導入)
+*   `requesting-code-review` (`code-reviewer.md` テンプレートの刷新, サブエージェントへの指示の具体化)
+*   `subagent-driven-development` (継続実行規律の追加: タスク間でユーザーの手を煩わせない)
+
 ## 今後の移植の記録方法
 
 新しいスキルを移植する際には、以下のテンプレートを参考にこのドキュメントに追記してください。

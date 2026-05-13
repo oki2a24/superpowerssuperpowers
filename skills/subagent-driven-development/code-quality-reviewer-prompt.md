@@ -9,8 +9,16 @@
 ```
 ### コード品質レビュー指示テンプレート (Code Quality Review Instructions)
 
-この指示を新しいサブエージェント（または役割を切り替えた自分自身）に提示してください。
+この指示を新しいサブエージェント（Gemini CLIでは `@generalist`）に提示してください。
 
+```text
+タスクツール (general-purpose / @generalist):
+  `requesting-code-review/code-reviewer.md` のテンプレートを使用してください。
+
+  DESCRIPTION: [実装者の報告から取得したタスクの要約]
+  PLAN_OR_REQUIREMENTS: [計画ファイル] のタスク N
+  BASE_SHA: [タスク開始前のコミット]
+  HEAD_SHA: [現在のコミット]
 ```
 
 **標準的なコード品質の懸念事項に加えて、レビューアは以下の点を確認する必要があります：**
