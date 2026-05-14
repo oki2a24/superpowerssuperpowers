@@ -576,9 +576,10 @@ helper1, helper2, step3, pattern4
 
 ## スキル作成チェックリスト（TDD適応版）
 
-**重要：以下の各チェックリスト項目のために `todo.mjs` を使用してToDoを作成してください。**
-*   **重要**: `scripts/todo.mjs` は、現在のワークスペースの `scripts/` またはメタスキルの `Location` に隣接する（あるいは親ディレクトリの） `scripts/` に存在します。AIはまずこれらの場所を確認し、正しいフルパスを特定してください。
-*   `node <todo.mjsのパス> init "Create Skill: [Name]"`, `add`, `start`, `done` を使用します。
+**重要：以下の各チェックリスト項目のためにタスク管理ツールを使用してToDoを作成してください。**
+*   **Native-First**: Gemini CLI のビルトイン機能（`write_todos` 等）を優先して使用し、セッション中の進捗を管理します。
+*   **Fallback**: 永続化が必要な場合は、`scripts/todo.mjs` を併用して同期してください。
+*   **重要**: `scripts/todo.mjs` を使用する際は、必ず `show --json` で ID を確認してください。
 
 **REDフェーズ - 失敗するテストを書く：**
 - [ ] 圧力シナリオを作成する（規律を強制するスキルには3つ以上の圧力を組み合わせる）
