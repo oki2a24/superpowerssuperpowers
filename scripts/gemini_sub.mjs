@@ -219,15 +219,51 @@ export function generateTaskId() {
 }
 
 /**
- * グローバルなセッション保存先から、指定されたタスク ID に対応するディレクトリを検索します。
+ * GPAC のベースディレクトリを取得します。
+ * .antigravity/sub-sessions を優先し、なければ .gemini/sub-sessions を返します。
+ * 
+ * @param {string|null} [homeDir=null] - ホームディレクトリのパス。
+ * @returns {string} ベースディレクトリのパス。
+ */
+export function getGpacBaseDir(homeDir = null) {
+  const baseHome = homeDir || os.homedir();
+  const antigravityDir = path.join(baseHome, '.antigravity', 'sub-sessions');
+  const geminiDir = path.join(baseHome, '.gemini', 'sub-sessions');
+
+  if (fs.existsSync(path.join(baseHome, '.antigravity'))) {
+    return antigravityDir;
+  }
+  if (fs.existsSync(path.join(baseHome, '.gemini'))) {
+    return geminiDir;
+  }
+  return antigravityDir;
+}
+
+/**
+ * 起動する CLI コマンド（agy または gemini）を取得します。
+ * @returns {string} コマンド名。
+ */
+export function getCliCommand() {
+  try {
+    const res = spawnSync('which', ['agy'], { encoding: 'utf8' });
+    if (res.status === 0) {
+      return 'agy';
+    }
+  } catch (e) {
+    // ignore
+  }
+  return 'gemini';
+}
+
+/**
+ * 指定したタスク ID に対応するグローバル領域のタスクディレクトリを検索します。
  * 
  * @param {string} taskId - 検索対象のタスク ID。
- * @param {string|null} [homeDir=null] - 基準となるホームディレクトリのパス。null の場合は os.homedir() が使用されます。
+ * @param {string|null} [homeDir=null] - 基準となるホームディレクトリのパス。
  * @returns {string|null} タスクディレクトリの絶対パス。見つからない場合は null。
  */
 export function findTaskDirectory(taskId, homeDir = null) {
-  const baseHome = homeDir || os.homedir();
-  const baseDir = path.join(baseHome, '.gemini', 'sub-sessions');
+  const baseDir = getGpacBaseDir(homeDir);
 
   if (!fs.existsSync(baseDir)) {
     return null;
@@ -265,7 +301,8 @@ export function createPayload(workDir, taskId) {
 2. 作業が長引く場合は、定期的に「この作業はサブセッションで行っている」ことを人間にリマインドし、没入を防いでください。`;
   // プロンプト内のクォートをエスケープ
   const safePrompt = prompt.replace(/"/g, '"');
-  return `cd ${workDir} && gemini "${safePrompt}"`;
+  const cli = getCliCommand();
+  return `cd ${workDir} && ${cli} "${safePrompt}"`;
 }
 
 /**
@@ -333,9 +370,9 @@ export function spawn(localDraftPath, options = {}) {
   const parentProjectRoot = process.cwd();
   const taskId = generateTaskId();
   const resolvedProjectName = projectName || path.basename(parentProjectRoot);
-  const baseHome = homeDir || os.homedir();
+  const baseDir = getGpacBaseDir(homeDir);
 
-  const targetPath = path.join(baseHome, '.gemini', 'sub-sessions', resolvedProjectName, taskId, 'task.md');
+  const targetPath = path.join(baseDir, resolvedProjectName, taskId, 'task.md');
 
   // 必須項目と置換マップ
   const required = ["task_id", "parent_project_root", "parent_branch", "parent_task_tag", "work_dir", "mission", "required_skills", "steps"];
@@ -446,8 +483,7 @@ export function launchSession(sessionId, taskPath, workDir, launcherMode = 'manu
  * @param {string|null} [homeDir=null] - ホームディレクトリのパス。
  */
 export function listSessions(homeDir = null) {
-  const baseHome = homeDir || os.homedir();
-  const baseDir = path.join(baseHome, '.gemini', 'sub-sessions');
+  const baseDir = getGpacBaseDir(homeDir);
 
   if (!fs.existsSync(baseDir)) {
     console.log('No sub-sessions found.');
@@ -537,7 +573,8 @@ export function handleImport(taskId, options = {}) {
     reportFile = path.join(taskDir, 'report.md');
   } else if (projectName && homeDir) {
     // プロジェクト名がある場合は旧パスも探す（後方互換性）
-    reportFile = path.join(homeDir, '.gemini', 'sub-sessions', projectName, taskId, 'report.md');
+    const baseDir = getGpacBaseDir(homeDir);
+    reportFile = path.join(baseDir, projectName, taskId, 'report.md');
   } else {
     reportFile = path.join(process.cwd(), 'report.md');
   }
@@ -605,7 +642,8 @@ export function createFromTemplate(type, filename = null, homeDir = null) {
   const defaultFilename = type === 'task' ? 'task_draft.md' : 'report_draft.md';
   const targetPath = filename || defaultFilename;
 
-  const templatePath = path.join(baseHome, '.gemini', 'sub-sessions', templateName);
+  const baseDir = getGpacBaseDir(homeDir);
+  const templatePath = path.join(baseDir, templateName);
   
   let content = '';
   if (fs.existsSync(templatePath)) {

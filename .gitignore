@@ -13,3 +13,7 @@ build/
 # Gemini CLI Temporary Tasks
 .gemini/tasks/*
 !.gemini/tasks/.gitkeep
+
+# Antigravity CLI Temporary Tasks
+.antigravity/tasks/*
+!.antigravity/tasks/.gitkeep
