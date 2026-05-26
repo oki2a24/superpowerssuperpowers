@@ -35,7 +35,7 @@
 ### 1. インストール
 **Antigravity CLI (agy) の場合:**
 ```bash
-agy extension install https://github.com/oki2a24/superpowerssuperpowers
+agy plugin install https://github.com/oki2a24/superpowerssuperpowers
 ```
 
 **Gemini CLI の場合:**
