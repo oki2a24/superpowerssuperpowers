@@ -227,16 +227,7 @@ export function generateTaskId() {
  */
 export function getGpacBaseDir(homeDir = null) {
   const baseHome = homeDir || os.homedir();
-  const antigravityDir = path.join(baseHome, '.antigravity', 'sub-sessions');
-  const geminiDir = path.join(baseHome, '.gemini', 'sub-sessions');
-
-  if (fs.existsSync(path.join(baseHome, '.antigravity'))) {
-    return antigravityDir;
-  }
-  if (fs.existsSync(path.join(baseHome, '.gemini'))) {
-    return geminiDir;
-  }
-  return antigravityDir;
+  return path.join(baseHome, '.antigravity', 'sub-sessions');
 }
 
 /**
@@ -244,15 +235,7 @@ export function getGpacBaseDir(homeDir = null) {
  * @returns {string} コマンド名。
  */
 export function getCliCommand() {
-  try {
-    const res = spawnSync('which', ['agy'], { encoding: 'utf8' });
-    if (res.status === 0) {
-      return 'agy';
-    }
-  } catch (e) {
-    // ignore
-  }
-  return 'gemini';
+  return 'agy';
 }
 
 /**
@@ -294,7 +277,7 @@ export function findTaskDirectory(taskId, homeDir = null) {
  * @returns {string} 実行されるシェルコマンド。
  */
 export function createPayload(workDir, taskId) {
-  const prompt = `GPACプロトコル：任務を定義しました。任務内容を確認するために 'node scripts/gemini_sub.mjs show-task ${taskId}' を実行してください。
+  const prompt = `GPACプロトコル：任務を定義しました。任務内容を確認するために 'node scripts/agy_sub.mjs show-task ${taskId}' を実行してください。
 
 【サブセッションの重要制約】
 1. あなたは一時的なサブセッションです。任務完了後は速やかに 'report' を行うよう人間に促し、親セッションへの帰還（import）を誘導してください。
@@ -455,7 +438,7 @@ export function launchSession(sessionId, taskPath, workDir, launcherMode = 'manu
     console.log('\n[GPAC Launcher: Manual Mode]');
     console.log('新しいタブを開き、以下のコマンドをコピー＆ペーストして実行してください：\n');
     console.log(`  ${payload}\n`);
-    console.log(`作業完了後の統合コマンド:\n  node scripts/gemini_sub.mjs import ${sessionId}\n`);
+    console.log(`作業完了後の統合コマンド:\n  node scripts/agy_sub.mjs import ${sessionId}\n`);
   } else if (launcherMode === 'tmux') {
     try {
       // tmux new-window -n sub-ID "bash -c 'payload; exec bash'"
@@ -463,7 +446,7 @@ export function launchSession(sessionId, taskPath, workDir, launcherMode = 'manu
       const result = spawnSync('tmux', tmuxCmd);
       if (result.status === 0) {
         console.log(`Launched in new tmux window: sub-${sessionId}`);
-        console.log(`作業完了後の統合コマンド:\n  node scripts/gemini_sub.mjs import ${sessionId}\n`);
+        console.log(`作業完了後の統合コマンド:\n  node scripts/agy_sub.mjs import ${sessionId}\n`);
       } else {
         throw new Error('tmux failed');
       }
@@ -781,7 +764,7 @@ export function main() {
       const { positionals } = parseArgs({ args: args.slice(1), allowPositionals: true });
       createFromTemplate('report', positionals[0]);
     } else {
-      console.log('Gemini Peer-Agent Coordination (GPAC) Controller');
+      console.log('Antigravity Peer-Agent Coordination (GPAC) Controller');
       console.log('\nCommands:');
       console.log('  spawn <draft> [-p project]   Spawn a new sub-session');
       console.log('  report <draft> --id <id>     Submit a report');
