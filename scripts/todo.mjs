@@ -5,11 +5,11 @@ import { fileURLToPath } from 'node:url';
 
 /**
  * TODO ファイルを保存するディレクトリのパスを取得します。
- * 環境変数 GEMINI_TASK_DIR が設定されている場合はそれを優先し、
- * 設定されていない場合はデフォルトの ".gemini/tasks" を使用します。
+ * 環境変数 ANTIGRAVITY_TASK_DIR が設定されている場合はそれを優先し、
+ * 設定されていない場合はデフォルトの ".antigravity/tasks" を使用します。
  */
 export function getTaskDir() {
-  return process.env.GEMINI_TASK_DIR || ".gemini/tasks";
+  return process.env.ANTIGRAVITY_TASK_DIR || ".antigravity/tasks";
 }
 
 /**
