@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const TODO_SCRIPT = path.resolve('scripts/todo.mjs');
-const TEST_TASK_DIR = path.resolve('.gemini/tasks_test_ai_refactored');
+const TEST_TASK_DIR = path.resolve('.antigravity/tasks_test_ai_refactored');
 
 function setupTestEnv() {
   if (fs.existsSync(TEST_TASK_DIR)) fs.rmSync(TEST_TASK_DIR, { recursive: true, force: true });
@@ -15,7 +15,7 @@ function setupTestEnv() {
 function runTodo(args) {
   return cp.spawnSync('node', [TODO_SCRIPT, ...args], {
     encoding: 'utf8',
-    env: { ...process.env, GEMINI_TASK_DIR: TEST_TASK_DIR }
+    env: { ...process.env, ANTIGRAVITY_TASK_DIR: TEST_TASK_DIR }
   });
 }
 

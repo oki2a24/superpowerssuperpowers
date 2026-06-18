@@ -16,7 +16,7 @@ import {
 
 function setupTmpDir() {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'todo-core-test-'));
-  process.env.GEMINI_TASK_DIR = tmpDir;
+  process.env.ANTIGRAVITY_TASK_DIR = tmpDir;
   return tmpDir;
 }
 
@@ -115,7 +115,7 @@ test('todo.mjs コア機能 (階層管理以外)', async (t) => {
     await t.test('引数なしの場合に終了コード 1 と Usage を表示する', () => {
       const tmpDir = setupTmpDir();
       const result = cp.spawnSync('node', [scriptPath], { 
-        env: { ...process.env, GEMINI_TASK_DIR: tmpDir }, 
+        env: { ...process.env, ANTIGRAVITY_TASK_DIR: tmpDir }, 
         encoding: 'utf8' 
       });
       assert.strictEqual(result.status, 1);
@@ -126,7 +126,7 @@ test('todo.mjs コア機能 (階層管理以外)', async (t) => {
     await t.test('CLI 経由で複数単語のタスク追加、開始、完了ができること', () => {
       const tmpDir = setupTmpDir();
       setupRepo(tmpDir);
-      const env = { ...process.env, GEMINI_TASK_DIR: tmpDir };
+      const env = { ...process.env, ANTIGRAVITY_TASK_DIR: tmpDir };
       const opt = { env, cwd: tmpDir, encoding: 'utf8' };
 
       cp.spawnSync('node', [scriptPath, 'init'], opt);
@@ -143,7 +143,7 @@ test('todo.mjs コア機能 (階層管理以外)', async (t) => {
       const tmpDir = setupTmpDir();
       // Git がない環境での show
       const stdout = cp.spawnSync('node', [scriptPath, 'show'], { 
-        env: { ...process.env, GEMINI_TASK_DIR: tmpDir },
+        env: { ...process.env, ANTIGRAVITY_TASK_DIR: tmpDir },
         encoding: 'utf8' 
       }).stdout;
       assert.match(stdout, /No active TODO for this project/);

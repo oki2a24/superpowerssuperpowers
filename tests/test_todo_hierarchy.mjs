@@ -15,7 +15,7 @@ import {
 
 function setupTmpDir() {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'todo-hierarchy-test-'));
-  process.env.GEMINI_TASK_DIR = tmpDir;
+  process.env.ANTIGRAVITY_TASK_DIR = tmpDir;
   return tmpDir;
 }
 

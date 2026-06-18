@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { createFromTemplate } from '../scripts/gemini_sub.mjs';
+import { createFromTemplate } from '../scripts/agy_sub.mjs';
 
 test('gemini_sub.mjs UI 改善テスト', async (t) => {
   await t.test('createFromTemplate は生成された絶対パスをカラーで出力すること', () => {

@@ -27,7 +27,7 @@ test('todo.mjs 堅牢化テスト', async (t) => {
 
     await t.test('ブランチ名が取得できない場合、getTodoPath は TODO.md を返す', () => {
       const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'todo-path-'));
-      process.env.GEMINI_TASK_DIR = tmpDir;
+      process.env.ANTIGRAVITY_TASK_DIR = tmpDir;
       const todoPath = getTodoPath(tmpDir);
       assert.strictEqual(path.basename(todoPath), 'TODO.md'); // 現在は "TODO-default.md" を返すため失敗するはず
       fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -37,8 +37,8 @@ test('todo.mjs 堅牢化テスト', async (t) => {
   await t.test('ディレクトリ自動生成', async (t) => {
     await t.test('親ディレクトリが存在しない状態で add を実行しても成功する', () => {
       const tmpBase = fs.mkdtempSync(path.join(os.tmpdir(), 'todo-autodir-'));
-      const taskDir = path.join(tmpBase, 'nested', '.gemini', 'tasks');
-      process.env.GEMINI_TASK_DIR = taskDir;
+      const taskDir = path.join(tmpBase, 'nested', '.antigravity', 'tasks');
+      process.env.ANTIGRAVITY_TASK_DIR = taskDir;
       
       // init を飛ばして直接 add (または init でも親が存在しない場合)
       init('Auto Dir Test', tmpBase);
@@ -62,7 +62,7 @@ test('todo.mjs 堅牢化テスト', async (t) => {
 
   await t.test('ID 表示の実装', async (t) => {
     const tmpBase = fs.mkdtempSync(path.join(os.tmpdir(), 'todo-id-display-'));
-    process.env.GEMINI_TASK_DIR = path.join(tmpBase, '.gemini', 'tasks');
+    process.env.ANTIGRAVITY_TASK_DIR = path.join(tmpBase, '.antigravity', 'tasks');
     
     // タスクを 2 つ追加
     cp.spawnSync('node', [scriptPath, 'init', 'ID Test', tmpBase], { cwd: tmpBase });
@@ -81,7 +81,7 @@ test('todo.mjs 堅牢化テスト', async (t) => {
 
   await t.test('start ID 指定 & Auto-suspend', async (t) => {
     const tmpBase = fs.mkdtempSync(path.join(os.tmpdir(), 'todo-start-logic-'));
-    process.env.GEMINI_TASK_DIR = path.join(tmpBase, '.gemini', 'tasks');
+    process.env.ANTIGRAVITY_TASK_DIR = path.join(tmpBase, '.antigravity', 'tasks');
     
     cp.spawnSync('node', [scriptPath, 'init', 'Start Test', tmpBase], { cwd: tmpBase });
     cp.spawnSync('node', [scriptPath, 'add', 'Task 1', tmpBase], { cwd: tmpBase });
