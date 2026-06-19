@@ -4,19 +4,19 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 // まだ存在しない、または関数がエクスポートされていないため失敗することを期待
-import { 
-  parseYamlFrontmatter, 
+import {
+  parseYamlFrontmatter,
   validateFrontmatter,
   generateTaskId,
   createPayload,
-  findTaskDirectory,
-  spawn,
-  report,
   listSessions,
   showFile,
   handleImport,
-  createFromTemplate
-} from '../scripts/gemini_sub.mjs';
+  createFromTemplate,
+  findTaskDirectory,
+  spawn,
+  report
+} from '../scripts/agy_sub.mjs';
 
 describe('YAML Parser', () => {
   test('should parse simple key-value pairs', () => {
@@ -166,7 +166,7 @@ steps:
   test('should throw error for non-empty list for steps', () => {
     /**
      * リスト形式の検証。
-     * - 'steps' は必ず 1 つ以上の要素を持つリストでなければならない。
+     * - 'steps' は必ず  1 つ以上の要素を持つリストでなければならない。
      */
     const content = `---
 task_id: "ID-1"
@@ -188,7 +188,7 @@ describe('Spawn Handoff', () => {
      * - PENDING の実値置換
      * - グローバル配置とローカル削除
      */
-    const tempHome = path.join(os.tmpdir(), `gemini-spawn-test-${Date.now()}`);
+    const tempHome = path.join(os.tmpdir(), `.antigravity-spawn-test-${Date.now()}`);
     const draftPath = path.join(os.tmpdir(), `tmp_task_draft_${Date.now()}.md`);
     const projectName = 'handoff-project';
 
@@ -215,7 +215,7 @@ steps:
       // 3. 検証: ローカル下書きが削除されていること (Handoff の完了)
       assert.strictEqual(fs.existsSync(draftPath), false);
 
-      // 4. 検証: グローバル領域に配置されていること (SSOT への登録)
+      // 4. 検증: グローバル領域に配置されていること (SSOT への登録)
       assert.strictEqual(fs.existsSync(resultPath), true);
       assert.ok(resultPath.includes(projectName));
 
@@ -233,7 +233,7 @@ steps:
 
   test('required_skills キーが含まれている場合に spawn が成功すること', () => {
     /** required_skills が必須項目であることを前提とした検証 */
-    const tempHome = path.join(os.tmpdir(), `gemini-spawn-test-${Date.now()}`);
+    const tempHome = path.join(os.tmpdir(), `.antigravity-spawn-test-${Date.now()}`);
     const draftPath = path.join(os.tmpdir(), `tmp_task_draft_${Date.now()}.md`);
     const projectName = 'handoff-project-with-skills';
 
@@ -272,9 +272,9 @@ describe('Helper Functions', () => {
     const workDir = '/path/to/workdir';
     const taskId = '20260314-TEST-ABCD';
     const payload = createPayload(workDir, taskId);
-    
+
     assert.ok(payload.includes(`cd ${workDir}`));
-    assert.ok(payload.includes('node scripts/gemini_sub.mjs show-task ' + taskId));
+    assert.ok(payload.includes('node scripts/agy_sub.mjs show-task ' + taskId));
     assert.ok(payload.includes('【サブセッションの重要制約】'));
     assert.ok(payload.includes("任務完了後は速やかに 'report' を行うよう人間に促し"));
   });
@@ -284,16 +284,16 @@ describe('Helper Functions', () => {
     const workDir = '/path/to/workdir';
     const taskId = '20260314-TEST-ABCD';
     const payload = createPayload(workDir, taskId);
-    assert.ok(payload.includes('node scripts/gemini_sub.mjs show-task'));
+    assert.ok(payload.includes('node scripts/agy_sub.mjs show-task'));
   });
 
   test('findTaskDirectory should find existing task directory', () => {
     /** 指定した ID のディレクトリを見つけられるか検証 */
-    const tempHome = path.join(os.tmpdir(), `gemini-test-${Date.now()}`);
+    const tempHome = path.join(os.tmpdir(), `.antigravity-test-${Date.now()}`);
     const taskId = '20260311-TEST-XXXX';
     const projName = 'test-proj';
-    const taskDir = path.join(tempHome, '.gemini', 'sub-sessions', projName, taskId);
-    
+    const taskDir = path.join(tempHome, '.antigravity', 'sub-sessions', projName, taskId);
+
     try {
       fs.mkdirSync(taskDir, { recursive: true });
       const found = findTaskDirectory(taskId, tempHome);
@@ -306,7 +306,7 @@ describe('Helper Functions', () => {
 
 describe('Report Handoff', () => {
   test('reportSuccess should create report and delete local draft', () => {
-    const tempHome = path.join(os.tmpdir(), `gemini-report-test-${Date.now()}`);
+    const tempHome = path.join(os.tmpdir(), `.antigravity-report-test-${Date.now()}`);
     const draftPath = path.join(os.tmpdir(), `tmp_report_draft_${Date.now()}.md`);
     const taskId = "20260311-REPORT-WXYZ";
     const projectName = "report-proj";
@@ -324,7 +324,7 @@ next_actions: []
       fs.writeFileSync(draftPath, draftContent);
 
       // 2. ダミーのタスクディレクトリ準備
-      const taskDir = path.join(tempHome, '.gemini', 'sub-sessions', projectName, taskId);
+      const taskDir = path.join(tempHome, '.antigravity', 'sub-sessions', projectName, taskId);
       fs.mkdirSync(taskDir, { recursive: true });
 
       // 3. report 呼び出し
@@ -346,13 +346,13 @@ next_actions: []
   });
 
   test('reportOverwriteProtection should block update if status is success', () => {
-    const tempHome = path.join(os.tmpdir(), `gemini-overwrite-test-${Date.now()}`);
+    const tempHome = path.join(os.tmpdir(), `.antigravity-overwrite-test-${Date.now()}`);
     const draftPath = path.join(os.tmpdir(), `tmp_report_overwrite_${Date.now()}.md`);
     const taskId = "20260311-Completed-Task";
     const projectName = "overwrite-proj";
 
     try {
-      const taskDir = path.join(tempHome, '.gemini', 'sub-sessions', projectName, taskId);
+      const taskDir = path.join(tempHome, '.antigravity', 'sub-sessions', projectName, taskId);
       fs.mkdirSync(taskDir, { recursive: true });
 
       // 1. すでに success の報告書を置いておく
@@ -384,11 +384,11 @@ next_actions: []
 
 describe('リストと表示コマンド', () => {
   test('listSessionsはセッション情報を出力すること', () => {
-    const tempHome = path.join(os.tmpdir(), `gemini-list-test-${Date.now()}`);
+    const tempHome = path.join(os.tmpdir(), `.antigravity-list-test-${Date.now()}`);
     try {
       const projName = 'list-proj';
       const taskId = '20260311-LIST-AAAA';
-      const taskDir = path.join(tempHome, '.gemini', 'sub-sessions', projName, taskId);
+      const taskDir = path.join(tempHome, '.antigravity', 'sub-sessions', projName, taskId);
       fs.mkdirSync(taskDir, { recursive: true });
       fs.writeFileSync(path.join(taskDir, 'task.md'), `---
 parent_task_tag: test-tag
@@ -397,9 +397,9 @@ parent_task_tag: test-tag
       let output = '';
       const originalLog = console.log;
       console.log = (msg) => { output += msg + '\n'; };
-      
+
       listSessions(tempHome);
-      
+
       console.log = originalLog;
       assert.ok(output.includes(projName));
       assert.ok(output.includes(taskId));
@@ -410,20 +410,21 @@ parent_task_tag: test-tag
   });
 
   test('showFileはファイル内容を出力すること', () => {
-    const tempHome = path.join(os.tmpdir(), `gemini-show-test-${Date.now()}`);
+    const tempHome = path.join(os.tmpdir(), `.antigravity-show-test-${Date.now()}`);
     try {
       const taskId = '20260311-SHOW-TASK';
-      const taskDir = path.join(tempHome, '.gemini', 'sub-sessions', 'test-proj', taskId);
+      const taskDir = path.join(tempHome, '.antigravity', 'sub-sessions', 'test-proj', taskId);
       fs.mkdirSync(taskDir, { recursive: true });
+      // Wait, line 257 of previous read had `fs.mkdirSync(taskDir, { recursive: true });`. Correct.
       const content = '# Task content';
       fs.writeFileSync(path.join(taskDir, 'task.md'), content);
 
       let output = '';
       const originalLog = console.log;
       console.log = (msg) => { output += msg + '\n'; };
-      
+
       showFile(taskId, 'task.md', tempHome);
-      
+
       console.log = originalLog;
       assert.strictEqual(output.trim(), content);
     } finally {
@@ -434,11 +435,11 @@ parent_task_tag: test-tag
 
 describe('レポートのインポート', () => {
   test('handleImportはレポート情報を整形して出力すること', () => {
-    const tempHome = path.join(os.tmpdir(), `gemini-import-test-${Date.now()}`);
+    const tempHome = path.join(os.tmpdir(), `.antigravity-import-test-${Date.now()}`);
     try {
       const taskId = '20260311-IMPORT-WXYZ';
       const projName = 'test-proj';
-      const reportDir = path.join(tempHome, '.gemini', 'sub-sessions', projName, taskId);
+      const reportDir = path.join(tempHome, '.antigravity', 'sub-sessions', projName, taskId);
       fs.mkdirSync(reportDir, { recursive: true });
       const reportContent = `---
 status: success
@@ -458,9 +459,9 @@ lessons_learned:
       let output = '';
       const originalLog = console.log;
       console.log = (msg) => { output += msg + '\n'; };
-      
+
       handleImport(taskId, { projectName: projName, homeDir: tempHome });
-      
+
       console.log = originalLog;
       assert.ok(output.includes(`[GPAC IMPORT REPORT: ${taskId}]`));
       assert.ok(output.includes('Status: success'));
@@ -478,7 +479,7 @@ lessons_learned:
 describe('テンプレート生成機能', () => {
   test('createFromTemplate はデフォルトテンプレートからタスク下書きを作成すること', () => {
     /** デフォルトテンプレートからのタスク下書き生成をテストします。 */
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gemini-sub-template-test-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), '.antigravity-sub-template-test'));
     const draftPath = path.join(tempDir, 'task_draft.md');
 
     try {
@@ -495,7 +496,7 @@ describe('テンプレート生成機能', () => {
 
   test('ファイルが既に存在する場合、createFromTemplate はエラーをスローすること', () => {
     /** 同名ファイルが存在する場合の上書き防止をテストします。 */
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gemini-sub-error-test-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), ".antigravity-sub-error-test"));
     const draftPath = path.join(tempDir, 'report_draft.md');
 
     try {
