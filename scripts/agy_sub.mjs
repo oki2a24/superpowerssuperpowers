@@ -220,8 +220,7 @@ export function generateTaskId() {
 
 /**
  * GPAC のベースディレクトリを取得します。
- * .antigravity/sub-sessions を優先し、なければ .gemini/sub-sessions を返します。
- * 
+ *
  * @param {string|null} [homeDir=null] - ホームディレクトリのパス。
  * @returns {string} ベースディレクトリのパス。
  */
@@ -231,7 +230,7 @@ export function getGpacBaseDir(homeDir = null) {
 }
 
 /**
- * 起動する CLI コマンド（agy または gemini）を取得します。
+ * 起動する CLI コマンドを取得します。
  * @returns {string} コマンド名。
  */
 export function getCliCommand() {
