@@ -44,12 +44,13 @@ if (diff !== null) {
     coreDirectories.some(dir => f.startsWith(dir)) || 
     coreFiles.includes(f)
   );
-  const hasVersionUpdate = files.some(f => f === 'gemini-extension.json');
+  const hasVersionUpdate = files.some(f => f === 'antigravity-extension.json');
 
   if (hasCoreChanges && !hasVersionUpdate) {
-    console.error('❌ FAIL: スキル、知見、またはコアロジックに変更がありますが、gemini-extension.json のバージョンが更新されていません。');
+    console.error('❌ FAIL: スキル、知見、またはコアロジックに変更がありますが、antigravity-extension.json のバージョンが更新されていません。');
     hasError = true;
   } else if (hasCoreChanges) {
+
     console.log('✅ Version: Updated');
   }
 
