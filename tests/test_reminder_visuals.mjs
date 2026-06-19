@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert';
-import { getReturnReminderAA } from '../scripts/gemini_sub.mjs';
+import { getReturnReminderAA } from '../scripts/agy_sub.mjs';
 
 describe('GPAC 帰還リマインダー AA', () => {
   test('getReturnReminderAA はカラーコードと重要キーワードを含むこと', () => {
