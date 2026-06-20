@@ -1,7 +1,7 @@
-# 知見：test-driven-development (Gemini固有)
+# 知見：test-driven-development (Antigravity固有)
 
 <!-- IMPROVED_ON: 2026-03-08 | REASON: 成果物（コード）への知見還元と Git 操作の規律を強化。 -->
-## AIエージェントへの指示 (Gemini固有)
+## AIエージェントへの指示 (Antigravity固有)
 
 1.  **試行錯誤の知見還元 (Back-propagation of Knowledge)**:
     *   TDD の過程で生じた複雑なロジック、解決済みの曖昧さ、または実装上の苦労があった場合、GREEN を達成した直後に、その背景をコード内のコメントとして厚く残してください。

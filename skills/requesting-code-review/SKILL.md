@@ -32,7 +32,7 @@ HEAD_SHA=$(git rev-parse HEAD)
 
 **2. コードレビュアー・サブエージェントの派遣:**
 
-`general-purpose` タイプのタスクツール（Gemini CLIでは `@generalist`）を使用し、`skills/requesting-code-review/code-reviewer.md` にあるテンプレートを埋めて派遣します。
+`general-purpose` タイプのタスクツール（Antigravity CLI (agy)では `@generalist`）を使用し、`skills/requesting-code-review/code-reviewer.md` にあるテンプレートを埋めて派遣します。
 
 **プレースホルダ:**
 - `{DESCRIPTION}` - 何を構築したかの簡潔な要約。

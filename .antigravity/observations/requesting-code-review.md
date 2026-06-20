@@ -11,4 +11,4 @@
 ## テンプレートの使用
 - **code-reviewer.md**: 常に `skills/requesting-code-review/code-reviewer.md` テンプレートを使用せよ。
 - **プレースホルダの厳密性**: `{WHAT_WAS_IMPLEMENTED}`, `{PLAN_OR_REQUIREMENTS}` 等のプレースホルダを漏れなく埋め、レビュアーに十分なコンテキストを提供せよ。
-- **用語適応**: テンプレート内の用語（「派遣」「サブセッション」等）を尊重し、Antigravity/Gemini のモデルに合わせた対話を行え。
+- **用語適応**: テンプレート内の用語（「派遣」「サブセッション」等）を尊重し、Antigravity/Antigravity のモデルに合わせた対話を行え。

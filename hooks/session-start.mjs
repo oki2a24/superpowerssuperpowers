@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * @fileoverview Gemini CLI SessionStart Hook
+ * @fileoverview Antigravity CLI SessionStart Hook
  * このフックはセッション開始時に実行され、'using-superpowers' スキルの内容を
  * AI のコンテキストに注入することで、スキルの使用原則を徹底させます。
  */
@@ -17,7 +17,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 
 /**
- * メイン処理: スキルファイルを読み込み、Gemini CLI が期待するフック形式の JSON を標準出力する。
+ * メイン処理: スキルファイルを読み込み、Antigravity CLI が期待するフック形式の JSON を標準出力する。
  */
 async function main() {
   try {
@@ -30,7 +30,7 @@ async function main() {
       console.error(`Skill file not found: ${skillPath}`);
     }
 
-    // 2. Gemini CLI Hook 形式の JSON を作成して stdout に出力
+    // 2. Antigravity CLI Hook 形式の JSON を作成して stdout に出力
     const output = {
       hookSpecificOutput: {
         hookEventName: "SessionStart",

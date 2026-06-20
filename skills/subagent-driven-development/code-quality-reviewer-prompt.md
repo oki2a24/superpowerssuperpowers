@@ -9,7 +9,7 @@
 ```
 ### コード品質レビュー指示テンプレート (Code Quality Review Instructions)
 
-この指示を新しいサブエージェント（Gemini CLIでは `@generalist`）に提示してください。
+この指示を新しいサブエージェント（Antigravity CLI (agy)では `@generalist`）に提示してください。
 
 ```text
 タスクツール (general-purpose / @generalist):

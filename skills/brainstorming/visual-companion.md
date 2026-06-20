@@ -47,7 +47,7 @@ skills/brainstorming/scripts/start-server.sh --project-dir .
 
 **注意:** `--project-dir` にプロジェクトのルートを渡すことで、モックアップが `.superpowers/brainstorm/` に保存され、サーバー再起動後も保持されます。`.superpowers/` を `.gitignore` に追加するようユーザーに提案してください。
 
-**プラットフォーム別の起動方法（Gemini CLI）:**
+**プラットフォーム別の起動方法（Antigravity CLI (agy)）:**
 
 ```bash
 # --foreground を指定し、run_shell_command で is_background: true を設定する

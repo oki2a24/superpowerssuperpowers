@@ -38,7 +38,7 @@ const diff = runGit(['diff', '--name-only', `${baseRef}..HEAD`]);
 if (diff !== null) {
   const files = diff.split('\n').filter(f => f.length > 0);
   const coreDirectories = ['skills/', 'observations/', 'scripts/', 'agents/'];
-  const coreFiles = ['GEMINI.md'];
+  const coreFiles = ['ANTIGRAVITY.md'];
 
   const hasCoreChanges = files.some(f => 
     coreDirectories.some(dir => f.startsWith(dir)) || 

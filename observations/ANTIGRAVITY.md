@@ -1,13 +1,13 @@
-# 知見：GEMINI.md (Extension Shared)
+# 知見：ANTIGRAVITY.md (Extension Shared)
 
 ## タスク管理規律：ネイティブ・ファースト & サイレント・フォールバック
 
 トークン効率の最大化と、システムの安定性を両立するため、タスク管理は以下の階層構造で行う。
 
 1. **Native-First (Session Management)**:
-    - 実行中のタスク追跡は、Gemini CLI のビルトイン機能（`write_todos` または `tracker_*` ツール）を最優先で使用する。
+    - 実行中のタスク追跡は、Antigravity CLI (agy) のビルトイン機能（`write_todos` または `tracker_*` ツールなど、環境に応じて利用可能な機能）を最優先で使用する。
     - **理由**: ファイルI/OとID確認のオーバーヘッドを削減し、トークン消費を最小限に抑えるため。
-    - **UI**: 進捗の視覚的確認が必要な場合は Plan Mode (`/plan`) を活用する。
+    - **UI**: 進捗の視覚的確認が必要な場合は Plan Mode を活用する。
 
 2. **Silent Fallback (Persistence)**:
     - `scripts/todo.mjs` は、セッションを跨ぐ永続化が必要な場合や、ビルトイン機能が正常に動作しない場合の「救助艇（フォールバック）」としてのみ使用する。

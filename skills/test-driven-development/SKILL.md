@@ -64,7 +64,7 @@ graph LR
 ```
 
 **タスク管理ツール**を使用して各ステップ（RED/GREEN/REFACTOR）を管理し、厳格に進行してください。
-*   **Native-First**: Gemini CLI のビルトイン機能（`write_todos` 等）を優先して使用し、セッション中の進捗を管理します。
+*   **Native-First**: Antigravity CLI (agy) のビルトイン機能（`write_todos` 等）を優先して使用し、セッション中の進捗を管理します。
 *   **Fallback**: 3つ以上の独立したタスクがある場合や、永続化が必要な場合は、`scripts/todo.mjs` を併用して同期してください。
 
 1.  **RED (レッド) - 失敗するテストを書く**:

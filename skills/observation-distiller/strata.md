@@ -6,7 +6,7 @@
 ```text
 [ 低優先 ]                                                                                                          [ 高優先 ]
   L1: Core (Skills)             L2: Extension (Shared)                L3: Personal (Global)         L4: Project (Local)
-  [Extension Root]/skills       [Extension Root]/observations         ~/.gemini/observations/       ./.gemini/observations/
+  [Extension Root]/skills       [Extension Root]/observations         ~/.antigravity/observations/       ./.antigravity/observations/
           |                             |                             |                             |
           +-----------------------------+-----------------------------+-----------------------------+
                                         |
@@ -16,7 +16,7 @@
 
 ### 2. 動的スキャンと合成の規律
 - **ステップ1：セッション開始時 (Discovery)**
-    - 上記 L1-L4 のすべてのパスにおける `GEMINI.md` の存在を確認し、直ちに読み込み、本憲法を補完する最優先の行動原理として適用せよ。
+    - 上記 L1-L4 のすべてのパスにおける `ANTIGRAVITY.md` の存在を確認し、直ちに読み込み、本憲法を補完する最優先の行動原理として適用せよ。
     - 各層に存在するその他のスキル用知見（`スキル名.md`）については、存在のみを把握し、この段階では読み込むな。
 - **ステップ2：スキル使用時 (On-demand Injection)**
     - 特定のスキルを使用する直前に、L1-L4 のすべての層から対応する知見ファイル（`スキル名.md`）を読み込め。

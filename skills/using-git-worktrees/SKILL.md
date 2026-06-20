@@ -38,7 +38,7 @@ git rev-parse --show-superproject-working-tree 2>/dev/null
 
 **`GIT_DIR == GIT_COMMON`（またはサブモジュール内）の場合:** 通常のリポジトリ・チェックアウトにいます。
 
-ユーザーがすでに指示書（GEMINI.md等）でワークツリーの好みを表明していますか？そうでない場合は、ワークツリーを作成する前に同意を得てください：
+ユーザーがすでに指示書（ANTIGRAVITY.md等）でワークツリーの好みを表明していますか？そうでない場合は、ワークツリーを作成する前に同意を得てください：
 
 > 「隔離されたワークツリーをセットアップしましょうか？現在のブランチを変更から保護できます。」
 
@@ -64,7 +64,7 @@ git rev-parse --show-superproject-working-tree 2>/dev/null
 
 以下の優先順位に従ってください。明示的なユーザーの好みは、常にファイルシステムの状態よりも優先されます。
 
-1. **指示書（GEMINI.md等）にワークツリーディレクトリの好みが記載されていないか確認します。** すでに指定されている場合は、尋ねることなくそれを使用します。
+1. **指示書（ANTIGRAVITY.md等）にワークツリーディレクトリの好みが記載されていないか確認します。** すでに指定されている場合は、尋ねることなくそれを使用します。
 
 2. **既存のプロジェクトローカルなワークツリーディレクトリを確認します：**
    ```bash
@@ -76,7 +76,7 @@ git rev-parse --show-superproject-working-tree 2>/dev/null
 3. **既存のグローバルディレクトリを確認します：**
    ```bash
    project=$(basename "$(git rev-parse --show-toplevel)")
-   ls -d ~/.gemini/worktrees/$project 2>/dev/null
+   ls -d ~/.antigravity/worktrees/$project 2>/dev/null
    ```
    見つかった場合、それを使用します（以前のグローバルパスとの後方互換性）。
 
@@ -94,7 +94,7 @@ git check-ignore -q .worktrees 2>/dev/null || git check-ignore -q worktrees 2>/d
 
 **重要性:** ワークツリーの内容を誤ってリポジトリにコミットするのを防ぎます。
 
-グローバルディレクトリ (`~/.gemini/worktrees/`) の場合は、検証は不要です。
+グローバルディレクトリ (`~/.antigravity/worktrees/`) の場合は、検証は不要です。
 
 #### ワークツリーの作成
 
@@ -103,7 +103,7 @@ project=$(basename "$(git rev-parse --show-toplevel)")
 
 # 選択された場所に基づいてパスを決定
 # プロジェクトローカルの場合: path="$LOCATION/$BRANCH_NAME"
-# グローバルの場合: path="~/.gemini/worktrees/$project/$BRANCH_NAME"
+# グローバルの場合: path="~/.antigravity/worktrees/$project/$BRANCH_NAME"
 
 git worktree add "$path" -b "$BRANCH_NAME"
 cd "$path"

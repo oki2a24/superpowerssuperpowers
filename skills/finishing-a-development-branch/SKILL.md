@@ -189,7 +189,7 @@ git worktree remove <worktree-path>
 
 **デタッチド HEAD の場合:** クリーンアップは行わず、外部ツールに任せます。
 
-**ローカルの補足 (Gemini固有):** `.gemini/tasks/TODO-<feature-branch>.md` が存在する場合、削除します。
+**ローカルの補足 (Antigravity固有):** `.antigravity/tasks/TODO-<feature-branch>.md` が存在する場合、削除します。
 
 ### 振り返り提案とスキル改善の機会
 
