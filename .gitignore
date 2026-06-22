@@ -11,5 +11,5 @@ build/
 *.log
 
 # Antigravity CLI Temporary Tasks
-.antigravity/tasks/*
-!.antigravity/tasks/.gitkeep
+.agents/tasks/*
+!.agents/tasks/.gitkeep

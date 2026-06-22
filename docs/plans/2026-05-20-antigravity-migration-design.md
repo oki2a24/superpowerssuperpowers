@@ -27,17 +27,17 @@
 - 内容における「Gemini CLI」などの呼称を「Antigravity CLI」または「agy」へ更新します。
 - ※ `GEMINI.md` は互換性のために残します。
 
-### 2. プロジェクト開発用ローカル設定の移行 (`.gemini/` -> `.antigravity/`)
+### 2. プロジェクト開発用ローカル設定の移行 (`.gemini/` -> `.agents/`)
 
 本プロジェクトを開発・保守する AI エージェントが読み込む、ローカルの設定ディレクトリを複製・適応します。
 
-#### [NEW] [`.antigravity/` ディレクトリ](file:///Users/oki2a24/superpowerssuperpowers/.antigravity)
-- `.gemini/` ディレクトリの内容（`observations/`, `skills/`, `tasks/`）を `.antigravity/` にコピーします。
-- `.antigravity/observations/GEMINI.md` を `.antigravity/observations/ANTIGRAVITY.md` にリネームし、内容を Antigravity 向けに調整します。
+#### [NEW] [`.agents/` ディレクトリ](file:///Users/oki2a24/superpowerssuperpowers/.agents)
+- `.gemini/` ディレクトリの内容（`observations/`, `skills/`, `tasks/`）を `.agents/` にコピーします。
+- `.agents/observations/GEMINI.md` を `.agents/observations/ANTIGRAVITY.md` にリネームし、内容を Antigravity 向けに調整します。
 - 内部の各知見ファイル内の `gemini` 参照を `antigravity` (または `agy`) に更新します。
 
 #### [MODIFY] [.gitignore](file:///Users/oki2a24/superpowerssuperpowers/.gitignore)
-- `.antigravity/tasks/*` などを Git 管理から除外するルールを追加します。
+- `.agents/tasks/*` などを Git 管理から除外するルールを追加します。
 
 ### 3. ドキュメントおよびスキルの文言アップデート
 
