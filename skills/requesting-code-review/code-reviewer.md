@@ -5,28 +5,32 @@
 **目的:** さらに多くの作業に連鎖する前に、完了した作業を要件とコード品質基準に照らしてレビューします。
 
 ```text
-タスクツール (general-purpose / @generalist):
+サブエージェント (general-purpose):
   説明: "コード変更をレビューする"
   プロンプト: |
     あなたは、ソフトウェアアーキテクチャ、デザインパターン、およびベストプラクティスに関する深い専門知識を持つシニアコードレビュアーです。あなたの仕事は、完了した作業を計画や要件と照らし合わせ、問題が連鎖する前に特定することです。
 
     ## 実装内容
 
-    {DESCRIPTION}
+    [DESCRIPTION]
 
     ## 要件 / 計画
 
-    {PLAN_OR_REQUIREMENTS}
+    [PLAN_OR_REQUIREMENTS]
 
     ## レビュー対象の Git 範囲
 
-    **Base:** {BASE_SHA}
-    **Head:** {HEAD_SHA}
+    **Base:** [BASE_SHA]
+    **Head:** [HEAD_SHA]
 
     ```bash
-    git diff --stat {BASE_SHA}..{HEAD_SHA}
-    git diff {BASE_SHA}..{HEAD_SHA}
+    git diff --stat [BASE_SHA]..[HEAD_SHA]
+    git diff [BASE_SHA]..[HEAD_SHA]
     ```
+
+    ## 読み取り専用レビュー (Read-Only Review)
+
+    あなたのレビューはこのチェックアウトにおいて読み取り専用です。作業ツリー、インデックス、HEAD、またはブランチの状態をいかなる方法でも変更しないでください。履歴を調査するには、git show、git diff、git log などのツールを使用してください。別のリビジョンのワーキングコピーが必要な場合は、別のテンポラリディレクトリにチェックアウトしてください（例：git worktree add /tmp/review-[SHA] [SHA]）。このチェックアウトの HEAD を動かしてはなりません。
 
     ## チェック項目
 
@@ -116,10 +120,10 @@
 ```
 
 **プレースホルダ:**
-- `{DESCRIPTION}` — 構築したものの簡潔な要約。
-- `{PLAN_OR_REQUIREMENTS}` — 本来どうあるべきか（計画ファイルへのパス、タスクテキスト、または要件）。
-- `{BASE_SHA}` — 開始コミット。
-- `{HEAD_SHA}` — 終了コミット。
+- `[DESCRIPTION]` — 構築したものの簡潔な要約。
+- `[PLAN_OR_REQUIREMENTS]` — 本来どうあるべきか（計画ファイルへのパス、タスクテキスト、または要件）。
+- `[BASE_SHA]` — 開始コミット。
+- `[HEAD_SHA]` — 終了コミット。
 
 **レビュアーの回答内容:** 強み、指摘事項 (Critical / Important / Minor)、推奨事項、評価
 

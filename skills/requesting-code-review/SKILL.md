@@ -32,7 +32,7 @@ HEAD_SHA=$(git rev-parse HEAD)
 
 **2. コードレビュアー・サブエージェントの派遣:**
 
-`general-purpose` タイプのタスクツール（Antigravity CLI (agy)では `@generalist`）を使用し、`skills/requesting-code-review/code-reviewer.md` にあるテンプレートを埋めて派遣します。
+`general-purpose` サブエージェントをディスパッチし、[code-reviewer.md](code-reviewer.md) にあるテンプレートを埋めます。
 
 **プレースホルダ:**
 - `{DESCRIPTION}` - 何を構築したかの簡潔な要約。
@@ -100,4 +100,4 @@ HEAD_SHA=$(git rev-parse HEAD)
 - 動作を証明するコードやテストを提示してください。
 - 不明点がある場合は、明確化を求めてください。
 
-テンプレートを参照: `skills/requesting-code-review/code-reviewer.md`
+テンプレートを参照: [code-reviewer.md](code-reviewer.md)
