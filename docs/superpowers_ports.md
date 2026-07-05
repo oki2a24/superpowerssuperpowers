@@ -76,6 +76,24 @@
 *   `requesting-code-review` (`code-reviewer.md` テンプレートの刷新, サブエージェントへの指示の具体化)
 *   `subagent-driven-development` (継続実行規律の追加: タスク間でユーザーの手を煩わせない)
 
+### コミットハッシュ: `896224c4b1879920ab573417e68fd51d2ccc9072` (Upstream v6.0.3 準拠)
+
+**同期・アップデート済みスキル:**
+
+*   `systematic-debugging` (キーワード検出回避: `Ultrathink` → `Ultra-think`)
+*   `test-driven-development` (`@testing-anti-patterns.md` → Markdown リンク形式に修正)
+*   `executing-plans` (ツール固有表記の一般化: `TodoWrite` 等 → `todos`)
+*   `receiving-code-review` (Circle K 反論シグナルの廃止, 誠実な反論ガイドに更新)
+*   `requesting-code-review` + `code-reviewer.md` (サブエージェント表現への統一, `{}` → `[]` プレースホルダー変更, Read-Only Review セクション追加)
+*   `using-git-worktrees` (グローバルパスサポートの削除: `~/.antigravity/worktrees/` 等を廃止, プロジェクトローカルな `.worktrees/` のみに集約, ステップ番号ずれの修正)
+*   `finishing-a-development-branch` (グローバルワークツリーパスのクリーンアップサポートを削除)
+*   `writing-plans` (Task Right-Sizing セクション追加, Global Constraints ヘッダー追加, Interfaces (Consumes/Produces) セクション追加)
+*   `dispatching-parallel-agents` (サブエージェントディスパッチ表記を `Subagent (general-purpose)` 形式に修正, 並行ディスパッチルールの明文化)
+*   `writing-skills` (GSO → SDO 用語変更, Match the Form to the Failure セクション追加, Micro-Test Wording Before Full Scenarios 手順追加, チェックリスト項目追加)
+*   `using-superpowers` (ツール表記を一般的なアクション表現に更新, プラットフォーム適応説明の拡充, `references/` ディレクトリ: antigravity/claude-code/codex/copilot/gemini/pi 全ツールリファレンスを配置)
+*   `brainstorming` (ビジュアルコンパニオンをジャストインタイム提案に変更, visual-companion.md・scripts/ 最新版を同期)
+*   `subagent-driven-development` (2段階レビュー → 1回の `task-reviewer` に一本化, ファイルハンドオフワークフロー導入: brief/report/diff, 進捗台帳 `progress.md` の追加, `task-reviewer-prompt.md` 配置, `scripts/review-package`・`scripts/sdd-workspace`・`scripts/task-brief` 配置, 旧 `spec-reviewer-prompt.md` / `code-quality-reviewer-prompt.md` を削除)
+
 ## 今後の移植の記録方法
 
 新しいスキルを移植する際には、以下のテンプレートを参考にこのドキュメントに追記してください。
