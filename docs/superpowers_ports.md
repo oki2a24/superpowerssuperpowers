@@ -94,6 +94,19 @@
 *   `brainstorming` (ビジュアルコンパニオンをジャストインタイム提案に変更, visual-companion.md・scripts/ 最新版を同期)
 *   `subagent-driven-development` (2段階レビュー → 1回の `task-reviewer` に一本化, ファイルハンドオフワークフロー導入: brief/report/diff, 進捗台帳 `progress.md` の追加, `task-reviewer-prompt.md` 配置, `scripts/review-package`・`scripts/sdd-workspace`・`scripts/task-brief` 配置, 旧 `spec-reviewer-prompt.md` / `code-quality-reviewer-prompt.md` を削除)
 
+### 2026-07-14 アップデート (todo.mjs 依存関係の排除)
+
+**同期・アップデート済みスキル:**
+
+*   `brainstorming` (チェックリストの進捗管理から todo.mjs 依存を削除、チェックボックス管理に統一)
+*   `executing-plans` (タスク化の手順から todo.mjs 依存を削除、チェックボックス管理に統一)
+*   `using-superpowers` (Mermaidフローから todo.mjs 依存を削除、チェックボックス管理に統一)
+*   `test-driven-development` (ステップ管理から todo.mjs 依存を削除、チェックボックス管理に統一)
+*   `systematic-debugging` (タスクリスト構成から todo.mjs 依存を削除、チェックボックス管理に統一)
+*   `writing-skills` (チェックリスト説明から todo.mjs 依存を削除、チェックボックス管理に統一)
+*   `subagent-driven-development` (タスクリスト作成手順をファイルベースのチェックボックス管理に統一)
+
+
 ## 今後の移植の記録方法
 
 新しいスキルを移植する際には、以下のテンプレートを参考にこのドキュメントに追記してください。
