@@ -7,8 +7,6 @@ description: バグ、テスト失敗、予期せぬ動作に遭遇した際に�
 
 ## 概要
 
-場当たり的な修正は時間を浪費し、新たなバグを生む原因となります。クイックパッチは根本的な問題を覆い隠すだけです。
-
 **中核原則:** 修正を試みる前に、必ず根本原因（Root Cause）を特定すること。症状（Symptom）だけを直すのは「失敗」である。
 
 **鉄則: バグ（の再現）を見ていないなら、それは直っていない。**
@@ -181,7 +179,3 @@ If you catch yourself thinking:
 - **[根本原因の追跡 (Root Cause Tracing)](./root-cause-tracing.md)**: バグをコールスタックに沿って遡り、発生源を特定する。
 - **[多層防御バリデーション (Defense-in-Depth)](./defense-in-depth.md)**: バグを構造的に不可能にするための多層的なチェック。
 - **[条件ベースの待機 (Condition-Based Waiting)](./condition-based-waiting.md)**: ポーリングを使用して不安定なテスト（Flaky tests）を解消する。
-
-**関連スキル:**
-- **test-driven-development** - 失敗するテストケース作成のため。
-- **verification-before-completion** - 完了を主張する前の検証。
