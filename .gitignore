@@ -13,3 +13,4 @@ build/
 # Antigravity CLI Temporary Tasks
 .agents/tasks/*
 !.agents/tasks/.gitkeep
+.antigravity/
