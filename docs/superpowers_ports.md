@@ -116,3 +116,15 @@
 **移植済みスキル:**
 
 *   `<移植したスキル名>`
+
+### コミットハッシュ: `3dcbd5c` (Upstream v6.2.0 準拠)
+
+**同期・アップデート済みスキル:**
+
+*   `brainstorming` / `dispatching-parallel-agents` / `executing-plans` / `receiving-code-review` / `systematic-debugging` / `verification-before-completion` / `writing-plans` / `writing-skills`: 上流の個別スキル圧縮スイープに追従して不要な概念セクション（Key Principles, Real-World Impact, Bottom Line 等）を削除。
+*   `finishing-a-development-branch`: ステップ4のメニューを3択/2択化に更新、ステップ2に `WORKTREE_PATH` の取得を追加、ステップ6を provenance-based クリーンアップに刷新し、Common Rationalizations テーブルを追加。
+*   `requesting-code-review`: 「ワークフローとの統合」「Red Flags」セクションを削除し、Common Rationalizations テーブルを追加。
+*   `test-driven-development`: 「なぜ順序が重要なのか」テキストセクションを削除し、Common Rationalizations テーブルを詳細化、`testing-anti-patterns.md` を削除し `writing-good-tests.md` を新規作成して参照更新。
+*   `using-git-worktrees`: 「よくある間違い」「Red Flags」「統合」セクションを削除し、Common Rationalizations テーブルを追加。
+*   `executing-plans`: 上流v6.2.0に従いバッチ実行モデルを削除し、直接実行モデルにシンプル化。
+*   `subagent-driven-development`: `re-review-prompt.md` を新規作成、再開ループ (R≤3)、5ラウンド制限ブレーカー、進捗台帳 (`.sdd-ledger-[plan-name].md`) 管理、最終レビューの1回修正制限プロトコルを統合。
