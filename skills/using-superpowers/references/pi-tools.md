@@ -1,28 +1,28 @@
-# Pi Tool Mapping
+# Pi ツールマッピング
 
-Skills speak in actions ("dispatch a subagent", "create a todo", "read a file"). On Pi these resolve to the tools below.
+スキルはアクション（「サブエージェントを派遣する」「TODOを作成する」「ファイルを読み込む」など）で表現されます。Pi では、これらは以下のツールに対応します。
 
-| Action skills request | Pi equivalent |
+| スキルが要求するアクション | Pi での対応 |
 | --- | --- |
-| Invoke a skill | Pi native skills: load the relevant `SKILL.md` with `read`, or let the human use `/skill:name` |
-| Read a file | `read` |
-| Create a file | `write` |
-| Edit a file | `edit` |
-| Run a shell command | `bash` |
-| Search file contents | `grep` when active; otherwise `bash` with `rg`/`grep` |
-| Find files by name | `find` or `bash` with shell globs |
-| List files and subdirectories | `ls` when active; otherwise `bash` with `ls` |
-| Dispatch a subagent (`Subagent (general-purpose):` template) | Use an installed subagent tool such as `subagent` from `pi-subagents` if available |
-| Task tracking ("create a todo", "mark complete") | Use an installed todo/task tool if available, otherwise track tasks in the plan or `TODO.md` |
+| スキルを呼び出す | Pi ネイティブスキル: `read` で関連する `SKILL.md` を読み込むか、人間が `/skill:name` を使用します |
+| ファイルを読み込む | `read` |
+| ファイルを作成する | `write` |
+| ファイルを編集する | `edit` |
+| シェルコマンドを実行する | `bash` |
+| ファイル内容を検索する | 有効な場合は `grep`。それ以外は `rg`/`grep` を指定した `bash` |
+| ファイル名で検索する | `find` またはシェルグロブを指定した `bash` |
+| ファイルとサブディレクトリの一覧を表示する | 有効な場合は `ls`。それ以外は `ls` を指定した `bash` |
+| サブエージェントを派遣する (`Subagent (general-purpose):` テンプレート) | 利用可能な場合、`pi-subagents` から提供される `subagent` などのインストール済みサブエージェントツールを使用します |
+| タスクのトラッキング（「TODOを作成する」「完了マークをつける」） | 利用可能な場合、インストール済みの todo/task ツールを使用します。それ以外は計画内や `TODO.md` の Markdown チェックリストでトラッキングします |
 
-## Skills
+## スキル (Skills)
 
-Pi discovers skills from configured skill directories and installed Pi packages. A Superpowers Pi package should expose `skills/` through its `pi.skills` manifest entry. Pi does not expose Claude Code's `Skill` tool, but the agent should still follow the Superpowers rule: when a skill applies, load and follow it before responding.
+Pi は設定されたスキルディレクトリおよびインストールされた Pi パッケージからスキルを検出します。Superpowers Pi パッケージは `pi.skills` マニフェストエントリーを通じて `skills/` を公開する必要があります。Pi は Claude Code の `Skill` ツールを提供しませんが、エージェントは Superpowers ルールに従う必要があります：スキルが適用される場合は、応答する前にそれをロードして従ってください。
 
-## Subagents
+## サブエージェント (Subagents)
 
-Pi core does not ship a standard subagent tool. The `pi-subagents` package is a strong optional companion and provides a `subagent` tool with single-agent, chain, parallel, async, forked-context, and resume/status workflows. If no subagent tool is available, do not fabricate `Task` calls; execute sequentially in the current session or explain that the optional subagent capability is not installed.
+Pi コアには標準のサブエージェントツールが付属していません。`pi-subagents` パッケージは強力なオプショナルのコンパニオンであり、単一エージェント、チェーン、並列、非同期、フォークされたコンテキスト、履歴再開/ステータス管理などのワークフローを提供する `subagent` ツールを提供します。サブエージェントツールが利用できない場合は、架空の `Task` 呼び出しを作成せず、現在のセッション内で直列に実行するか、オプショナルのサブエージェント機能がインストールされていない旨を説明してください。
 
-## Task lists
+## タスクリスト (Task lists)
 
-Pi core does not ship a standard task-list tool. If a todo/task extension is installed, use its documented tool. Otherwise use Superpowers plan files, checklists in Markdown, or a repo-local `TODO.md` for task tracking. Older Superpowers docs may refer to `TodoWrite`; treat that as the task-tracking action above.
+Pi コアには標準のタスクリストツールが付属していません。todo/task 拡張機能がインストールされている場合は、そのドキュメントに記載されたツールを使用してください。それ以外の場合は、Superpowers 計画ファイル、Markdown のチェックリスト、またはリポジトリローカルの `TODO.md` をタスクのトラッキングに使用します。古い Superpowers ドキュメントでは `TodoWrite` と言及されている場合がありますが、上記のアクションとして扱ってください。

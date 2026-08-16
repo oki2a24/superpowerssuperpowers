@@ -1,51 +1,47 @@
-# Codex Tool Mapping
+# Codex ツールマッピング
 
-Skills speak in actions ("dispatch a subagent", "create a todo", "read a file"). On Codex these resolve to the tools below.
+スキルはアクション（「サブエージェントを派遣する」「TODOを作成する」「ファイルを読み込む」など）で表現されます。Codex では、これらは以下のツールに対応します。
 
-| Action skills request | Codex equivalent |
+| スキルが要求するアクション | Codex での対応 |
 |----------------------|------------------|
-| Read a file | `shell` (e.g., `cat`, `head`, `tail`) — Codex reads files via shell |
-| Create / edit / delete a file | `apply_patch` (structured diff for create, update, delete) |
-| Run a shell command | `shell` |
-| Search file contents | `shell` (e.g., `grep`, `rg`) |
-| Find files by name | `shell` (e.g., `find`, `ls`) |
-| Fetch a URL | `shell` with `curl` / `wget` — Codex has no native fetch tool |
-| Search the web | `web_search` (enabled by default; configurable in `config.toml` via the top-level `web_search` setting — `live`, `cached`, or `disabled`) |
-| Invoke a skill | Skills load natively — just follow the instructions |
-| Dispatch a subagent (`Subagent (general-purpose):` template) | `spawn_agent` (see [Subagent dispatch requires multi-agent support](#subagent-dispatch-requires-multi-agent-support)) |
-| Multiple parallel dispatches | Multiple `spawn_agent` calls in one response |
-| Wait for subagent result | `wait_agent` |
-| Free up subagent slot when done | `close_agent` |
-| Task tracking ("create a todo", "mark complete") | `update_plan` |
+| ファイルを読み込む | `shell` (例: `cat`, `head`, `tail`) — Codex はシェル経由でファイルを読み込みます |
+| ファイルの作成 / 編集 / 削除 | `apply_patch` (作成・更新・削除用の構造化 diff) |
+| シェルコマンドを実行する | `shell` |
+| ファイル内容を検索する | `shell` (例: `grep`, `rg`) |
+| ファイル名で検索する | `shell` (例: `find`, `ls`) |
+| URL の内容を取得する | `curl` / `wget` を使用した `shell` — Codex にはネイティブな fetch ツールがありません |
+| Web 検索を実行する | `web_search` (デフォルトで有効。`config.toml` のトップレベル `web_search` 設定で `live`, `cached`, `disabled` に設定可能) |
+| スキルを呼び出す | スキルはネイティブにロードされます — 指示に従ってください |
+| サブエージェントを派遣する (`Subagent (general-purpose):` テンプレート) | `spawn_agent` （[サブエージェント派遣にはマルチエージェントサポートが必要](#サブエージェント派遣にはマルチエージェントサポートが必要)を参照） |
+| 複数の並列派遣 | 1つの応答内に複数の `spawn_agent` 呼び出し |
+| サブエージェントの結果を待機する | `wait_agent` |
+| 完了時にサブエージェントスロットを解放する | `close_agent` |
+| タスクのトラッキング（「TODOを作成する」「完了マークをつける」） | `update_plan` |
 
-## Instructions file
+## 指示ファイル (Instructions file)
 
-When a skill mentions "your instructions file", on Codex this is **`AGENTS.md`** at the project root. Codex also reads `~/.codex/AGENTS.md` for global context, and an `AGENTS.override.md` (in the project tree or `~/.codex/`) takes precedence when present. Codex walks from the project root down to the current working directory, concatenating `AGENTS.md` files it finds along the way, up to `project_doc_max_bytes` (32 KiB by default).
+スキルで「あなたの指示ファイル (your instructions file)」と言及されている場合、Codex ではプロジェクトルートの **`AGENTS.md`** を指します。Codex はグローバルコンテキストとして `~/.codex/AGENTS.md` も読み込み、`AGENTS.override.md`（プロジェクトツリー内または `~/.codex/` 内）が存在する場合はそれが優先されます。Codex は `project_doc_max_bytes`（デフォルト32 KiB）を上限として、プロジェクトルートからカレントワークディレクトリに向かって順に `AGENTS.md` ファイルを結合して読み込みます。
 
-## Personal skills directory
+## 個人スキルディレクトリ
 
-User-level skills live at **`$CODEX_HOME/skills/`** (default `~/.codex/skills/`). Codex also reads the cross-runtime path **`~/.agents/skills/`** (shared with Copilot CLI and Gemini CLI). When both directories exist at the same scope, Codex loads them both as separate skill catalogs — Codex's docs don't currently document a precedence between them. Each skill is a subdirectory containing a `SKILL.md` (with `name` and `description` frontmatter).
+ユーザーレベルのスキルは **`$CODEX_HOME/skills/`**（デフォルトは `~/.codex/skills/`）に配置します。Codex はクロスランタイムパス **`~/.agents/skills/`**（Copilot CLI および Gemini CLI と共有）も読み込みます。両方のディレクトリが同じスコープに存在する場合、Codex は両方を個別のスキルカタログとして読み込みます（現在のCodexドキュメントにはそれらの優先順位の規定はありません）。各スキルは `SKILL.md`（`name` と `description` フロントマターを含む）を含むサブディレクトリです。
 
-## Subagent dispatch requires multi-agent support
+## サブエージェント派遣にはマルチエージェントサポートが必要
 
-Add to your Codex config (`~/.codex/config.toml`):
+Codex の設定ファイル (`~/.codex/config.toml`) に以下を追加してください：
 
 ```toml
 [features]
 multi_agent = true
 ```
 
-This enables `spawn_agent`, `wait_agent`, and `close_agent` for skills like `dispatching-parallel-agents` and `subagent-driven-development`.
+これにより、`dispatching-parallel-agents` や `subagent-driven-development` などのスキルで使用する `spawn_agent`、`wait_agent`、`close_agent` が有効になります。
 
-Legacy note: Codex builds before `rust-v0.115.0` exposed spawned-agent
-waiting as `wait`. Current Codex uses `wait_agent` for spawned agents. The
-`wait` name now belongs to code-mode `exec/wait`, which resumes a yielded exec
-cell by `cell_id`; it is not the spawned-agent result tool.
+互換性に関するメモ: `rust-v0.115.0` より前の Codex ビルドでは、生成されたエージェントの待機に `wait` を使用していました。現在の Codex では `wait_agent` を使用します。現在の `wait` はコードモードの `exec/wait`（`cell_id` で譲渡された実行セルを再開する）に属しており、エージェント結果取得用ツールではありません。
 
-## Environment Detection
+## 環境検出 (Environment Detection)
 
-Skills that create worktrees or finish branches should detect their
-environment with read-only git commands before proceeding:
+ワークツリーを作成したりブランチを完了させたりするスキルは、処理を進める前に読み取り専用の git コマンドで環境を検出する必要があります：
 
 ```bash
 GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
@@ -53,20 +49,16 @@ GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
 BRANCH=$(git branch --show-current)
 ```
 
-- `GIT_DIR != GIT_COMMON` → already in a linked worktree (skip creation)
-- `BRANCH` empty → detached HEAD (cannot branch/push/PR from sandbox)
+- `GIT_DIR != GIT_COMMON` → 既にリンクされたワークツリー内です（作成をスキップ）
+- `BRANCH` が空 → HEAD が分離しています（サンドボックスからブランチ作成/プッシュ/PRが不可）
 
-See `using-git-worktrees` Step 0 and `finishing-a-development-branch`
-Step 1 for how each skill uses these signals.
+各スキルがこれらのシグナルをどのように使用するかについては、`using-git-worktrees` のステップ0 および `finishing-a-development-branch` のステップ1 を参照してください。
 
-## Codex App Finishing
+## Codex アプリの完了処理 (Codex App Finishing)
 
-When the sandbox blocks branch/push operations (detached HEAD in an
-externally managed worktree), the agent commits all work and informs
-the user to use the App's native controls:
+サンドボックスによってブランチ/プッシュ操作がブロックされている場合（外部管理されたワークtreeでの分離 HEAD 状態）、エージェントはすべての作業をコミットし、アプリのネイティブコントロールを使用するようユーザーに案内します：
 
-- **"Create branch"** — names the branch, then commit/push/PR via App UI
-- **"Hand off to local"** — transfers work to the user's local checkout
+- **"Create branch"** — ブランチに名前を付け、アプリ UI 経由でコミット/プッシュ/PRを実行
+- **"Hand off to local"** — ユーザーのローカルチェックアウトに作業を移管
 
-The agent can still run tests, stage files, and output suggested branch
-names, commit messages, and PR descriptions for the user to copy.
+エージェントは引き続きテストの実行、ファイルのステージング、ユーザーがコピーできる推奨ブランチ名・コミットメッセージ・PR説明の出力を行えます。

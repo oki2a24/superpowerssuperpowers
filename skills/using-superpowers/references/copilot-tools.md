@@ -1,49 +1,49 @@
-# Copilot CLI Tool Mapping
+# Copilot CLI ツールマッピング
 
-Skills speak in actions ("dispatch a subagent", "create a todo", "read a file"). On Copilot CLI these resolve to the tools below.
+スキルはアクション（「サブエージェントを派遣する」「TODOを作成する」「ファイルを読み込む」など）で表現されます。Copilot CLI では、これらは以下のツールに対応します。
 
-| Action skills request | Copilot CLI equivalent |
+| スキルが要求するアクション | Copilot CLI での対応ツール |
 |----------------------|----------------------|
-| Read a file | `view` |
-| Create / edit / delete a file | `apply_patch` (Copilot CLI has no separate create/edit/write tools) |
-| Run a shell command | `bash` |
-| Search file contents | `rg` (ripgrep; Copilot CLI does not expose a `grep` tool) |
-| Find files by name | `glob` |
-| Fetch a URL | `web_fetch` |
-| Search the web | `web_search` |
-| Invoke a skill | `skill` |
-| Dispatch a subagent (`Subagent (general-purpose):` template) | `task` with `agent_type: "general-purpose"` (other accepted types: `explore`, `task`, `code-review`, `research`, `configure-copilot`) |
-| Multiple parallel dispatches | Multiple `task` calls in one response |
-| Subagent status/output/control | `read_agent`, `list_agents`, `write_agent` |
-| Task tracking ("create a todo", "mark complete") | `update_todo` |
-| Enter / exit plan mode | No equivalent — stay in the main session |
+| ファイルを読み込む | `view` |
+| ファイルの作成 / 編集 / 削除 | `apply_patch` (Copilot CLI には個別の作成/編集/書き込みツールがありません) |
+| シェルコマンドを実行する | `bash` |
+| ファイル内容を検索する | `rg` (ripgrep; Copilot CLI には `grep` ツールがありません) |
+| ファイル名で検索する | `glob` |
+| URL の内容を取得する | `web_fetch` |
+| Web 検索を実行する | `web_search` |
+| スキルを呼び出す | `skill` |
+| サブエージェントを派遣する (`Subagent (general-purpose):` テンプレート) | `agent_type: "general-purpose"` を指定した `task` （他に使用可能なタイプ: `explore`, `task`, `code-review`, `research`, `configure-copilot`） |
+| 複数の並列派遣 | 1つの応答内に複数の `task` 呼び出し |
+| サブエージェントの状態/出力/制御 | `read_agent`, `list_agents`, `write_agent` |
+| タスクのトラッキング（「TODOを作成する」「完了マークをつける」） | `update_todo` |
+| 計画モードへの移行 / 離脱 | 同等機能なし — メインセッション内にとどまります |
 
-## Instructions file
+## 指示ファイル (Instructions file)
 
-When a skill mentions "your instructions file", on Copilot CLI this is **`AGENTS.md`** at the repository root. If both `AGENTS.md` and `.github/copilot-instructions.md` are present, Copilot reads both.
+スキルで「あなたの指示ファイル (your instructions file)」と言及されている場合、Copilot CLI ではリポジトリルートの **`AGENTS.md`** を指します。`AGENTS.md` と `.github/copilot-instructions.md` の両方が存在する場合、Copilot は両方を読み込みます。
 
-## Personal skills directory
+## 個人スキルディレクトリ
 
-User-level skills live at **`~/.copilot/skills/`**. Copilot CLI also recognizes the cross-runtime alias **`~/.agents/skills/`**, which is shared with Codex and Gemini CLI. Each skill is a subdirectory containing a `SKILL.md` (with `name` and `description` frontmatter).
+ユーザーレベルのスキルは **`~/.copilot/skills/`** に配置します。Copilot CLI は Codex や Gemini CLI と共有されるクロスランタイムのエイリアス **`~/.agents/skills/`** も認識します。各スキルは `SKILL.md`（`name` と `description` フロントマターを含む）を含むサブディレクトリです。
 
-## Async shell sessions
+## 非同期シェルセッション (Async shell sessions)
 
-Copilot CLI supports persistent async shell sessions:
+Copilot CLI は持続的な非同期シェルセッションをサポートしています：
 
-| Tool | Purpose |
+| ツール | 目的 |
 |------|---------|
-| `bash` with `mode: "async"` (and optionally `detach: true`) | Start a long-running command in the background; returns a `shellId` |
-| `write_bash` | Send input to a running async session |
-| `read_bash` | Read output from an async session |
-| `stop_bash` | Terminate an async session |
-| `list_bash` | List all active shell sessions |
+| `mode: "async"` (およびオプションで `detach: true`) を指定した `bash` | バックグラウンドで長時間のコマンドを開始し、`shellId` を返します |
+| `write_bash` | 実行中の非同期セッションに入力（stdin）を送信します |
+| `read_bash` | 非同期セッションからの出力を読み込みます |
+| `stop_bash` | 非同期セッションを終了します |
+| `list_bash` | すべてのアクティブなシェルセッションをリスト表示します |
 
-## Additional Copilot CLI tools
+## その他の Copilot CLI ツール
 
-| Tool | Purpose |
+| ツール | 目的 |
 |------|---------|
-| `store_memory` | Persist facts about the codebase for future sessions |
-| `report_intent` | Update the UI status line with current intent |
-| `sql` | Query the session's SQLite database (todos, metadata) |
-| `fetch_copilot_cli_documentation` | Look up Copilot CLI documentation |
-| GitHub MCP tools (`github-mcp-server-*`) | Native GitHub API access (issues, PRs, code search) |
+| `store_memory` | 将来のセッション用にコードベースに関する事実を永続化します |
+| `report_intent` | 現在の意図（intent）で UI のステータスラインを更新します |
+| `sql` | セッションの SQLite データベース（TODO、メタデータ）をクエリします |
+| `fetch_copilot_cli_documentation` | Copilot CLI のドキュメントを検索します |
+| GitHub MCP ツール (`github-mcp-server-*`) | ネイティブな GitHub API アクセス（Issue、PR、コード検索） |

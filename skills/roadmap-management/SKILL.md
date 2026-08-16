@@ -1,6 +1,6 @@
 ---
 name: roadmap-management
-description: Use when starting a multi-step task or a long session involving multiple skills to maintain visibility of progress.
+description: 複数のスキルが関連するマルチステップタスクや長いセッションの開始時に使用し、進捗の可視性を維持する。
 ---
 
 # ロードマップ管理 (Roadmap Management)

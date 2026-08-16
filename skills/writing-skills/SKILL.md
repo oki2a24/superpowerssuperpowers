@@ -531,7 +531,7 @@ api-docs/
 descriptionに、ルールに違反しようとしているときの症状を追加します：
 
 ```yaml
-description: use when implementing any feature or bugfix, before writing implementation code
+description: 実装コードを書く前に、機能実装やバグ修正を行う際に使用する
 ```
 
 ### フルシナリオ実行前の文言マイクロテスト (Micro-Test Wording Before Full Scenarios)

@@ -1,97 +1,91 @@
-# Visual Companion Guide
+# ビジュアルコンパニオンガイド (Visual Companion Guide)
 
-Browser-based visual brainstorming companion for showing mockups, diagrams, and options.
+モックアップ、図、選択肢を表示するためのブラウザベースのビジュアルブレインストーミングコンパニオンです。
 
-## When to Use
+## 使用するタイミング (When to Use)
 
-Decide per-question, not per-session. The test: **would the user understand this better by seeing it than reading it?**
+セッションごとではなく、**質問ごと**に判断してください。判断基準: **「ユーザーはこれを発言を読むよりも、目で見る方が理解しやすいか？」**
 
-**Use the browser** when the content itself is visual:
+コンテンツ自体が視覚的である場合は **ブラウザを使用** します：
 
-- **UI mockups** — wireframes, layouts, navigation structures, component designs
-- **Architecture diagrams** — system components, data flow, relationship maps
-- **Side-by-side visual comparisons** — comparing two layouts, two color schemes, two design directions
-- **Design polish** — when the question is about look and feel, spacing, visual hierarchy
-- **Spatial relationships** — state machines, flowcharts, entity relationships rendered as diagrams
+- **UIモックアップ** — ワイヤーフレーム、レイアウト、ナビゲーション構造、コンポーネントデザイン
+- **アーキテクチャ図** — システム構成要素、データフロー、関係マップ
+- **視覚的な比較（並列表示）** — 2つのレイアウト、2つのカラーパレット、2つのデザイン方向性の比較
+- **デザインの磨き込み (Design polish)** — ルック＆フィール、余白、視覚的階層に関する質問の場合
+- **空間的・構造的関係** — ステートマシン、フローチャート、図として描画されるエンティティ関係
 
-**Use the terminal** when the content is text or tabular:
+コンテンツがテキストや表形式である場合は **ターミナルを使用** します：
 
-- **Requirements and scope questions** — "what does X mean?", "which features are in scope?"
-- **Conceptual A/B/C choices** — picking between approaches described in words
-- **Tradeoff lists** — pros/cons, comparison tables
-- **Technical decisions** — API design, data modeling, architectural approach selection
-- **Clarifying questions** — anything where the answer is words, not a visual preference
+- **要件やスコープに関する質問** — 「Xはどういう意味か？」「どの機能がスコープ内か？」
+- **概念的な A/B/C の選択** — 言葉で説明されたアプローチ間の選択
+- **トレードオフリスト** — メリット・デメリット、比較表
+- **技術的決定** — APIデザイン、データモデリング、アーキテクチャ手法の選定
+- **確認のための質問** — 回答が視覚的嗜好ではなく言葉によるもの全般
 
-A question *about* a UI topic is not automatically a visual question. "What kind of wizard do you want?" is conceptual — use the terminal. "Which of these wizard layouts feels right?" is visual — use the browser.
+UIトピックに*関する*質問であっても、自動的に視覚的な質問になるわけではありません。「どのようなウィザードを作りたいですか？」は概念的です — ターミナルを使用してください。「これらのウィザードレイアウトのうち、どちらがしっくりきますか？」は視覚的です — ブラウザを使用してください。
 
-## How It Works
+## 動作原理 (How It Works)
 
-The server watches a directory for HTML files and serves the newest one to the browser. You write HTML content to `screen_dir`, the user sees it in their browser and can click to select options. Selections are recorded to `state_dir/events` that you read on your next turn.
+サーバーは特定のディレクトリ内の HTML ファイルを監視し、最新のものをブラウザに配信します。AIが `screen_dir` に HTML コンテンツを書き込み、ユーザーはそれをブラウザで確認してクリックで選択できます。選択内容は `state_dir/events` に記録され、次のターンで AI が読み取ります。
 
-**Content fragments vs full documents:** If your HTML file starts with `<!DOCTYPE` or `<html`, the server serves it as-is (just injects the helper script). Otherwise, the server automatically wraps your content in the frame template — adding the header, CSS theme, connection status, and all interactive infrastructure. **Write content fragments by default.** Only write full documents when you need complete control over the page.
+**コンテンツフラグメント vs 完全なドキュメント:** HTML ファイルが `<!DOCTYPE` または `<html` で始まる場合、サーバーはそれをそのまま配信します（ヘルパースクリプトのみ注入）。それ以外の場合、サーバーは自動的にコンテンツをフレームテンプレートで包み込み、ヘッダー、CSSテーマ、接続ステータス、インタラクティブインフラを追加します。**デフォルトではコンテンツフラグメントを記述してください。** ページ全体を完全に制御する必要がある場合にのみ、完全なドキュメントを記述します。
 
-## Starting a Session
+## セッションの開始 (Starting a Session)
 
 ```bash
-# Start AFTER the user approves the companion. --open auto-opens their browser on
-# the first screen; --project-dir persists mockups and enables same-port restart.
+# ユーザーがコンパニオンの使用を承認した後に起動します。--open は最初の画面で自動的にブラウザを開きます。
+# --project-dir はモックアップを保存し、同一ポートでの再起動を可能にします。
 scripts/start-server.sh --project-dir /path/to/project --open
 
-# Returns: {"type":"server-started","port":52341,
+# 返り値の例: {"type":"server-started","port":52341,
 #           "url":"http://localhost:52341/?key=ab12…",
 #           "screen_dir":"/path/to/project/.superpowers/brainstorm/12345-1706000000/content",
 #           "state_dir":"/path/to/project/.superpowers/brainstorm/12345-1706000000/state"}
 ```
 
-Save `screen_dir` and `state_dir` from the response. With `--open`, the browser opens itself when you push the first screen — you don't need to ask the user to open it, but still share the URL as a fallback (headless/remote setups won't auto-open).
+レスポンスから `screen_dir` と `state_dir` を保存します。`--open` を指定すると、最初の画面をプッシュしたときにブラウザが自動的に開きます。ユーザーに開くよう頼む必要はありませんが、フォールバックとして URL を共有しておきます（ヘッドレス環境やリモート設定では自動で開かない場合があります）。
 
-**The URL contains a session key (`?key=…`).** The server rejects any request
-without it, so always give the user the **complete** URL from the `url` field —
-never strip the query string, and never hand out a bare `http://host:port`. The
-key gates HTTP and WebSocket access so a stray browser tab or another machine on
-the network can't read the screens or inject events. After the first load the
-browser remembers the key via a cookie, so reloads and `/files/*` assets work
-without repeating it.
+**URL にはセッションキーが含まれています (`?key=…`)。** サーバーはキーのないリクエストを拒否するため、常に `url` フィールドの**完全な** URL をユーザーに伝えてください。クエリ文字列を削除したり、裸の `http://host:port` を渡したりしないでください。このキーによって HTTP および WebSocket アクセスが保護され、不要なタブやネットワーク上の他のマシンが画面を読み取ったりイベントを注入したりするのを防ぎます。初回ロード後、ブラウザはクッキーを介してキーを記憶するため、リロードや `/files/*` アセットの読み込みではキーを再入力する必要はありません。
 
-**Finding connection info:** The server writes its startup JSON to `$STATE_DIR/server-info`. If you launched the server in the background and didn't capture stdout, read that file to get the URL and port. When using `--project-dir`, check `<project>/.superpowers/brainstorm/` for the session directory.
+**接続情報の検索:** サーバーは起動 JSON を `$STATE_DIR/server-info` に書き込みます。バックグラウンドでサーバーを起動して stdout を取得しなかった場合は、そのファイルを読み込んで URL とポートを取得してください。`--project-dir` を使用している場合は、`<project>/.superpowers/brainstorm/` でセッションディレクトリを確認してください。
 
-**Note:** Pass the project root as `--project-dir` so mockups persist in `.superpowers/brainstorm/` and survive server restarts. Without it, files go to `/tmp` and get cleaned up. Remind the user to add `.superpowers/` to `.gitignore` if it's not already there.
+**注:** プロジェクトルートを `--project-dir` として渡すことで、モックアップが `.superpowers/brainstorm/` に永続化され、サーバーの再起動後も保持されます。指定しない場合、ファイルは `/tmp` に作成され削除されます。`.gitignore` に `.superpowers/` が未登録の場合は追加するようユーザーに促してください。
 
-**Launching the server by platform:**
+**プラットフォームごとのサーバー起動方法:**
 
 **Claude Code:**
 ```bash
-# Default mode works — the script backgrounds the server itself.
+# デフォルトモードで動作します — スクリプト自体がサーバーをバックグラウンド化します。
 scripts/start-server.sh --project-dir /path/to/project --open
 ```
 
-On Windows, the script auto-detects and switches to foreground mode (which blocks the tool call). Use `run_in_background: true` on the Bash tool call so the server survives across conversation turns, then read `$STATE_DIR/server-info` on the next turn to get the URL and port.
+Windows では、スクリプトが自動検出してフォアグラウンドモード（ツール呼び出しをブロックするモード）に切り替えます。Bash ツール呼び出しで `run_in_background: true` を使用して会話ターンを跨いでサーバーを存続させ、次のターンで `$STATE_DIR/server-info` を読み込んで URL とポートを取得してください。
 
 **Codex:**
 ```bash
-# Codex reaps background processes. The script auto-detects CODEX_CI and
-# switches to foreground mode. Run it normally — no extra flags needed.
+# Codex はバックグラウンドプロセスを刈り取ります。スクリプトは CODEX_CI を自動検出し、
+# フォアグラウンドモードに切り替えます。通常通り実行してください（追加フラグは不要です）。
 scripts/start-server.sh --project-dir /path/to/project --open
 ```
 
 **Gemini CLI:**
 ```bash
-# Use --foreground and set is_background: true on your shell tool call
-# so the process survives across turns
+# --foreground を使用し、シェルツール呼び出しで is_background: true を設定して
+# プロセスがターンを跨いで存続するようにします
 scripts/start-server.sh --project-dir /path/to/project --open --foreground
 ```
 
 **Copilot CLI:**
 ```bash
-# Use --foreground and start the server via the bash tool with mode: "async"
-# so the process survives across turns. Capture the returned shellId for
-# read_bash / stop_bash if you need to interact with it later.
+# --foreground を使用し、bash ツール経由で mode: "async" を指定してサーバーを起動し、
+# プロセスがターンを跨いで存続するようにします。後で操作する必要がある場合に備えて、
+# 返された shellId を保存してください。
 scripts/start-server.sh --project-dir /path/to/project --open --foreground
 ```
 
-**Other environments:** The server must keep running in the background across conversation turns. If your environment reaps detached processes, use `--foreground` and launch the command with your platform's background execution mechanism.
+**その他の環境:** 会話ターンを跨いでサーバーがバックグラウンドで動作し続ける必要があります。環境が分離されたプロセスを終了させてしまう場合は、`--foreground` を使用し、プラットフォームのバックグラウンド実行メカニズムでコマンドを起動してください。
 
-If the URL is unreachable from your browser (common in remote/containerized setups), bind a non-loopback host:
+ブラウザから URL にアクセスできない場合（リモート/コンテナ環境でよくあります）、ループバック以外のホストをバインドします：
 
 ```bash
 scripts/start-server.sh \
@@ -100,163 +94,163 @@ scripts/start-server.sh \
   --url-host localhost
 ```
 
-Use `--url-host` to control what hostname is printed in the returned URL JSON.
+返される URL JSON に出力されるホスト名を制御するには `--url-host` を使用します。
 
-## The Loop
+## ループ手順 (The Loop)
 
-1. **Check server is alive**, then **write HTML** to a new file in `screen_dir`:
-   - **Required: confirm the server is alive before referring to the URL or pushing a screen.** Check that `$STATE_DIR/server-info` exists and `$STATE_DIR/server-stopped` does not. If it has shut down, restart it with `start-server.sh` using the **same `--project-dir`** — it reuses the same port, so the user's open tab reconnects on its own (it shows a "paused" overlay while the server is down) and you don't need to send a new URL. The server auto-exits after 4 hours idle (configurable with `--idle-timeout-minutes`).
-   - Use semantic filenames: `platform.html`, `visual-style.html`, `layout.html`
-   - **Never reuse filenames** — each screen gets a fresh file
-   - Use your file-creation tool — **never use cat/heredoc** (dumps noise into terminal)
-   - Server automatically serves the newest file
+1. **サーバーが生きていることを確認**し、`screen_dir` 内の新しいファイルに **HTML を書き込みます**:
+   - **必須: URLを言及したり画面をプッシュしたりする前に、サーバーが稼働中であることを確認してください。** `$STATE_DIR/server-info` が存在し、`$STATE_DIR/server-stopped` が存在しないことをチェックします。停止している場合は、**同じ `--project-dir`** を指定して `start-server.sh` で再起動します — 同じポートが再利用されるため、ユーザーが開いているタブは自動的に再接続され（ダウン中は「一時停止」オーバーレイが表示されます）、新しい URL を送信する必要はありません。サーバーは 4 時間アイドル状態が続くと自動終了します（`--idle-timeout-minutes` で設定可能）。
+   - 意味のあるファイル名を使用します: `platform.html`, `visual-style.html`, `layout.html`
+   - **ファイル名を再利用しないでください** — 各画面には常に新しいファイルを割り当てます
+   - ファイル作成ツールを使用してください — **cat/heredoc は使用しないでください**（ターミナルに雑音を出力するため）
+   - サーバーは自動的に最新のファイルを配信します
 
-2. **Tell user what to expect and end your turn:**
-   - Remind them of the URL (every step, not just first)
-   - Give a brief text summary of what's on screen (e.g., "Showing 3 layout options for the homepage")
-   - Ask them to respond in the terminal: "Take a look and let me know what you think. Click to select an option if you'd like."
+2. **ユーザーに何が表示されるかを伝え、ターンを終了します:**
+   - 毎回 URL を案内します（初回だけでなくすべてのステップで）
+   - 画面に何が表示されているか簡単にテキストで要約します（例: 「トップページの3つのレイアウト案を表示しています」）
+   - ターミナルで返答するよう依頼します: 「ご覧いただき、ご意見をお聞かせください。必要に応じて選択肢をクリックして選ぶこともできます。」
 
-3. **On your next turn** — after the user responds in the terminal:
-   - Read `$STATE_DIR/events` if it exists — this contains the user's browser interactions (clicks, selections) as JSON lines
-   - Merge with the user's terminal text to get the full picture
-   - The terminal message is the primary feedback; `state_dir/events` provides structured interaction data
+3. **次のターンで** — ユーザーがターミナルで返答した後:
+   - `$STATE_DIR/events` が存在すれば読み込みます — これにはユーザーのブラウザ操作（クリック、選択）が JSON lines 形式で記録されています
+   - ターミナルのテキストと統合して全体像を把握します
+   - ターミナルのメッセージが主たるフィードバックであり、`state_dir/events` は構造化された操作データを提供します
 
-4. **Iterate or advance** — if feedback changes current screen, write a new file (e.g., `layout-v2.html`). Only move to the next question when the current step is validated.
+4. **反復改善または進行** — フィードバックによって現在の画面が変更される場合は、新しいファイルを作成します（例: `layout-v2.html`）。現在のステップが検証された場合のみ、次の質問に進みます。
 
-5. **Unload when returning to terminal** — when the next step doesn't need the browser (e.g., a clarifying question, a tradeoff discussion), push a waiting screen to clear the stale content:
+5. **ターミナルに戻る際はアンロード** — 次のステップでブラウザが必要ない場合（確認の質問、トレードオフの議論など）、待機画面をプッシュして古いコンテンツをクリアします：
 
    ```html
-   <!-- filename: waiting.html (or waiting-2.html, etc.) -->
+   <!-- filename: waiting.html (または waiting-2.html など) -->
    <div style="display:flex;align-items:center;justify-content:center;min-height:60vh">
-     <p class="subtitle">Continuing in terminal...</p>
+     <p class="subtitle">ターミナルで会話を継続中...</p>
    </div>
    ```
 
-   This prevents the user from staring at a resolved choice while the conversation has moved on. When the next visual question comes up, push a new content file as usual.
+   これにより、会話が進んでいるのに解決済みの選択肢をユーザーが見続けずに済みます。次の視視的な質問が発生した際は、通常通り新しいコンテンツファイルをプッシュします。
 
-6. Repeat until done.
+6. 完了するまで繰り返します。
 
-## Writing Content Fragments
+## コンテンツフラグメントの書き方 (Writing Content Fragments)
 
-Write just the content that goes inside the page. The server wraps it in the frame template automatically (header, theme CSS, connection status, and all interactive infrastructure).
+ページ内部に入るコンテンツのみを記述します。サーバーが自動的にフレームテンプレート（ヘッダー、CSSテーマ、接続ステータス、すべての対話用インフラ）でラップします。
 
-**Minimal example:**
+**最小限の例:**
 
 ```html
-<h2>Which layout works better?</h2>
-<p class="subtitle">Consider readability and visual hierarchy</p>
+<h2>どちらのレイアウトが適していますか？</h2>
+<p class="subtitle">可読性と視覚的階層を考慮してください</p>
 
 <div class="options">
   <div class="option" data-choice="a" onclick="toggleSelect(this)">
     <div class="letter">A</div>
     <div class="content">
-      <h3>Single Column</h3>
-      <p>Clean, focused reading experience</p>
+      <h3>シングルカラム</h3>
+      <p>シンプルで集中できる読書体験</p>
     </div>
   </div>
   <div class="option" data-choice="b" onclick="toggleSelect(this)">
     <div class="letter">B</div>
     <div class="content">
-      <h3>Two Column</h3>
-      <p>Sidebar navigation with main content</p>
+      <h3>2カラム</h3>
+      <p>メインコンテンツとサイドバーナビゲーション</p>
     </div>
   </div>
 </div>
 ```
 
-That's it. No `<html>`, no CSS, no `<script>` tags needed. The server provides all of that.
+これだけです。`<html>` も CSS も `<script>` タグも必要ありません。サーバーがすべて提供します。
 
-## CSS Classes Available
+## 利用可能な CSS クラス (CSS Classes Available)
 
-The frame template provides these CSS classes for your content:
+フレームテンプレートは、コンテンツ用に以下の CSS クラスを提供します：
 
-### Options (A/B/C choices)
+### 選択肢 (A/B/C の選択)
 
 ```html
 <div class="options">
   <div class="option" data-choice="a" onclick="toggleSelect(this)">
     <div class="letter">A</div>
     <div class="content">
-      <h3>Title</h3>
-      <p>Description</p>
+      <h3>タイトル</h3>
+      <p>説明</p>
     </div>
   </div>
 </div>
 ```
 
-**Multi-select:** Add `data-multiselect` to the container to let users select multiple options. Each click toggles the item's selected styling.
+**複数選択:** コンテナに `data-multiselect` を追加すると、ユーザーが複数の選択肢を選択できるようになります。クリックするごとにスタイルの選択/解除が切り替わります。
 
 ```html
 <div class="options" data-multiselect>
-  <!-- same option markup — users can select/deselect multiple -->
+  <!-- 同じ選択肢のマークアップ — ユーザーは複数選択/解除が可能 -->
 </div>
 ```
 
-### Cards (visual designs)
+### カード (ビジュアルデザイン)
 
 ```html
 <div class="cards">
   <div class="card" data-choice="design1" onclick="toggleSelect(this)">
-    <div class="card-image"><!-- mockup content --></div>
+    <div class="card-image"><!-- モックアップコンテンツ --></div>
     <div class="card-body">
-      <h3>Name</h3>
-      <p>Description</p>
+      <h3>名前</h3>
+      <p>説明</p>
     </div>
   </div>
 </div>
 ```
 
-### Mockup container
+### モックアップコンテナ
 
 ```html
 <div class="mockup">
-  <div class="mockup-header">Preview: Dashboard Layout</div>
-  <div class="mockup-body"><!-- your mockup HTML --></div>
+  <div class="mockup-header">プレビュー: ダッシュボードレイアウト</div>
+  <div class="mockup-body"><!-- あなたのモックアップ HTML --></div>
 </div>
 ```
 
-### Split view (side-by-side)
+### 分割表示 (並列表示)
 
 ```html
 <div class="split">
-  <div class="mockup"><!-- left --></div>
-  <div class="mockup"><!-- right --></div>
+  <div class="mockup"><!-- 左 --></div>
+  <div class="mockup"><!-- 右 --></div>
 </div>
 ```
 
-### Pros/Cons
+### メリット / デメリット (Pros/Cons)
 
 ```html
 <div class="pros-cons">
-  <div class="pros"><h4>Pros</h4><ul><li>Benefit</li></ul></div>
-  <div class="cons"><h4>Cons</h4><ul><li>Drawback</li></ul></div>
+  <div class="pros"><h4>メリット</h4><ul><li>長所</li></ul></div>
+  <div class="cons"><h4>デメリット</h4><ul><li>短所</li></ul></div>
 </div>
 ```
 
-### Mock elements (wireframe building blocks)
+### モック要素 (ワイヤーフレーム構築ブロック)
 
 ```html
 <div class="mock-nav">Logo | Home | About | Contact</div>
 <div style="display: flex;">
-  <div class="mock-sidebar">Navigation</div>
-  <div class="mock-content">Main content area</div>
+  <div class="mock-sidebar">ナビゲーション</div>
+  <div class="mock-content">メインコンテンツエリア</div>
 </div>
-<button class="mock-button">Action Button</button>
-<input class="mock-input" placeholder="Input field">
-<div class="placeholder">Placeholder area</div>
+<button class="mock-button">アクションボタン</button>
+<input class="mock-input" placeholder="入力フィールド">
+<div class="placeholder">プレースホルダーエリア</div>
 ```
 
-### Typography and sections
+### タイポグラフィとセクション
 
-- `h2` — page title
-- `h3` — section heading
-- `.subtitle` — secondary text below title
-- `.section` — content block with bottom margin
-- `.label` — small uppercase label text
+- `h2` — ページタイトル
+- `h3` — セクション見出し
+- `.subtitle` — タイトル下の副テキスト
+- `.section` — 下部にマージンを持つコンテンツブロック
+- `.label` — 小さな大文字のラベルテキスト
 
-## Browser Events Format
+## ブラウザイベントのフォーマット (Browser Events Format)
 
-When the user clicks options in the browser, their interactions are recorded to `$STATE_DIR/events` (one JSON object per line). The file is cleared automatically when you push a new screen.
+ユーザーがブラウザで選択肢をクリックすると、その操作が `$STATE_DIR/events` に記録されます（1行に1つの JSON オブジェクト）。このファイルは、新しい画面をプッシュすると自動的にクリアされます。
 
 ```jsonl
 {"type":"click","choice":"a","text":"Option A - Simple Layout","timestamp":1706000101}
@@ -264,35 +258,35 @@ When the user clicks options in the browser, their interactions are recorded to 
 {"type":"click","choice":"b","text":"Option B - Hybrid","timestamp":1706000115}
 ```
 
-The full event stream shows the user's exploration path — they may click multiple options before settling. The last `choice` event is typically the final selection, but the pattern of clicks can reveal hesitation or preferences worth asking about.
+イベントストリーム全体からユーザーの探索プロセスが読み取れます — 最終決定を下す前に複数の選択肢をクリックする場合があります。最後の `choice` イベントが通常は最終選択となりますが、クリックのパターンから迷いや好みが窺える場合は質問してみる価値があります。
 
-If `$STATE_DIR/events` doesn't exist, the user didn't interact with the browser — use only their terminal text.
+`$STATE_DIR/events` が存在しない場合、ユーザーはブラウザを操作していません — ターミナルのテキストのみを使用してください。
 
-## Design Tips
+## デザインのヒント (Design Tips)
 
-- **Scale fidelity to the question** — wireframes for layout, polish for polish questions
-- **Explain the question on each page** — "Which layout feels more professional?" not just "Pick one"
-- **Iterate before advancing** — if feedback changes current screen, write a new version
-- **2-4 options max** per screen
-- **Use real content when it matters** — for a photography portfolio, use actual images (Unsplash). Placeholder content obscures design issues.
-- **Keep mockups simple** — focus on layout and structure, not pixel-perfect design
+- **質問内容に応じて忠実度を調整** — レイアウトにはワイヤーフレーム、デザイン質問には磨き込まれたデザインを
+- **各ページで質問意図を説明** — 単に「1つ選んでください」ではなく、「どちらのレイアウトがよりプロフェッショナルに感じられますか？」など
+- **進む前に反復改善** — フィードバックによって現在の画面が変わる場合は、新しいバージョンを記述する
+- 1画面につき **選択肢は最大 2〜4 個**
+- **重要な場面では実コンテンツを使用** — 写真ポートフォリオなら実際の画像（Unsplash等）を使用する。ダミーコンテンツはデザイン上の問題を隠してしまいます。
+- **モックアップはシンプルに保つ** — ピクセルパーフェクトなデザインではなく、レイアウトと構造に集中する
 
-## File Naming
+## ファイル命名規則 (File Naming)
 
-- Use semantic names: `platform.html`, `visual-style.html`, `layout.html`
-- Never reuse filenames — each screen must be a new file
-- For iterations: append version suffix like `layout-v2.html`, `layout-v3.html`
-- Server serves newest file by modification time
+- 意味のある名前を使用する: `platform.html`, `visual-style.html`, `layout.html`
+- ファイル名を再利用しない — 各画面は常に新しいファイルでなければならない
+- イテレーションの場合: `layout-v2.html`, `layout-v3.html` のようにバージョンサフィックスを付与する
+- サーバーは更新時刻が最も新しいファイルを配信します
 
-## Cleaning Up
+## クリーンアップ (Cleaning Up)
 
 ```bash
 scripts/stop-server.sh $SESSION_DIR
 ```
 
-If the session used `--project-dir`, mockup files persist in `.superpowers/brainstorm/` for later reference. Only `/tmp` sessions get deleted on stop.
+セッションで `--project-dir` を使用した場合、モックアップファイルは後で参照できるよう `.superpowers/brainstorm/` に残ります。`/tmp` セッションのみが停止時に削除されます。
 
-## Reference
+## リファレンス (Reference)
 
-- Frame template (CSS reference): `scripts/frame-template.html`
-- Helper script (client-side): `scripts/helper.js`
+- フレームテンプレート (CSSリファレンス): `scripts/frame-template.html`
+- ヘルパースクリプト (クライアント側): `scripts/helper.js`

@@ -1,96 +1,59 @@
-# Antigravity CLI (`agy`) Tool Mapping
+# Antigravity CLI (`agy`) ツールマッピング
 
-Skills speak in actions ("dispatch a subagent", "create a todo", "read a file"). On the Antigravity CLI (`agy`) these resolve to the tools below.
+スキルはアクション（「サブエージェントを派遣する」「TODOを作成する」「ファイルを読み込む」など）で表現されます。Antigravity CLI (`agy`) では、これらは以下のツールに対応します。
 
-| Action skills request | Antigravity CLI equivalent |
+| スキルが要求するアクション | Antigravity CLI での対応ツール |
 |----------------------|----------------------|
-| Read a file | `view_file` |
-| Create a new file | `write_to_file` |
-| Edit a file | `replace_file_content` |
-| Edit a file in several places at once | `multi_replace_file_content` |
-| Run a shell command | `run_command` |
-| Search file contents | `grep_search` |
-| Find files by name / list a directory | `list_dir` (no dedicated glob tool — combine `list_dir` with `grep_search`) |
-| Fetch a URL | `read_url_content` |
-| Search the web | `search_web` |
-| Pose a structured question to your human partner | `ask_question` |
-| Dispatch a subagent (`Subagent (general-purpose):` template) | `invoke_subagent` with a built-in `TypeName` — `self` for full-capability work, `research` for read-only (see [Subagent support](#subagent-support)) |
-| Multiple parallel dispatches | Multiple entries in one `invoke_subagent` call's `Subagents` array |
-| Task tracking ("create a todo", "mark complete") | a **task artifact** — `write_to_file` with `IsArtifact: true` and `ArtifactType: "task"` (see [Task tracking](#task-tracking)). **Not** `manage_task`, which manages background processes. |
+| ファイルを読み込む | `view_file` |
+| 新しいファイルを作成する | `write_to_file` |
+| ファイルを編集する | `replace_file_content` |
+| ファイルの複数箇所を一度に編集する | `multi_replace_file_content` |
+| シェルコマンドを実行する | `run_command` |
+| ファイル内容を検索する | `grep_search` |
+| ファイル名で検索する / ディレクトリ一覧を表示する | `list_dir` (専用のglobツールはないため、`list_dir` と `grep_search` を組み合わせる) |
+| URL の内容を取得する | `read_url_content` |
+| Web 検索を実行する | `search_web` |
+| 人間（ユーザー）に構造化された質問をする | `ask_question` |
+| サブエージェントを派遣する (`Subagent (general-purpose):` テンプレート) | 組み込みの `TypeName` を指定して `invoke_subagent` を呼ぶ — フル機能の作業には `self`、読み取り専用には `research` を使用（[サブエージェントサポート](#サブエージェントサポート)を参照） |
+| 複数の並列派遣 | 1回の `invoke_subagent` 呼び出しの `Subagents` 配列に複数エントリーを指定 |
+| タスクのトラッキング（「TODOを作成する」「完了マークをつける」） | **タスクアーティファクト** — `IsArtifact: true` および `ArtifactType: "task"` を指定した `write_to_file` （[タスクのトラッキング](#タスクのトラッキング)を参照）。背景プロセスを管理する `manage_task` ではない。 |
 
-## Invoking a skill — read its `SKILL.md`
+## スキルの呼び出し — `SKILL.md` を読み込む
 
-Antigravity surfaces every installed skill's `name` + `description` to you at the
-start of each session, but it has **no `Skill`/`activate_skill` tool**. To load a
-skill, **read its `SKILL.md` with `view_file`, setting `IsSkillFile: true`** when
-the skill applies — e.g. `view_file` on
-`.../plugins/superpowers/skills/<skill-name>/SKILL.md` with `IsSkillFile: true`.
-(`IsSkillFile` is agy's own signal that you're reading a file to *execute its
-instructions*, not to edit or preview it — set it whenever you load a skill.)
+Antigravity は、セッション開始時にインストールされているすべてのスキルの `name` + `description` を提示しますが、**`Skill` / `activate_skill` ツールを持ちません**。スキルをロードするには、そのスキルが適用される際に **`view_file` を使用して `IsSkillFile: true` を設定し、`SKILL.md` を読み込みます**（例: `.../plugins/superpowers/skills/<skill-name>/SKILL.md` に対し `IsSkillFile: true` で `view_file` を実行）。
+（`IsSkillFile` は、ファイルを編集・プレビューするためではなく、*その指示を実行する*ために読み込んでいることを agy に伝えるためのシグナルです。スキルをロードする際は必ず設定してください。）
 
-This is the blessed skill-loading mechanism on this harness. The general rule
-"never read skill files manually" means "don't bypass your platform's
-skill-loading mechanism" — and on Antigravity, reading `SKILL.md` *is* that
-mechanism. Reading it honors the rule rather than breaking it.
+これが本ハーネスにおける正しいスキルロードメカニズムです。「スキルファイルを手動で読み込むな」という一般的なルールは「プラットフォームのスキルロードメカニズムをバイパスするな」という意味であり、Antigravity においては `SKILL.md` を読み込むことこそがそのメカニズム自体です。したがって、これを読み込むことはルールに違反するのではなく、ルールに厳密に従う行為となります。
 
-You already know which skills exist and what they're for: their names and
-descriptions are in front of you at session start. When a description matches
-what you're about to do, read that skill's `SKILL.md` before acting.
+どのスキルが存在し、どのような目的で使われるかはセッション開始時にすでに把握できています。実行しようとする作業に説明が一致するスキルがある場合は、アクションを起こす前にそのスキルの `SKILL.md` を読み込んでください。
 
-## Subagent support
+## サブエージェントサポート
 
-Antigravity dispatches subagents with `invoke_subagent`, passing each one a
-`TypeName` in the `Subagents` array. Two `TypeName`s are **built in** — use them
-directly, no `define_subagent` needed:
+Antigravity では `invoke_subagent` を使用し、`Subagents` 配列に `TypeName` を渡すことでサブエージェントを派遣します。以下の2つの `TypeName` が**組み込み**で用意されており、`define_subagent` を呼び出さずに直接使用できます：
 
-- **`self`** — a full clone of you, with every tool you have (including
-  `write_to_file`/`replace_file_content`/`run_command`). The safe default for
-  general-purpose work: implementing, fixing, anything that edits files or runs
-  commands.
-- **`research`** — read-only (file reading, `grep_search`, web/URL fetch; no write
-  or command access). Use it when you specifically want a subagent that can't make
-  changes — investigation and read-only review.
+- **`self`** — あなた自身の完全なクローンであり、あなたが持つすべてのツール（`write_to_file` / `replace_file_content` / `run_command` を含む）を保持します。汎用的な作業（実装、修正、ファイル編集やコマンド実行を伴うすべて）における安全なデフォルトです。
+- **`research`** — 読み取り専用（ファイル読み込み、`grep_search`、Web/URL取得のみ。書き込みやコマンド実行アクセスなし）。変更を行えないサブエージェントを明示的に使用したい場合（調査や読み取り専用のレビューなど）に使用します。
 
-Call `define_subagent` only for a custom system prompt or capability mix: set
-`enable_write_tools: true` to grant file edits **and** `run_command`,
-`enable_subagent_tools` for nested dispatch, `enable_mcp_tools` for MCP. Then
-invoke it by the name you gave it. (`manage_subagents` lists/kills running
-subagents.)
+カスタムシステムプロンプトや機能の組み合わせが必要な場合のみ `define_subagent` を呼び出してください：ファイル編集**および** `run_command` を許可するには `enable_write_tools: true` を設定し、ネストされた派遣には `enable_subagent_tools`、MCPには `enable_mcp_tools` を設定します。その後、定義した名前で呼び出します。（`manage_subagents` で実行中のサブエージェントのリスト表示や終了が行えます。）
 
-Skills dispatch with `Subagent (general-purpose):` and either reference a
-prompt-template file (e.g. `superpowers:subagent-driven-development`'s
-`./implementer-prompt.md`) or supply an inline prompt. On Antigravity:
+スキルは `Subagent (general-purpose):` で派遣を行い、プロンプトテンプレートファイル（例: `superpowers:subagent-driven-development` の `./implementer-prompt.md`）を参照するか、インラインプロンプトを提供します。Antigravity においては以下のように対応させます：
 
-| Skill dispatch form | Antigravity equivalent |
+| スキルの派遣形式 | Antigravity での対応操作 |
 |---------------------|----------------------|
-| An implementer-style `*-prompt.md` template (writes code, runs tests) | Fill the template, then `invoke_subagent` with `TypeName: "self"` and the filled prompt |
-| A read-only reviewer template (`task-reviewer`, `code-reviewer`, `requesting-code-review`'s `./code-reviewer.md`) | `invoke_subagent` with `TypeName: "research"` and the filled review template |
-| Inline prompt (no template referenced) | `invoke_subagent` with `TypeName: "self"` (or `"research"` if the task only reads) and your inline prompt |
+| 実装者スタイルの `*-prompt.md` テンプレート（コード記述、テスト実行） | テンプレートに値を埋め込み、`TypeName: "self"` と埋め込み済みプロンプトを指定して `invoke_subagent` を実行 |
+| 読み取り専用レビューテンプレート (`task-reviewer`, `code-reviewer`, `requesting-code-review` の `./code-reviewer.md`) | `TypeName: "research"` と埋め込み済みレビューテンプレートを指定して `invoke_subagent` を実行 |
+| インラインプロンプト（テンプレート参照なし） | `TypeName: "self"`（タスクが読み取り専用の場合は `"research"`）とインラインプロンプトを指定して `invoke_subagent` を実行 |
 
-### Prompt filling
+### プロンプトの埋め込み (Prompt filling)
 
-Skills provide prompt templates with placeholders like `{WHAT_WAS_IMPLEMENTED}` or
-`[FULL TEXT of task]`. Fill all placeholders before passing the complete prompt to
-`invoke_subagent`. The prompt template itself contains the agent's role, review
-criteria, and expected output format — the subagent will follow it.
+スキルは `{WHAT_WAS_IMPLEMENTED}` や `[FULL TEXT of task]` のようなプレースホルダーを含むプロンプトテンプレートを提供します。完全なプロンプトを `invoke_subagent` に渡す前に、すべてのプレースホルダーを埋めてください。プロンプトテンプレート自体にエージェントの役割、レビュー基準、期待される出力フォーマットが含まれており、サブエージェントはそれに従います。
 
-### Parallel dispatch
+### 並列派遣 (Parallel dispatch)
 
-Put multiple entries in a single `invoke_subagent` call's `Subagents` array to run
-independent subagent work in parallel. Keep dependent tasks sequential, but do not
-serialize independent subagent tasks just to preserve a simpler history.
+1回の `invoke_subagent` 呼び出しの `Subagents` 配列に複数のエントリーを入れることで、独立したサブエージェントの作業を並列実行できます。依存関係のあるタスクは逐次実行を保ちますが、単に履歴をシンプルに保つという理由だけで独立したサブエージェントタスクを直列化しないでください。
 
-## Task tracking
+## タスクのトラッキング
 
-Antigravity has **no todo / `TodoWrite` tool** (`manage_task` manages background
-processes — `list`/`kill`/`status`/`send_input` — it is *not* a checklist). When a
-skill says to create a todo list or track tasks, maintain a **task artifact**: a
-markdown checklist saved with `write_to_file` (`IsArtifact: true`,
-`ArtifactMetadata.ArtifactType: "task"`), edited with `replace_file_content` /
-`multi_replace_file_content` as you go.
+Antigravity には **todo / `TodoWrite` ツールが存在しません**（`manage_task` はバックグラウンドプロセスを管理するツール（`list`/`kill`/`status`/`send_input`）であり、チェックリストでは*ありません*）。スキルから todo リストの作成やタスクのトラッキングが指示された場合は、**タスクアーティファクト**を維持してください：`write_to_file` (`IsArtifact: true`, `ArtifactMetadata.ArtifactType: "task"`) で保存された Markdown チェックリストを作成し、進行に合わせて `replace_file_content` / `multi_replace_file_content` で編集します。
 
-At the start of any multi-step task, create the task artifact listing every step of
-your plan. As you complete each step, edit the artifact to mark it done (`- [x]`).
-If the plan changes, update the checklist. Keep it current — it is your source of
-truth for what remains; once the conversation gets long, re-read it before starting
-each step.
+複数ステップのタスクを開始する際は、計画の全ステップを列挙したタスクアーティファクトを作成してください。各ステップが完了したら、アーティファクトを編集して完了マーク（`- [x]`）をつけます。計画が変更された場合はチェックリストを更新してください。常に最新の状態に保ちましょう。これは残りの作業に関する唯一の真実のソース（SSOT）となります。会話が長くなった場合は、各ステップを開始する前に再読み込みして確認してください。
