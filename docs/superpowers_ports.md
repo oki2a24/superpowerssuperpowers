@@ -128,3 +128,15 @@
 *   `using-git-worktrees`: 「よくある間違い」「Red Flags」「統合」セクションを削除し、Common Rationalizations テーブルを追加。
 *   `executing-plans`: 上流v6.2.0に従いバッチ実行モデルを削除し、直接実行モデルにシンプル化。
 *   `subagent-driven-development`: `re-review-prompt.md` を新規作成、再開ループ (R≤3)、5ラウンド制限ブレーカー、進捗台帳 (`.sdd-ledger-[plan-name].md`) 管理、最終レビューの1回修正制限プロトコルを統合。
+
+### コミットハッシュ: `b36e0829c6d0140e93cfef2ca599b1b07d4a7797` (Upstream v6.3.0 準拠)
+
+**同期・アップデート済みスキル:**
+
+*   `brainstorming` (Three Paths 導入: Spike/Bounded/Architectural 分類、HARD-GATE 厳格化、Anti-Pattern 「Too Simple To Need Approval」更新、Red Flags テーブル追加、チェックリストのパス別分化、Terminal states のパス依存化)
+*   `finishing-a-development-branch` (ワークツリー削除拒否時の対応追加: 未コミットファイルの確認とユーザー選択、手順の詳細化、Red Flags 追加)
+*   `subagent-driven-development` (継続実行規律の強化: Ruling 文化導入、4つの停止条件明文化、計画衝突のルール化、Ledger への Ruling 記録義務、バッチ小タスク処理、サブエージェント待機ポリシー、Implementer のサブエージェント禁止契約、計画誤り時のルール適用)
+*   `using-superpowers` (Hermes Agent サポート追加: `references/hermes-tools.md` 参照)
+*   `writing-plans` (Spec 参照フィールド追加)
+*   `requesting-code-review` / `code-reviewer.md` (サブエージェント非委任原則の明文化)
+
