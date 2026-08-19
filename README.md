@@ -51,15 +51,29 @@ Codex を起動後、次のように入力します：
 python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
   --repo oki2a24/superpowerssuperpowers \
   --path skills/brainstorming skills/writing-plans skills/executing-plans \
-         skills/systematic-debugging skills/subagent-driven-development \
-         skills/test-driven-development skills/using-git-worktrees \
-         skills/verification-before-completion skills/finishing-a-development-branch \
-         skills/requesting-code-review skills/receiving-code-review \
-         skills/writing-skills skills/dispatching-parallel-agents \
-         skills/session-coordination skills/session-handoff \
-         skills/session-retrospective skills/roadmap-management \
-         skills/observation-distiller \
+       skills/systematic-debugging skills/subagent-driven-development \
+       skills/test-driven-development skills/using-git-worktrees \
+       skills/verification-before-completion skills/finishing-a-development-branch \
+       skills/requesting-code-review skills/receiving-code-review \
+       skills/writing-skills skills/dispatching-parallel-agents \
+       skills/session-coordination skills/session-handoff \
+       skills/session-retrospective skills/roadmap-management \
+       skills/observation-distiller \
   --dest ~/.codex/skills
+```
+
+**アンインストール（削除）:**
+Codex の `skill-installer` には削除機能がないため、`~/.codex/skills/` 配下の手動削除で行います。
+
+特定のスキルを削除する場合：
+```bash
+rm -rf ~/.codex/skills/<skill-name>
+```
+
+本リポジトリの全スキルをまとめて削除する場合（組み込みの `.system` を除く）：
+```bash
+cd ~/.codex/skills
+find . -mindepth 1 -maxdepth 1 -type d ! -name '.system' -exec rm -rf {} +
 ```
 
 ### 2. スキルの確認
