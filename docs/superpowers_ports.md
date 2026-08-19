@@ -140,3 +140,10 @@
 *   `writing-plans` (Spec 参照フィールド追加)
 *   `requesting-code-review` / `code-reviewer.md` (サブエージェント非委任原則の明文化)
 
+
+### コミットハッシュ: `1bf39f5` (Pi エージェント全コアスキル対応)
+
+**同期・アップデート済みスキル:**
+
+*   `using-superpowers` (Pi エージェントでのスキル起動メカニズムとして `read` ツール呼び出し・`/skill:name` の明示)
+*   `executing-plans` / `systematic-debugging` / `writing-plans` (特定のプラットフォーム固有の `activate_skill` 表記を全プラットフォーム互換の一般的なスキル起動表現へ刷新)
