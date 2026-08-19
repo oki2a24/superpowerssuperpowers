@@ -33,12 +33,13 @@
 インストールから最初のスキル起動まで、わずか 3 ステップです。
 
 ### 1. インストール
-**Antigravity CLI (agy) の場合:**
+
+#### Antigravity CLI (agy) の場合
 ```bash
 agy plugin install https://github.com/oki2a24/superpowerssuperpowers
 ```
 
-**Codex の場合:**
+#### Codex の場合
 Codex には組み込みの `skill-installer` があるため、GitHub URL を指定して本リポジトリの全スキルを一括導入できます。
 
 Codex を起動後、次のように入力します：
@@ -62,8 +63,33 @@ python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-githu
   --dest ~/.codex/skills
 ```
 
-**アンインストール（削除）:**
-Codex の `skill-installer` には削除機能がないため、`~/.codex/skills/` 配下の手動削除で行います。
+---
+
+### 2. アップデート (Update)
+
+#### Antigravity CLI (agy) の場合
+```bash
+agy plugin update superpowerssuperpowers
+```
+
+#### Codex の場合
+Codex には専用のアップデートコマンドはありません。再インストール（上書き更新）を行うことで最新スキルへアップデートされます。
+
+* **対話形式の場合**:
+  > `$skill-installer https://github.com/oki2a24/superpowerssuperpowers/tree/main/skills のスキルをすべて再インストールして`
+* **スクリプトの場合**: インストール時と同じ `install-skill-from-github.py` スクリプトを再実行してください。
+
+---
+
+### 3. アンインストール (Uninstall)
+
+#### Antigravity CLI (agy) の場合
+```bash
+agy plugin uninstall superpowerssuperpowers
+```
+
+#### Codex の場合
+Codex には組み込みのアンインストール機能がないため、`~/.codex/skills/` 配下の手動削除で行います。
 
 特定のスキルを削除する場合：
 ```bash
@@ -76,11 +102,13 @@ cd ~/.codex/skills
 find . -mindepth 1 -maxdepth 1 -type d ! -name '.system' -exec rm -rf {} +
 ```
 
-### 2. スキルの確認
+---
+
+### 4. スキルの確認
 インストール後、エージェントにこう問いかけてください：
 > 「導入された superpowers スキルのリストを見せて」
 
-### 3. 最初のスキル起動
+### 5. 最初のスキル起動
 長期的なタスクを開始する前に、進捗を管理するスキルを起動するのがおすすめです：
 > 「`roadmap-management` スキルを起動して、今回の作業の計画を立てて」
 
