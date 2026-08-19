@@ -3,9 +3,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-v20+-green.svg)](https://nodejs.org/)
 
-**Antigravity CLI (agy) のための高精度インテリジェンス & スキル拡張**
+**Antigravity CLI (agy) / Pi Coding Agent のための高精度インテリジェンス & スキル拡張**
 
-`SuperpowersSuperpowers` は、Antigravity CLI (agy) や Gemini CLI に「高度な思考プロセス」と「自律的な自己進化」を統合する、プロフェッショナル仕様の拡張機能です。
+`SuperpowersSuperpowers` は、Antigravity CLI (agy)、Pi Coding Agent、Codex、Gemini CLI に「高度な思考プロセス」と「自律的な自己進化」を統合する、プロフェッショナル仕様の拡張機能です。
 業界標準のエンジニアリング規律（移植軸）と、長期的な経験を資産化する独自知能（知能軸）を融合させることで、単なるツールを超えた「成長し続けるエンジニアリング・パートナー」を定義します。
 
 ---
@@ -15,10 +15,10 @@
 本プロジェクトは、互いに相乗効果を生み出す 2 つの柱によって構成されています。
 
 ### 1. Inherited Foundations: 信頼の基盤
-[obra/superpowers](https://github.com/obra/superpowers) の優れた設計思想を Gemini CLI へ忠実に移植。
+[obra/superpowers](https://github.com/obra/superpowers) の優れた設計思想を Antigravity, Pi Coding Agent, Codex, Gemini CLI へ忠実に移植。
 *   **規律の物理的強制**: TDD（テスト駆動開発）、体系的なデバッグ、および構造化された実装計画。
 *   **安全な実行環境**: Git Worktrees による環境隔離と、サブエージェントへの確実な任務委譲。
-*   **信頼性**: すべての移植スキルは Gemini CLI のランタイムに最適化され、予測可能で高品質な成果を保証します。
+*   **信頼性**: すべての移植スキルは対応ランタイムに最適化され、予測可能で高品質な成果を保証します。
 
 ### 2. Evolutionary Intelligence: 自律する知能
 本プロジェクト独自の、長期的なコンテキスト管理と「英知」の蓄積に特化した知能レイヤー。
@@ -39,13 +39,16 @@
 agy plugin install https://github.com/oki2a24/superpowerssuperpowers
 ```
 
+#### Pi Coding Agent の場合
+```bash
+pi install git:https://github.com/oki2a24/superpowerssuperpowers
+```
+
 #### Codex の場合
 Codex には組み込みの `skill-installer` があるため、GitHub URL を指定して本リポジトリの全スキルを一括導入できます。
 
 Codex を起動後、次のように入力します：
 > `$skill-installer https://github.com/oki2a24/superpowerssuperpowers/tree/main/skills のスキルをすべてインストールして`
-
-導入は `~/.codex/skills/` に行われ、`codex` を再起動すれば全スキルのメタデータが読み込まれます。
 
 対話形式が使えない場合は、`skill-installer` のスクリプトを直接実行します（`--path` は各スキル名を列記する必要があります。親ディレクトリ `skills` 単独では失敗します）：
 ```bash
@@ -72,6 +75,13 @@ python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-githu
 agy plugin update superpowerssuperpowers
 ```
 
+#### Pi Coding Agent の場合
+```bash
+pi update git:https://github.com/oki2a24/superpowerssuperpowers
+# または全てのパッケージを一括更新
+pi update --all
+```
+
 #### Codex の場合
 Codex には専用のアップデートコマンドはありません。再インストール（上書き更新）を行うことで最新スキルへアップデートされます。
 
@@ -86,6 +96,11 @@ Codex には専用のアップデートコマンドはありません。再イ�
 #### Antigravity CLI (agy) の場合
 ```bash
 agy plugin uninstall superpowerssuperpowers
+```
+
+#### Pi Coding Agent の場合
+```bash
+pi remove git:https://github.com/oki2a24/superpowerssuperpowers
 ```
 
 #### Codex の場合
@@ -119,7 +134,7 @@ find . -mindepth 1 -maxdepth 1 -type d ! -name '.system' -exec rm -rf {} +
 本セクションのスキルは、AI エージェントの自律開発における先駆的プロジェクトである [**obra/superpowers**](https://github.com/obra/superpowers) の卓越した設計思想に基づき、Gemini CLI へと移植されたものです。オリジナルの厳格な規律を継承し、予測可能で堅牢な開発プロセスを提供します。
 
 > [!IMPORTANT]  
-> **Respect for Original**: 以下のスキルは `Ported` (移植済み) であり、オリジナルのワークフローと規律を尊重しつつ、Gemini CLI のランタイムに最適化されています。
+> **Respect for Original**: 以下のスキルは `Ported` (移植済み) であり、オリジナルのワークフローと規律を尊重しつつ、対応環境のランタイムに最適化されています。
 > Upstream `6efe32c` (2026-04) 準拠。最新の規律が物理的に反映されています。
 
 | スキル名 | ステータス | 目的 (Intent) | プロンプト例 |
@@ -143,7 +158,7 @@ find . -mindepth 1 -maxdepth 1 -type d ! -name '.system' -exec rm -rf {} +
 
 ## 🧠 インテリジェンス & コンティニュイティ (Evolutionary Intelligence)
 
-本セクションのスキルは、Gemini CLI 環境における「長期的な開発体験の最適化」と「知見の永続化」のために独自に設計・開発されたものです。AI エージェントが過去の経験から学び、大規模なタスクを効率的に完遂するための知能を提供します。
+本セクションのスキルは、AI CLI 環境における「長期的な開発体験の最適化」と「知見の永続化」のために独自に設計・開発されたものです。AI エージェントが過去の経験から学び、大規模なタスクを効率的に完遂するための知能を提供します。
 
 > [!TIP]  
 > **Evolutionary Intelligence**: 以下のスキルは `Original` (独自開発) であり、AI と人間が「共鳴」しながらプロジェクトを成長させるための独自のワークフローを定義します。
