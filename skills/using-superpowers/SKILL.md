@@ -1,6 +1,6 @@
 ---
 name: using-superpowers
-description: 会話の開始時、タスクの着手時、または質問への回答前に使用する。スキルの有無を確認し、1%でも可能性があるなら、プラットフォーム固有のスキル起動機構（Gemini の activate_skill、agy の view_file、Codex ではネーティブロード等）でスキルを起動して手順に従うことを強制する。
+description: 会話の開始時、タスクの着手時、または質問への回答前に使用する。スキルの有無を確認し、1%でも可能性があるなら、プラットフォーム固有のスキル起動機構（Gemini の activate_skill、agy の view_file、Pi での read / /skill:name、Codex ではネーティブロード等）でスキルを起動して手順に従うことを強制する。
 ---
 
 <SUBAGENT-STOP>
@@ -38,6 +38,8 @@ Superpowers スキルはデフォルトのシステムプロンプトの挙動�
 **Gemini CLIにおいて:** `activate_skill` ツールを使用してスキルを起動します。Gemini はセッション開始時にスキルのメタデータをロードし、要求に応じて完全な内容を有効化します。
 
 **Antigravity CLI (agy)において:** `view_file` ツールで `IsSkillFile: true` を設定してスキルの `SKILL.md` を読み込みます。これがこのプラットフォームにおけるスキル起動の標準メカニズムです（詳細は `references/antigravity-tools.md` を参照）。
+
+**Pi エージェントにおいて:** Pi ネイティブのスキル機構（`read` ツールでスキルの `SKILL.md` を読み込むか、人間パートナーが `/skill:name` を使用）でスキルをロードして起動します（詳細は `references/pi-tools.md` を参照）。
 
 ## プラットフォーム適応 (Platform Adaptation)
  
