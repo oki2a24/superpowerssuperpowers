@@ -52,7 +52,7 @@ BRANCH=$(git branch --show-current)
 - `GIT_DIR != GIT_COMMON` → 既にリンクされたワークツリー内です（作成をスキップ）
 - `BRANCH` が空 → HEAD が分離しています（サンドボックスからブランチ作成/プッシュ/PRが不可）
 
-各スキルがこれらのシグナルをどのように使用するかについては、`using-git-worktrees` のステップ0 および `finishing-a-development-branch` のステップ1 を参照してください。
+各スキルがこれらのシグナルをどのように使用するかについては、`using-git-worktrees` のステップ0 および `finishing-a-development-branch` のステップ2 を参照してください。
 
 ## Codex アプリの完了処理 (Codex App Finishing)
 

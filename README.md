@@ -38,6 +38,30 @@
 agy plugin install https://github.com/oki2a24/superpowerssuperpowers
 ```
 
+**Codex の場合:**
+Codex には組み込みの `skill-installer` があるため、GitHub URL を指定して本リポジトリの全スキルを一括導入できます。
+
+Codex を起動後、次のように入力します：
+> `$skill-installer https://github.com/oki2a24/superpowerssuperpowers/tree/main/skills のスキルをすべてインストールして`
+
+導入は `~/.codex/skills/` に行われ、`codex` を再起動すれば全スキルのメタデータが読み込まれます。
+
+対話形式が使えない場合は、`skill-installer` のスクリプトを直接実行します（`--path` は各スキル名を列記する必要があります。親ディレクトリ `skills` 単独では失敗します）：
+```bash
+python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
+  --repo oki2a24/superpowerssuperpowers \
+  --path skills/brainstorming skills/writing-plans skills/executing-plans \
+         skills/systematic-debugging skills/subagent-driven-development \
+         skills/test-driven-development skills/using-git-worktrees \
+         skills/verification-before-completion skills/finishing-a-development-branch \
+         skills/requesting-code-review skills/receiving-code-review \
+         skills/writing-skills skills/dispatching-parallel-agents \
+         skills/session-coordination skills/session-handoff \
+         skills/session-retrospective skills/roadmap-management \
+         skills/observation-distiller \
+  --dest ~/.codex/skills
+```
+
 ### 2. スキルの確認
 インストール後、エージェントにこう問いかけてください：
 > 「導入された superpowers スキルのリストを見せて」

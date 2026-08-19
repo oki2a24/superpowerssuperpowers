@@ -1,6 +1,6 @@
 ---
 name: using-superpowers
-description: 会話の開始時、タスクの着手時、または質問への回答前に使用する。スキルの有無を確認し、1%でも可能性があるなら `activate_skill` でスキルを起動して手順に従うことを強制する。
+description: 会話の開始時、タスクの着手時、または質問への回答前に使用する。スキルの有無を確認し、1%でも可能性があるなら、プラットフォーム固有のスキル起動機構（Gemini の activate_skill、agy の view_file、Codex ではネーティブロード等）でスキルを起動して手順に従うことを強制する。
 ---
 
 <SUBAGENT-STOP>
