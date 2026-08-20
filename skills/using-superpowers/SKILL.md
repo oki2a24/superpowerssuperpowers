@@ -41,9 +41,11 @@ Superpowers スキルはデフォルトのシステムプロンプトの挙動�
 
 **Pi エージェントにおいて:** Pi ネイティブのスキル機構（`read` ツールでスキルの `SKILL.md` を読み込むか、人間パートナーが `/skill:name` を使用）でスキルをロードして起動します（詳細は `references/pi-tools.md` を参照）。
 
+**opencodeにおいて:** opencode ネイティブの `skill` ツールでスキルをロードして起動します（詳細は `references/opencode-tools.md` を参照）。この環境ではファイル作成は `write`、編集は `edit`、タスクトラッキングは `todowrite`、サブエージェント派遣は `task`（`subagent_type: "general"`）を使用します。
+
 ## プラットフォーム適応 (Platform Adaptation)
  
-スキルは特定のランタイムのツール名を指すのではなく、アクション（「サブエージェントをディスパッチする」、「todoを作成する」、「ファイルを読み込む」など）で表現されています。プラットフォームごとのツールの対応関係や指示書ファイルの規約については、[claude-code-tools.md](references/claude-code-tools.md)、[codex-tools.md](references/codex-tools.md)、[copilot-tools.md](references/copilot-tools.md)、[gemini-tools.md](references/gemini-tools.md)、[pi-tools.md](references/pi-tools.md)、および [antigravity-tools.md](references/antigravity-tools.md) を参照してください。
+スキルは特定のランタイムのツール名を指すのではなく、アクション（「サブエージェントをディスパッチする」、「todoを作成する」、「ファイルを読み込む」など）で表現されています。プラットフォームごとのツールの対応関係や指示書ファイルの規約については、[claude-code-tools.md](references/claude-code-tools.md)、[codex-tools.md](references/codex-tools.md)、[copilot-tools.md](references/copilot-tools.md)、[gemini-tools.md](references/gemini-tools.md)、[pi-tools.md](references/pi-tools.md)、[antigravity-tools.md](references/antigravity-tools.md)、および [opencode-tools.md](references/opencode-tools.md) を参照してください。
 
 # スキルの使用
 

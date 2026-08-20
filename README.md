@@ -44,6 +44,15 @@ agy plugin install https://github.com/oki2a24/superpowerssuperpowers
 pi install git:https://github.com/oki2a24/superpowerssuperpowers
 ```
 
+#### opencode の場合
+opencode は `opencode.json`（グローバル or プロジェクト）の `plugin` 配列に、本リポジトリの git URL を追加してインストールします。追加後、opencode を再起動してください。プラグインは `skills/` の全スキルを自動登録し、セッション開始時に `using-superpowers` のブートストラップを注入します：
+```json
+{
+   "plugin": ["superpowerssuperpowers@git+https://github.com/oki2a24/superpowerssuperpowers.git"]
+}
+```
+特定のバージョンに固定したい場合は `#<tag>`（または `#<branch>`）を付けます（例: `...superpowerssuperpowers.git#v1.11.3`）。
+
 #### Codex の場合
 Codex には組み込みの `skill-installer` があるため、GitHub URL を指定して本リポジトリの全スキルを一括導入できます。
 

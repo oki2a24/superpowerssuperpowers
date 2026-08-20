@@ -1,0 +1,15 @@
+{
+  "name": "superpowerssuperpowers",
+  "version": "1.11.3",
+  "description": "SuperpowersSuperpowers: Antigravity / Pi / opencode 向けのコア・スキル・ライブラリ (obra/superpowers 移植 + 独自)",
+  "type": "module",
+  "main": ".opencode/plugins/superpowers.js",
+  "keywords": [
+    "opencode-plugin",
+    "skills",
+    "tdd",
+    "debugging",
+    "collaboration",
+    "workflow"
+  ]
+}
