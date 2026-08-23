@@ -3,9 +3,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-v20+-green.svg)](https://nodejs.org/)
 
-**Antigravity CLI (agy) / Pi Coding Agent のための高精度インテリジェンス & スキル拡張**
+**Antigravity CLI (agy) / Pi Coding Agent / opencode のための高精度インテリジェンス & スキル拡張**
 
-`SuperpowersSuperpowers` は、Antigravity CLI (agy)、Pi Coding Agent、Codex、Gemini CLI に「高度な思考プロセス」と「自律的な自己進化」を統合する、プロフェッショナル仕様の拡張機能です。
+`SuperpowersSuperpowers` は、Antigravity CLI (agy)、Pi Coding Agent、opencode、Codex、Gemini CLI に「高度な思考プロセス」と「自律的な自己進化」を統合する、プロフェッショナル仕様の拡張機能です。
 業界標準のエンジニアリング規律（移植軸）と、長期的な経験を資産化する独自知能（知能軸）を融合させることで、単なるツールを超えた「成長し続けるエンジニアリング・パートナー」を定義します。
 
 ---
@@ -15,7 +15,7 @@
 本プロジェクトは、互いに相乗効果を生み出す 2 つの柱によって構成されています。
 
 ### 1. Inherited Foundations: 信頼の基盤
-[obra/superpowers](https://github.com/obra/superpowers) の優れた設計思想を Antigravity, Pi Coding Agent, Codex, Gemini CLI へ忠実に移植。
+[obra/superpowers](https://github.com/obra/superpowers) の優れた設計思想を Antigravity, Pi Coding Agent, opencode, Codex, Gemini CLI へ忠実に移植。
 *   **規律の物理的強制**: TDD（テスト駆動開発）、体系的なデバッグ、および構造化された実装計画。
 *   **安全な実行環境**: Git Worktrees による環境隔離と、サブエージェントへの確実な任務委譲。
 *   **信頼性**: すべての移植スキルは対応ランタイムに最適化され、予測可能で高品質な成果を保証します。
