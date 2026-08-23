@@ -98,6 +98,15 @@ Codex には専用のアップデートコマンドはありません。再イ�
   > `$skill-installer https://github.com/oki2a24/superpowerssuperpowers/tree/main/skills のスキルをすべて再インストールして`
 * **スクリプトの場合**: インストール時と同じ `install-skill-from-github.py` スクリプトを再実行してください。
 
+#### opencode の場合
+opencode の git+https 指定プラグインはキャッシュされ、再起動だけでは最新化されません。キャッシュを削除して再起動してください:
+```bash
+rm -rf ~/.cache/opencode/packages/superpowerssuperpowers@git+https:
+rm -rf ~/.cache/opencode/packages/git+https:
+# その後 opencode を再起動
+```
+バージョン固定(例: ...git#v1.11.3)は更新手段ではなく固定用です。
+
 ---
 
 ### 3. アンインストール (Uninstall)

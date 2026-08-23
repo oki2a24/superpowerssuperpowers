@@ -56,14 +56,17 @@ AI が `brainstorming` スキルを起動し、コードを書く前に設計質
 
 ## 更新
 
-opencode の plugin 指定は `git+https` を使用するため、再起動時に最新 commit へ
-自動更新されます。
+opencode の git+https 指定プラグインは、一旦取得されるとキャッシュ(~/.cache/opencode/packages/ 配下)に固定されるため、再起動してもリモートの最新commitへ自動更新されません。最新へ更新するにはキャッシュを削除して再起動してください:
 
 ```bash
-# opencode を再起動（git+https 指定のため最新 commit へ自動更新されます）
-# 手動でキャッシュを差し替えたい場合は:
-opencode run --print-logs "reinstall superpowers" 2>&1
+# キャッシュを削除して再起動(これで最新commitが取得される)
+rm -rf ~/.cache/opencode/packages/superpowerssuperpowers@git+https:
+# (または git+https: ディレクトリも削除)
+rm -rf ~/.cache/opencode/packages/git+https:
+# その後 opencode を再起動
 ```
+
+バージョンを固定したい場合は #<tag> または #<branch> をURL末尾に添付します(例: ...superpowerssuperpowers.git#v1.11.3)。これは更新手段ではなく、特定バージョンを使い続けるための固定です。
 
 ## トラブルシューティング
 
