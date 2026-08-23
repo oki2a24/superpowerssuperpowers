@@ -121,6 +121,22 @@ agy plugin uninstall superpowerssuperpowers
 pi remove git:https://github.com/oki2a24/superpowerssuperpowers
 ```
 
+#### opencode の場合
+opencode にはプラグイン専用のアンインストールコマンドはありません（`opencode uninstall` は opencode 本体のアンインストールのため、本プラグインには使用しないでください）。`opencode.json`（グローバル or プロジェクト）の `plugin` 配列から本プラグインのエントリを手動で削除し、再起動します。
+
+```json
+{
+    "plugin": []
+}
+```
+
+git+https で指定した場合は、更新時と同様にキャッシュも削除してください:
+```bash
+rm -rf ~/.cache/opencode/packages/superpowerssuperpowers@git+https:
+rm -rf ~/.cache/opencode/packages/git+https:
+# その後 opencode を再起動
+```
+
 #### Codex の場合
 Codex には組み込みのアンインストール機能がないため、`~/.codex/skills/` 配下の手動削除で行います。
 
