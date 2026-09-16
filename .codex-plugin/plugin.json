@@ -1,0 +1,18 @@
+{
+  "name": "superpowers",
+  "version": "1.0.0",
+  "description": "SuperpowersSuperpowers の開発ワークフロー skills。計画、TDD、デバッグ、レビュー、協調作業を支援します。",
+  "author": {
+    "name": "oki2a24",
+    "url": "https://github.com/oki2a24"
+  },
+  "homepage": "https://github.com/oki2a24/superpowerssuperpowers",
+  "repository": "https://github.com/oki2a24/superpowerssuperpowers",
+  "license": "MIT",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "SuperpowersSuperpowers",
+    "shortDescription": "計画、TDD、デバッグ、レビュー、協調作業の skills",
+    "longDescription": "SuperpowersSuperpowers の skills を Codex に提供します。"
+  }
+}

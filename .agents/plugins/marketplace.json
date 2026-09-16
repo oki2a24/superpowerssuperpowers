@@ -1,0 +1,16 @@
+{
+  "name": "superpowerssuperpowers",
+  "interface": {
+    "displayName": "SuperpowersSuperpowers"
+  },
+  "plugins": [
+    {
+      "name": "superpowers",
+      "source": {
+        "source": "url",
+        "url": "./"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}
