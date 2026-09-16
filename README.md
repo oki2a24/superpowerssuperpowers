@@ -51,28 +51,13 @@ opencode は `opencode.json`（グローバル or プロジェクト）の `plug
    "plugin": ["superpowerssuperpowers@git+https://github.com/oki2a24/superpowerssuperpowers.git"]
 }
 ```
-特定のバージョンに固定したい場合は `#<tag>`（または `#<branch>`）を付けます（例: `...superpowerssuperpowers.git#v1.11.3`）。
+特定のバージョンやブランチに固定したい場合は、URL の末尾に `#<tag>` または `#<branch>` を付けます。
 
 #### Codex の場合
-Codex には組み込みの `skill-installer` があるため、GitHub URL を指定して本リポジトリの全スキルを一括導入できます。
-
-Codex を起動後、次のように入力します：
-> `$skill-installer https://github.com/oki2a24/superpowerssuperpowers/tree/main/skills のスキルをすべてインストールして`
-
-対話形式が使えない場合は、`skill-installer` のスクリプトを直接実行します（`--path` は各スキル名を列記する必要があります。親ディレクトリ `skills` 単独では失敗します）：
+OpenAI 公式の Codex plugin marketplace 方式で導入します。marketplace の登録は初回のみ行い、その後 plugin をインストールします。
 ```bash
-python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
-  --repo oki2a24/superpowerssuperpowers \
-  --path skills/brainstorming skills/writing-plans skills/executing-plans \
-       skills/systematic-debugging skills/subagent-driven-development \
-       skills/test-driven-development skills/using-git-worktrees \
-       skills/verification-before-completion skills/finishing-a-development-branch \
-       skills/requesting-code-review skills/receiving-code-review \
-       skills/writing-skills skills/dispatching-parallel-agents \
-       skills/session-coordination skills/session-handoff \
-       skills/session-retrospective skills/roadmap-management \
-       skills/observation-distiller \
-  --dest ~/.codex/skills
+codex plugin marketplace add oki2a24/superpowerssuperpowers --ref main
+codex plugin add superpowerssuperpowers@superpowerssuperpowers
 ```
 
 ---
@@ -92,11 +77,12 @@ pi update --all
 ```
 
 #### Codex の場合
-Codex には専用のアップデートコマンドはありません。再インストール（上書き更新）を行うことで最新スキルへアップデートされます。
-
-* **対話形式の場合**:
-  > `$skill-installer https://github.com/oki2a24/superpowerssuperpowers/tree/main/skills のスキルをすべて再インストールして`
-* **スクリプトの場合**: インストール時と同じ `install-skill-from-github.py` スクリプトを再実行してください。
+marketplace の定義を最新化し、plugin を再インストールします。
+```bash
+codex plugin marketplace upgrade superpowerssuperpowers
+codex plugin remove superpowerssuperpowers@superpowerssuperpowers
+codex plugin add superpowerssuperpowers@superpowerssuperpowers
+```
 
 #### opencode の場合
 opencode の git+https 指定プラグインはキャッシュされ、再起動だけでは最新化されません。キャッシュを削除して再起動してください:
@@ -105,7 +91,7 @@ rm -rf ~/.cache/opencode/packages/superpowerssuperpowers@git+https:
 rm -rf ~/.cache/opencode/packages/git+https:
 # その後 opencode を再起動
 ```
-バージョン固定(例: ...git#v1.11.3)は更新手段ではなく固定用です。
+バージョン固定は更新手段ではなく、指定したタグやブランチを使い続けるための設定です。
 
 ---
 
@@ -138,17 +124,13 @@ rm -rf ~/.cache/opencode/packages/git+https:
 ```
 
 #### Codex の場合
-Codex には組み込みのアンインストール機能がないため、`~/.codex/skills/` 配下の手動削除で行います。
-
-特定のスキルを削除する場合：
 ```bash
-rm -rf ~/.codex/skills/<skill-name>
+codex plugin remove superpowerssuperpowers@superpowerssuperpowers
 ```
 
-本リポジトリの全スキルをまとめて削除する場合（組み込みの `.system` を除く）：
+marketplace の登録も削除する場合：
 ```bash
-cd ~/.codex/skills
-find . -mindepth 1 -maxdepth 1 -type d ! -name '.system' -exec rm -rf {} +
+codex plugin marketplace remove superpowerssuperpowers
 ```
 
 ---
