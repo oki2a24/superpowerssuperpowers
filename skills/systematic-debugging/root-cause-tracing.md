@@ -100,7 +100,7 @@ npm test 2>&1 | grep 'DEBUG git init'
 このディレクトリにあるバイセクションスクリプト `find-polluter.sh` を使用します。
 
 ```bash
-./find-polluter.sh '.git' 'src/**/*.test.ts'
+bash ./find-polluter.sh '.git' 'src/**/*.test.ts'
 ```
 
 テストを一つずつ実行し、最初に汚染（pollution）を引き起こしたテストで停止します。

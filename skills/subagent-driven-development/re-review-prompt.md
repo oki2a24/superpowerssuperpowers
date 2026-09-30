@@ -72,6 +72,6 @@ Subagent (general-purpose):
 - `[REPORT_FILE]` — 実装者のレポートファイル（修正レポートが追記されたもの）
 - `[FIX_BASE_SHA]` — 前回のレビューが見た head
 - `[HEAD_SHA]` — 現在のコミット
-- `[DIFF_FILE]` — `scripts/review-package PLAN_FILE FIX_BASE HEAD` が出力したパス
+- `[DIFF_FILE]` — `bash scripts/review-package PLAN_FILE FIX_BASE HEAD` が出力したパス
 
 **再レビュアーの戻り値:** 指摘事項ごとの判定（ADDRESSED / NOT ADDRESSED）、修正 diff 内の新たな破壊、スコープ外の観察事項、およびラウンド判定。

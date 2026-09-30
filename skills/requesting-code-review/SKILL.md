@@ -26,7 +26,7 @@ description: タスク完了時、大規模な機能実装後、またはマー�
 **1. Git SHA（コミットハッシュ）の取得:**
 レビュー対象となる変更の開始点と終了点を特定します。
 ```bash
-BASE_SHA=$(git rev-parse HEAD~1)  # または origin/main
+BASE_SHA=$(git rev-parse HEAD~1)  # または: git merge-base origin/main HEAD
 HEAD_SHA=$(git rev-parse HEAD)
 ```
 

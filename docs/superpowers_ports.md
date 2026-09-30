@@ -147,3 +147,22 @@
 
 *   `using-superpowers` (Pi エージェントでのスキル起動メカニズムとして `read` ツール呼び出し・`/skill:name` の明示)
 *   `executing-plans` / `systematic-debugging` / `writing-plans` (特定のプラットフォーム固有の `activate_skill` 表記を全プラットフォーム互換の一般的なスキル起動表現へ刷新)
+
+### コミットハッシュ: `8ca22db` (Upstream v6.4.2 準拠: v6.4.1 + v6.4.2)
+
+**同期・アップデート済みスキル:**
+
+*   `brainstorming` (共通理解の確立セクション追加: 意図の発見・理解の書き戻し・デザインへの引き継ぎ、HARD-GATE のパス別段階承認化、アンチパターン更新、Red Flags 先頭行更新、visual-companion.md の `bash` 経由呼び出し化)
+*   `executing-plans` (全面刷新: Native インライン実行スキル化 — brief/ledger/TDD/最終レビューの規律、タスクループ、完了契約、再等級付け+1回修正パス、Common Rationalizations、実行例。`scripts/task-start`・`scripts/task-done` 新規配置)
+*   `writing-plans` (リーン計画化: 概要の有能な読者前提への書き換え、ステップ粒度、計画ヘッダーへの Review Focus 追加、Step 3 のシグネチャ記述化、「What a Step Contains」への置換、セルフレビューの Step scan/Review Focus/Proportion 追加、実行ハンドオフの Subagent-driven/Native 2択+推奨化。`plan-document-reviewer-prompt.md` は上流削除に追従して削除)
+*   `subagent-driven-development` (いつ使用するかのインライン実行対比化、`bash` 経由スクリプト呼び出し化、review-package 範囲ガード注記。`scripts/review-package`・`sdd-workspace`・`task-brief` を上流版に同期: ワークスペース衝突回避、範囲ガード exit 3、実行ビット剥奪対策)
+*   `requesting-code-review` (`BASE_SHA` 代替を `git merge-base origin/main HEAD` に修正)
+*   `requesting-code-review` + `code-reviewer.md` (「仕様書はビジョンドキュメント」・「判断辞退リスト」セクション追加)
+*   `test-driven-development` (プロジェクトのスイートがグリーンを定義する旨を追加: 省略による虚偽報告の禁止)
+*   `using-superpowers` (Muse サポート追加: 起動説明 + `references/muse-tools.md` 新規作成、`references/claude-code-tools.md` に低コスト編成セクション追加)
+*   `writing-skills` (同梱スクリプトのインタプリタ経由呼び出し規律を追加)
+*   `systematic-debugging` (`root-cause-tracing.md` の `find-polluter.sh` を `bash` 経由呼び出し化)
+
+**新規移植スキル:**
+
+*   `diagnosing-superpowers` (セッション診断スキル: 問題受け付け・特定・トリアージ・報告・GitHub issues・バンドル出力・類似セッション。`prompts/` 11件・`references/` 4件・`templates/` 4件を含む日本語移植。機械可読プロトコルトークンは原文維持)

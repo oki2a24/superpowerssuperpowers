@@ -35,7 +35,7 @@ UIトピックに*関する*質問であっても、自動的に視覚的な質�
 ```bash
 # ユーザーがコンパニオンの使用を承認した後に起動します。--open は最初の画面で自動的にブラウザを開きます。
 # --project-dir はモックアップを保存し、同一ポートでの再起動を可能にします。
-scripts/start-server.sh --project-dir /path/to/project --open
+bash scripts/start-server.sh --project-dir /path/to/project --open
 
 # 返り値の例: {"type":"server-started","port":52341,
 #           "url":"http://localhost:52341/?key=ab12…",
@@ -56,7 +56,7 @@ scripts/start-server.sh --project-dir /path/to/project --open
 **Claude Code:**
 ```bash
 # デフォルトモードで動作します — スクリプト自体がサーバーをバックグラウンド化します。
-scripts/start-server.sh --project-dir /path/to/project --open
+bash scripts/start-server.sh --project-dir /path/to/project --open
 ```
 
 Windows では、スクリプトが自動検出してフォアグラウンドモード（ツール呼び出しをブロックするモード）に切り替えます。Bash ツール呼び出しで `run_in_background: true` を使用して会話ターンを跨いでサーバーを存続させ、次のターンで `$STATE_DIR/server-info` を読み込んで URL とポートを取得してください。
@@ -65,14 +65,14 @@ Windows では、スクリプトが自動検出してフォアグラウンドモ
 ```bash
 # Codex はバックグラウンドプロセスを刈り取ります。スクリプトは CODEX_CI を自動検出し、
 # フォアグラウンドモードに切り替えます。通常通り実行してください（追加フラグは不要です）。
-scripts/start-server.sh --project-dir /path/to/project --open
+bash scripts/start-server.sh --project-dir /path/to/project --open
 ```
 
 **Gemini CLI:**
 ```bash
 # --foreground を使用し、シェルツール呼び出しで is_background: true を設定して
 # プロセスがターンを跨いで存続するようにします
-scripts/start-server.sh --project-dir /path/to/project --open --foreground
+bash scripts/start-server.sh --project-dir /path/to/project --open --foreground
 ```
 
 **Copilot CLI:**
@@ -80,7 +80,7 @@ scripts/start-server.sh --project-dir /path/to/project --open --foreground
 # --foreground を使用し、bash ツール経由で mode: "async" を指定してサーバーを起動し、
 # プロセスがターンを跨いで存続するようにします。後で操作する必要がある場合に備えて、
 # 返された shellId を保存してください。
-scripts/start-server.sh --project-dir /path/to/project --open --foreground
+bash scripts/start-server.sh --project-dir /path/to/project --open --foreground
 ```
 
 **その他の環境:** 会話ターンを跨いでサーバーがバックグラウンドで動作し続ける必要があります。環境が分離されたプロセスを終了させてしまう場合は、`--foreground` を使用し、プラットフォームのバックグラウンド実行メカニズムでコマンドを起動してください。
@@ -88,7 +88,7 @@ scripts/start-server.sh --project-dir /path/to/project --open --foreground
 ブラウザから URL にアクセスできない場合（リモート/コンテナ環境でよくあります）、ループバック以外のホストをバインドします：
 
 ```bash
-scripts/start-server.sh \
+bash scripts/start-server.sh \
   --project-dir /path/to/project \
   --host 0.0.0.0 \
   --url-host localhost
@@ -281,7 +281,7 @@ scripts/start-server.sh \
 ## クリーンアップ (Cleaning Up)
 
 ```bash
-scripts/stop-server.sh $SESSION_DIR
+bash scripts/stop-server.sh $SESSION_DIR
 ```
 
 セッションで `--project-dir` を使用した場合、モックアップファイルは後で参照できるよう `.superpowers/brainstorm/` に残ります。`/tmp` セッションのみが停止時に削除されます。
