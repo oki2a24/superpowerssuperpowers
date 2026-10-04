@@ -6,6 +6,7 @@
  */
 
 import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 
 const baseRef = process.argv[2] || 'origin/main';
 
@@ -39,19 +40,37 @@ if (diff !== null) {
   const files = diff.split('\n').filter(f => f.length > 0);
   const coreDirectories = ['skills/', 'observations/', 'scripts/', 'agents/'];
   const coreFiles = ['ANTIGRAVITY.md'];
+  const versionManifests = ['package.json', 'antigravity-extension.json', '.codex-plugin/plugin.json'];
 
   const hasCoreChanges = files.some(f => 
     coreDirectories.some(dir => f.startsWith(dir)) || 
     coreFiles.includes(f)
   );
-  const hasVersionUpdate = files.some(f => f === 'antigravity-extension.json');
+  if (hasCoreChanges) {
+    const missingVersionUpdates = versionManifests.filter(manifest => !files.includes(manifest));
+    if (missingVersionUpdates.length > 0) {
+      missingVersionUpdates.forEach(manifest => {
+        console.error(`❌ FAIL: コアに変更がありますが、${manifest} のバージョンが更新されていません。`);
+      });
+      hasError = true;
+    }
+  }
 
-  if (hasCoreChanges && !hasVersionUpdate) {
-    console.error('❌ FAIL: スキル、知見、またはコアロジックに変更がありますが、antigravity-extension.json のバージョンが更新されていません。');
+  const manifestVersions = versionManifests.map(manifest => {
+    try {
+      return [manifest, JSON.parse(readFileSync(manifest, 'utf8')).version];
+    } catch (error) {
+      console.error(`❌ FAIL: ${manifest} のバージョンを読み取れません: ${error.message}`);
+      hasError = true;
+      return [manifest, undefined];
+    }
+  });
+  const distinctVersions = new Set(manifestVersions.map(([, version]) => version));
+  if (distinctVersions.size !== 1 || distinctVersions.has(undefined)) {
+    console.error(`❌ FAIL: 配布マニフェストのバージョンが一致しません: ${manifestVersions.map(([manifest, version]) => `${manifest}=${version ?? '未設定'}`).join(', ')}`);
     hasError = true;
-  } else if (hasCoreChanges) {
-
-    console.log('✅ Version: Updated');
+  } else {
+    console.log(`✅ Version: Synchronized (${manifestVersions[0][1]})`);
   }
 
   // 変更ファイルリストの提示（AI へのヒント）

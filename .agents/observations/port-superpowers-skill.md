@@ -4,7 +4,7 @@
 `obra/superpowers` からの移植およびアップデート追随における「物理的な整合性」を担保する。
 
 - **スキル更新の物理的反映フロー**: スキルファイル（`SKILL.md` 等）の変更を反映させるには、以下のステップを物理的な手続きとして踏まなければならない。
-    1.  **バージョニング**: `package.json`、`antigravity-extension.json`、`.codex-plugin/plugin.json` のバージョンを同じ値に自律的にインクリメントする。Codex Desktop / CLI のインストール版は `.codex-plugin/plugin.json` のバージョンにもとづく。
+    1.  **バージョニング**: `package.json`、`antigravity-extension.json`、`.codex-plugin/plugin.json` のバージョンを同じ値に自律的にインクリメントする。Codex Desktop / CLI のインストール版は `.codex-plugin/plugin.json` のバージョンにもとづく。完了前に `node scripts/finish_check.mjs <ベースブランチ>` を実行し、3つのマニフェストが変更され、値が一致することを確認する。
     2.  **マージとプッシュ**: 変更を `main` ブランチにマージし、リモートへ `git push` する。（外部インストール環境への反映のため）
     3.  **拡張機能の即時更新（ローカル開発時）**: `agy extension update`（または `agy` のリロード）をユーザーに依頼することで、セッションを再起動することなく最新のスキル定義をロードできる。
     4.  **反映の物理的確認**: `activate_skill` を実行し、出力された instructions が最新（修正後の内容）であることを物理的に確認せよ。

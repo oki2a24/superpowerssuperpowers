@@ -6,7 +6,7 @@
 ## 知見 (Observations)
 
 - **自律的なバージョニングの義務化**: 
-    - `skills/` または `observations/` ディレクトリ内のファイルに修正を加えた場合、AI は**ユーザーからの指示を待つことなく**、`package.json`、`antigravity-extension.json`、`.codex-plugin/plugin.json` のバージョンを同じ値にインクリメント（パッチレベル：+0.0.1）しなければならない。Codex の再インストール版は `.codex-plugin/plugin.json` のバージョンを使う。
+    - `skills/` または `observations/` ディレクトリ内のファイルに修正を加えた場合、AI は**ユーザーからの指示を待つことなく**、`package.json`、`antigravity-extension.json`、`.codex-plugin/plugin.json` のバージョンを同じ値にインクリメント（パッチレベル：+0.0.1）しなければならない。Codex の再インストール版は `.codex-plugin/plugin.json` のバージョンを使う。コミット前に `node scripts/finish_check.mjs <ベースブランチ>` を実行し、マニフェストの更新漏れ・不一致を検出する。
     - 「完了した」と報告する前にこの作業が完了していることを、このプロジェクトにおける「完了の定義（DoD）」の最優先事項とする。
 - **アトミック・コミットの結合**: 
     - バージョンのインクリメントは、対象ファイルの修正と同じコミットに含めるか、あるいは直後に独立した `chore` コミットとして実行せよ。人間から「バージョンは上げましたか？」と聞き返される状態は、規律の欠如とみなす。

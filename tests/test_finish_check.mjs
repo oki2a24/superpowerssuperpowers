@@ -13,7 +13,10 @@ function createTempRepo() {
   spawnSync('git', ['init'], { cwd: repoPath });
   // 初期コミット
   fs.writeFileSync(path.join(repoPath, 'initial.txt'), 'init');
+  fs.writeFileSync(path.join(repoPath, 'package.json'), JSON.stringify({ version: "1.0.0" }));
   fs.writeFileSync(path.join(repoPath, 'antigravity-extension.json'), JSON.stringify({ version: "1.0.0" }));
+  fs.mkdirSync(path.join(repoPath, '.codex-plugin'));
+  fs.writeFileSync(path.join(repoPath, '.codex-plugin/plugin.json'), JSON.stringify({ version: "1.0.0" }));
   spawnSync('git', ['add', '.'], { cwd: repoPath });
   spawnSync('git', ['commit', '-m', 'initial commit'], { cwd: repoPath });
   return repoPath;
@@ -61,6 +64,30 @@ test('finish_check.mjs - 異常系: バージョン更新漏れを検知して�
   }
 });
 
+test('finish_check.mjs - 異常系: Codexプラグインのバージョン更新漏れを検知すること', (t) => {
+  const repoPath = createTempRepo();
+  try {
+    const skillDir = path.join(repoPath, 'skills');
+    fs.mkdirSync(skillDir);
+    fs.writeFileSync(path.join(skillDir, 'test-skill.md'), 'content');
+    fs.writeFileSync(path.join(repoPath, 'package.json'), JSON.stringify({ version: "1.1.0" }));
+    fs.writeFileSync(path.join(repoPath, 'antigravity-extension.json'), JSON.stringify({ version: "1.1.0" }));
+
+    spawnSync('git', ['add', '.'], { cwd: repoPath });
+    spawnSync('git', ['commit', '-m', 'update skill without Codex version'], { cwd: repoPath });
+
+    const result = spawnSync('node', [SCRIPT_PATH, 'HEAD~1'], {
+      cwd: repoPath,
+      encoding: 'utf8'
+    });
+
+    assert.notStrictEqual(result.status, 0, 'Codexプラグインのバージョン更新漏れがある場合は非ゼロで終了すべき');
+    assert.match(result.stderr, /\.codex-plugin\/plugin\.json のバージョンが更新されていません/);
+  } finally {
+    fs.rmSync(repoPath, { recursive: true, force: true });
+  }
+});
+
 test('finish_check.mjs - 正常系: すべての条件を満たす場合に 0 で終了すること', (t) => {
   const repoPath = createTempRepo();
   try {
@@ -68,7 +95,9 @@ test('finish_check.mjs - 正常系: すべての条件を満たす場合に 0 �
     const skillDir = path.join(repoPath, 'skills');
     fs.mkdirSync(skillDir);
     fs.writeFileSync(path.join(skillDir, 'test-skill.md'), 'content');
+    fs.writeFileSync(path.join(repoPath, 'package.json'), JSON.stringify({ version: "1.1.0" }));
     fs.writeFileSync(path.join(repoPath, 'antigravity-extension.json'), JSON.stringify({ version: "1.1.0" }));
+    fs.writeFileSync(path.join(repoPath, '.codex-plugin/plugin.json'), JSON.stringify({ version: "1.1.0" }));
     
     spawnSync('git', ['add', '.'], { cwd: repoPath });
     spawnSync('git', ['commit', '-m', 'feat: update skill and version'], { cwd: repoPath });
