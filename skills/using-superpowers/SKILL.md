@@ -45,9 +45,13 @@ Superpowers スキルはデフォルトのシステムプロンプトの挙動�
 
 **opencodeにおいて:** opencode ネイティブの `skill` ツールでスキルをロードして起動します（詳細は `references/opencode-tools.md` を参照）。この環境ではファイル作成は `write`、編集は `edit`、タスクトラッキングは `todowrite`、サブエージェント派遣は `task`（`subagent_type: "general"`）を使用します。
 
+**Hermes Agent において:** `skills` ツールセットの `skill_view("skill-name")` でスキルを起動します。カタログに見つからない場合は `~/.hermes/plugins/superpowers/skills/<skill-name>/SKILL.md` を直接読み込みます（詳細は `references/hermes-tools.md` を参照）。
+
 ## プラットフォーム適応 (Platform Adaptation)
  
 スキルは特定のランタイムのツール名を指すのではなく、アクション（「サブエージェントをディスパッチする」、「todoを作成する」、「ファイルを読み込む」など）で表現されています。プラットフォームごとのツールの対応関係や指示書ファイルの規約については、[claude-code-tools.md](references/claude-code-tools.md)、[codex-tools.md](references/codex-tools.md)、[copilot-tools.md](references/copilot-tools.md)、[gemini-tools.md](references/gemini-tools.md)、[pi-tools.md](references/pi-tools.md)、[antigravity-tools.md](references/antigravity-tools.md)、[muse-tools.md](references/muse-tools.md)、および [opencode-tools.md](references/opencode-tools.md) を参照してください。
+
+Hermes Agent のツール対応については、[hermes-tools.md](references/hermes-tools.md) を参照してください。
 
 # スキルの使用
 

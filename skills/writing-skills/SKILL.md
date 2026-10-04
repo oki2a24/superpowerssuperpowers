@@ -93,7 +93,7 @@ skills/
 ## SKILL.mdの構造
 
 **Frontmatter (YAML):**
-- サポートされているフィールドは`name`と`description`の2つだけです。
+- 必須フィールドは`name`と`description`です。その他のフィールドは [Agentskills の仕様](https://agentskills.io/specification) でサポートされているものだけを使います。
 - 合計で最大1024文字。
 - `name`: 文字、数字、ハイフンのみを使用（括弧、特殊文字は不可）。
 - `description`: 三人称で、いつ使用するかのみを記述します（何をするかは記述しない）。
@@ -102,7 +102,7 @@ skills/
   - **スキルのプロセスやワークフローを絶対に要約しない**（理由はSDOのセクションを参照）。
   - 可能であれば500文字未満に保ちます。
 
-```markdown
+````markdown
 ---
 name: skill-name-with-hyphens
 description: Use when [特定のトリガー条件と症状]
@@ -141,6 +141,8 @@ Before/afterのコード比較
 
 ## 実世界での影響（任意）
 具体的な結果
+
+````
 
 ### 知見の蒸留 (Observations)
 
@@ -286,15 +288,18 @@ wc -w skills/path/SKILL.md
 
 ## フローチャートの使用
 
-```mermaid
-graph TD
-    A{情報を表示する必要があるか？} -->|はい| B{間違える可能性のある決定か？}
-    B -->|はい| C[小さなインラインフローチャート]
-    B -->|いいえ| D[マークダウンを使用]
-```
+```dot
+digraph when_flowchart {
+    "情報を表示する必要があるか？" [shape=diamond];
+    "間違える可能性のある決定か？" [shape=diamond];
+    "Markdown を使う" [shape=box];
+    "小さなインラインフローチャート" [shape=box];
 
-**フローチャートの記述形式:**
-- **重要:** Markdown 内でフローチャートを記述する際は、必ずコードブロックの開始行に `mermaid` 言語指定を記述してください（例: ` ```mermaid `）。これがないと、レンダリングツールやAIエージェントがダイアグラムとして正しく識別できない可能性があります。
+    "情報を表示する必要があるか？" -> "間違える可能性のある決定か？" [label="はい"];
+    "間違える可能性のある決定か？" -> "小さなインラインフローチャート" [label="はい"];
+    "間違える可能性のある決定か？" -> "Markdown を使う" [label="いいえ"];
+}
+```
 
 **フローチャートは以下の場合にのみ使用します：**
 - 自明でない決定点
@@ -306,6 +311,15 @@ graph TD
 - コード例 → マークダウンブロック
 - 線形の指示 → 番号付きリスト
 - 意味のないラベル（step1、helper2、A/Bなど）
+
+このディレクトリの `graphviz-conventions.dot` にある Graphviz のスタイル規則に従います。
+
+**人間パートナー向けに可視化する場合:** このディレクトリの `render-graphs.js` でスキルの DOT フローチャートを SVG に変換します。
+
+```bash
+node ./render-graphs.js ../some-skill           # 図を個別に出力
+node ./render-graphs.js ../some-skill --combine # すべての図を1つのSVGにまとめる
+```
 
 ## コード例
 
@@ -618,7 +632,7 @@ helper1, helper2, step3, pattern4
 
 **GREENフェーズ - 最小限のスキルを書く：**
 - [ ] 名前は文字、数字、ハイフンのみを使用（括弧/特殊文字は不可）
-- [ ] nameとdescriptionのみを持つYAML frontmatter（最大1024文字）
+- [ ] 必須の`name`と`description`を持つYAML frontmatter（最大1024文字。その他のフィールドは仕様に従う）
 - [ ] descriptionは「Use when...」で始まり、特定のトリガー/症状を含む
 - [ ] descriptionは三人称で書かれている
 - [ ] 検索のためのキーワードを全体に含める（エラー、症状、ツール）
@@ -660,6 +674,4 @@ helper1, helper2, step3, pattern4
 6. **例を読み込む**（実装時のみ）
 
 **このフローのために最適化する** - 検索可能な用語を早期かつ頻繁に配置します。
-
-
 

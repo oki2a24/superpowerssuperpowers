@@ -39,7 +39,7 @@
 
 ## デバッグログまたは会話 transcript
 
-セッション id: <id 群>。配送ローカルアーカイブ: <パス、編集レベル <レベル> | none built>。添付バンドル: <主張なし。承認後にのみ添付>。診断レポートによる Superpowers 関与: <possible | likely>。証拠は <transcript 行>。このレポートは修正を提案しない。
+セッション id: <id 群>。配送ローカルアーカイブ: <パス、秘匿化レベル <レベル> | none built>。添付バンドル: <主張なし。承認後にのみ添付>。診断レポートによる Superpowers 関与: <possible | likely>。証拠は <transcript 行>。このレポートは修正を提案しない。
 
 ---
 `diagnosing-superpowers` スキルで作成。モデル、ハーネス、ハーネスバージョン、インストール済みプラグインは上記のとおり。

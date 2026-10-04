@@ -1,18 +1,21 @@
-// Complete implementation of condition-based waiting utilities
-// From: Lace test infrastructure improvements (2025-10-03)
-// Context: Fixed 15 flaky tests by replacing arbitrary timeouts
+// 条件ベース待機ユーティリティの完全な実装
+// 出典: Lace テスト基盤の改善 (2025-10-03)
+// 背景: 任意のタイムアウトを置き換え、不安定なテスト15件を修正
 
 import type { ThreadManager } from '~/threads/thread-manager';
 import type { LaceEvent, LaceEventType } from '~/threads/types';
 
 /**
- * Wait for a specific event type to appear in thread
+ * スレッドに特定の種類のイベントが現れるまで待つ。
  *
- * @param threadManager - The thread manager to query
- * @param threadId - Thread to check for events
- * @param eventType - Type of event to wait for
- * @param timeoutMs - Maximum time to wait (default 5000ms)
- * @returns Promise resolving to the first matching event
+ * @param threadManager - 問い合わせるスレッドマネージャー
+ * @param threadId - イベントを確認するスレッド
+ * @param eventType - 待機するイベントの種類
+ * @param timeoutMs - 最大待機時間（既定値: 5000ms）
+ * @returns 最初に一致したイベントで解決する Promise
+ *
+ * 使用例:
+ *   await waitForEvent(threadManager, agentThreadId, 'TOOL_RESULT');
  */
 export function waitForEvent(
   threadManager: ThreadManager,
@@ -41,7 +44,14 @@ export function waitForEvent(
 }
 
 /**
- * Wait for a specific number of events of a given type
+ * 指定した種類のイベントが必要な件数に達するまで待つ。
+ * @param count - 待機するイベント数
+ * @param timeoutMs - 最大待機時間（既定値: 5000ms）
+ * @returns 指定数に達したとき一致する全イベントで解決する Promise
+ *
+ * 使用例:
+ *   // 初回応答と継続応答の2件を待つ
+ *   await waitForEventCount(threadManager, agentThreadId, 'AGENT_MESSAGE', 2);
  */
 export function waitForEventCount(
   threadManager: ThreadManager,
@@ -75,7 +85,24 @@ export function waitForEventCount(
 }
 
 /**
- * Wait for an event matching a custom predicate
+ * 独自の条件に一致するイベントを待つ。
+ * イベントの種類だけでなく、イベントデータも確認したい場合に使う。
+ *
+ * @param threadManager - 問い合わせるスレッドマネージャー
+ * @param threadId - イベントを確認するスレッド
+ * @param predicate - イベントが条件に一致するとき true を返す関数
+ * @param description - エラーメッセージ用の説明
+ * @param timeoutMs - 最大待機時間（既定値: 5000ms）
+ * @returns 最初に一致したイベントで解決する Promise
+ *
+ * 使用例:
+ *   // 特定IDを持つ TOOL_RESULT を待つ
+ *   await waitForEventMatch(
+ *     threadManager,
+ *     agentThreadId,
+ *     (e) => e.type === 'TOOL_RESULT' && e.data.id === 'call_123',
+ *     'id=call_123 の TOOL_RESULT'
+ *   );
  */
 export function waitForEventMatch(
   threadManager: ThreadManager,
@@ -103,3 +130,23 @@ export function waitForEventMatch(
     check();
   });
 }
+
+// 実際のデバッグでの使用例:
+//
+// 不安定な方法:
+// const messagePromise = agent.sendMessage('Execute tools');
+// await new Promise(r => setTimeout(r, 300)); // 300msでツールが始まることを期待
+// agent.abort();
+// await messagePromise;
+// await new Promise(r => setTimeout(r, 50)); // 50msで結果が届くことを期待
+// expect(toolResults.length).toBe(2); // ランダムに失敗
+//
+// 条件を待つ方法:
+// const messagePromise = agent.sendMessage('Execute tools');
+// await waitForEventCount(threadManager, threadId, 'TOOL_CALL', 2); // ツール開始を待つ
+// agent.abort();
+// await messagePromise;
+// await waitForEventCount(threadManager, threadId, 'TOOL_RESULT', 2); // 結果を待つ
+// expect(toolResults.length).toBe(2); // 安定して成功
+//
+// 結果: 成功率60%から100%、実行時間40%短縮

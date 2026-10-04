@@ -166,3 +166,38 @@
 **新規移植スキル:**
 
 *   `diagnosing-superpowers` (セッション診断スキル: 問題受け付け・特定・トリアージ・報告・GitHub issues・バンドル出力・類似セッション。`prompts/` 11件・`references/` 4件・`templates/` 4件を含む日本語移植。機械可読プロトコルトークンは原文維持)
+
+### 2026-10-04 同一上流 SHA に対する意味パリティ監査・修復
+
+上流 SHA `8ca22dba9a94f28898bbce59f2537ff4d87c747d`（v6.4.2）を監査基準として再照合しました。上流 HEAD と記録済み移植基準は同じ SHA であり、この記録は上流の更新ではなく、移植後に生じていた意味ドリフトの修復です。
+
+**修復した意味差分:**
+
+* `brainstorming`: Spike / Bounded / Architectural の経路別チェックリスト、承認ゲート、完了状態を復元。
+* `verification-before-completion`: 適用タイミングと適用範囲、成功・完了を示唆する表現にも検証が必要な規則を復元。
+* `subagent-driven-development` と3つのプロンプト: 計画別ワークスペースと台帳の復旧、Spec 権威の衝突裁定、実装者レポートと状態契約、子エージェント禁止、必須の仕様/品質レビュー、5ラウンドの修正裁定、最終レビューと全裁定報告を復元。
+* `systematic-debugging` と補助資料: 3回失敗後に設計を見直し、相談なしの4回目を禁止する上限、成功主張前の検証、参照実装を完全に読む規則、テスト基盤がない場合の単発再現、環境・タイミング要因の終了経路を復元。`find-polluter.sh` の `./` と0階層 `**/` 対応を復元し、疲労・埋没費用および権威・同調圧力を測る元の pressure test 2/3 と条件ベース待機のコメント例を戻しました。`root-cause-tracing.md` に欠けていた適用条件も復元。
+* `test-driven-development`: 誤っていたモック・テスト専用コードの規則を上流の禁止事項に修正し、リファクタ手順とトリガーを復元。
+* `requesting-code-review`: レビューを省略しない規則、Critical/Important を残さない規則、技術的根拠に基づく異議申し立て手順を復元。
+* `writing-plans`: Spec の要件にタスクがない場合の追加規則と、Native 実行後に最上位モデルの新しいレビュアーで全体レビューする規則を復元。
+* `writing-skills`: frontmatter フィールド要件と DOT/Graphviz の記法・レンダリング手順を復元。`package.json` が ES modules のため、レンダースクリプトも上流に合わせて ES module import とし、Graphviz 検出は `dot -V` の直接実行にして `which` 依存を除去。
+* `using-superpowers`: 上流 Hermes Agent ツール対応表を追加し、Codex の子エージェント再開、待機、モデル指定、V1/V2 ライフサイクルの説明を現行の対応へ修正。
+* `diagnosing-superpowers`: redaction を意味する箇所の誤訳「編集」を「秘匿化」に修正。
+
+**対象・対応表 (SSOT):**
+
+* 上流のアクティブな15スキル `superpowers-original/skills/<name>/**` は、同じ相対パスの `skills/<name>/**` に対応します。対象名: `brainstorming`, `diagnosing-superpowers`, `dispatching-parallel-agents`, `executing-plans`, `finishing-a-development-branch`, `receiving-code-review`, `requesting-code-review`, `subagent-driven-development`, `systematic-debugging`, `test-driven-development`, `using-git-worktrees`, `using-superpowers`, `verification-before-completion`, `writing-plans`, `writing-skills`。
+* `systematic-debugging/CREATION-LOG.md` は作成経緯の開発ログであり、実行時スキル内容ではないため移植対象から除外。
+* 上流 `using-superpowers/references/hermes-tools.md` は移植対象に追加し、メインの `SKILL.md` から参照。
+* 上流 `writing-skills/examples/CLAUDE_MD_TESTING.md` は Antigravity 用の `ANTIGRAVITY_MD_TESTING.md` で置き換える。これは対象プラットフォーム向けの意図的な代替例。
+* `using-superpowers/references/copilot-tools.md` と `opencode-tools.md` はローカルのプラットフォーム追加。`using-git-worktrees/.gitkeep`、`.DS_Store` は上流コンテンツに含めない。
+* ローカルにのみある `observation-distiller`、`roadmap-management`、`session-coordination`、`session-handoff`、`session-retrospective` は、このリポジトリ独自の観察記録・計画管理・セッション運用スキルであり、上流 `obra/superpowers` に対応するアクティブスキルがないため移植・同期対象外。
+* 上流の計画保存先 `docs/superpowers/plans/` は、このリポジトリで確立した `docs/plans/` に適応。パスを置き換えても計画の内容・実行規律は同じにする。
+* 上流のデザイン／Spec 保存先 `docs/superpowers/specs/` は、このリポジトリで確立した `docs/plans/` の `*-design.md` 配置に適応。デザイン内容・承認ゲート・実装計画への引き継ぎは同じにする。
+* 上流 `hooks/session-start` は `hooks/session-start.mjs` と `hooks/hooks.json` に対応し、Antigravity の Node.js フック形式へ適応。`agents/task-manager.md` はローカル専用設定で同期対象外。
+* ローカルスキル内の図を Mermaid で表す場合は図の構文適応として扱うが、分岐・選択肢・終端状態を上流と照合する。`writing-skills` の作成ガイドと `render-graphs.js` は Graphviz DOT を基準にする。
+* 日本語への翻訳は意図的な言語適応。プラットフォーム固有のツール参照・テンプレートは、この対応表で理由と対応先を記録した場合のみ意図的適応として扱う。
+
+**検証範囲:** ファイル一覧、相互参照、翻訳後の意味、スクリプトとプロンプトを静的に再照合。実行テストおよびプラットフォームのスキルローダーによるロード確認は行っていません。
+
+**リリース管理:** コアのスキル・プロンプト・スクリプトを修正したため、`package.json` と `antigravity-extension.json` を `1.11.3` から `1.11.4` へ揃えて更新。

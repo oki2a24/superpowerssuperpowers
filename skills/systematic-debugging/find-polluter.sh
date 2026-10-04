@@ -18,9 +18,15 @@ echo "🔍 Searching for test that creates: $POLLUTION_CHECK"
 echo "Test pattern: $TEST_PATTERN"
 echo ""
 
-# Get list of test files
-TEST_FILES=$(find . -path "$TEST_PATTERN" | sort)
-TOTAL=$(echo "$TEST_FILES" | wc -l | tr -d ' ')
+# テストファイル一覧を取得する。find . の出力は ./ で始まるため、入力側も正規化する。
+TEST_PATTERN="${TEST_PATTERN#./}"
+# find -path は **/ を0階層には一致させないため、**/ を畳み込んだ形も検索する。
+TEST_FILES=$(find . \( -path "./$TEST_PATTERN" -o -path "./${TEST_PATTERN//\*\*\//}" \) | sort -u)
+if [ -z "$TEST_FILES" ]; then
+  TOTAL=0
+else
+  TOTAL=$(printf '%s\n' "$TEST_FILES" | wc -l | tr -d ' ')
+fi
 
 echo "Found $TOTAL test files"
 echo ""
