@@ -46,6 +46,9 @@ const extractAndStripFrontmatter = (content) => {
 // string = assembled bootstrap.
 let _bootstrapCache = undefined;
 
+// Module-level constants shared by both V1 server() and V2 setup().
+const superpowersSkillsDir = path.resolve(__dirname, '../../skills');
+
 // This is the single source of truth for the runtime-action -> opencode-tool
 // mapping.  It must be kept in sync with
 // skills/using-superpowers/references/opencode-tools.md (the human/AI-readable
@@ -67,28 +70,21 @@ When skills request actions, substitute opencode's native tools:
 opencode has no \`apply_patch\` tool — use \`write\` to create and \`edit\` to modify a file.
 Use opencode's native \`skill\` tool to list and load skills.`;
 
-export const SuperpowersPlugin = async ({ client, directory }) => {
-  const homeDir = os.homedir();
-  // `__dirname` is `.opencode/plugins/`, so the skills dir is two levels up.
-  const superpowersSkillsDir = path.resolve(__dirname, '../../skills');
-  const envConfigDir = process.env.OPENCODE_CONFIG_DIR
-    ? process.env.OPENCODE_CONFIG_DIR.replace(/^~/, homeDir)
-    : null;
-  const configDir = envConfigDir || path.join(homeDir, '.config/opencode');
+// Assemble the bootstrap string (cached after first call). Used by both V1
+// (experimental.chat.messages.transform) and V2 (session.context hook).
+const getBootstrapContent = () => {
+  if (_bootstrapCache !== undefined) return _bootstrapCache;
 
-  const getBootstrapContent = () => {
-    if (_bootstrapCache !== undefined) return _bootstrapCache;
+  const skillPath = path.join(superpowersSkillsDir, 'using-superpowers', 'SKILL.md');
+  if (!fs.existsSync(skillPath)) {
+    _bootstrapCache = null;
+    return null;
+  }
 
-    const skillPath = path.join(superpowersSkillsDir, 'using-superpowers', 'SKILL.md');
-    if (!fs.existsSync(skillPath)) {
-      _bootstrapCache = null;
-      return null;
-    }
+  const fullContent = fs.readFileSync(skillPath, 'utf8');
+  const { content } = extractAndStripFrontmatter(fullContent);
 
-    const fullContent = fs.readFileSync(skillPath, 'utf8');
-    const { content } = extractAndStripFrontmatter(fullContent);
-
-    _bootstrapCache = `<EXTREMELY_IMPORTANT>
+  _bootstrapCache = `<EXTREMELY_IMPORTANT>
 You have superpowers.
 
 **IMPORTANT: The using-superpowers skill content is included below. It is ALREADY LOADED - you are currently following it. Do NOT use the skill tool to load "using-superpowers" again - that would be redundant.**
@@ -98,8 +94,17 @@ ${content}
 ${toolMapping}
 </EXTREMELY_IMPORTANT>`;
 
-    return _bootstrapCache;
-  };
+  return _bootstrapCache;
+};
+
+// V1 server plugin: registers skills dir in config and injects bootstrap via
+// experimental.chat.messages.transform.
+export const SuperpowersPlugin = async ({ client, directory }) => {
+  const homeDir = os.homedir();
+  const envConfigDir = process.env.OPENCODE_CONFIG_DIR
+    ? process.env.OPENCODE_CONFIG_DIR.replace(/^~/, homeDir)
+    : null;
+  const configDir = envConfigDir || path.join(homeDir, '.config/opencode');
 
   return {
     // Register the skills directory into the live config so OpenCode discovers
@@ -135,4 +140,68 @@ ${toolMapping}
   };
 };
 
-export default SuperpowersPlugin;
+// V2 setup plugin: registers skills natively via ctx.skill.transform() and
+// injects bootstrap via ctx.session.hook("context").
+async function setup(ctx) {
+  if (!ctx || !ctx.skill || typeof ctx.skill.transform !== 'function' || !ctx.session || typeof ctx.session.hook !== 'function') {
+    return;
+  }
+
+  try {
+    const skills = [];
+    if (fs.existsSync(superpowersSkillsDir)) {
+      for (const entry of fs.readdirSync(superpowersSkillsDir, { withFileTypes: true })) {
+        if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
+        const skillPath = path.join(superpowersSkillsDir, entry.name, 'SKILL.md');
+        if (!fs.existsSync(skillPath)) continue;
+        const { frontmatter, content } = extractAndStripFrontmatter(fs.readFileSync(skillPath, 'utf8'));
+        skills.push({
+          id: entry.name,
+          name: frontmatter.name || entry.name,
+          ...(frontmatter.description ? { description: frontmatter.description } : {}),
+          path: skillPath,
+          content,
+        });
+      }
+    }
+    await ctx.skill.transform((draft) => {
+      for (const skill of skills) {
+        try {
+          draft.add(skill);
+        } catch (err) {
+          console.error(`[superpowers] skill "${skill.id}" rejected by host, skipping:`, err);
+        }
+      }
+    });
+  } catch (err) {
+    console.error('[superpowers] skill registration failed:', err);
+  }
+
+  try {
+    await ctx.session.hook('context', async (event) => {
+      try {
+        const bootstrap = getBootstrapContent();
+        if (!bootstrap || !event.messages || !event.messages.length) return;
+        const firstUser = event.messages.find(m => m.role === 'user');
+        if (firstUser && (!firstUser.content || !firstUser.content.length)) return;
+        if (firstUser?.content.some(p => p.type === 'text' && p.text && p.text.includes('EXTREMELY_IMPORTANT'))) return;
+
+        if (firstUser) {
+          firstUser.content.unshift({ type: 'text', text: bootstrap });
+        } else {
+          event.messages.push({ role: 'user', content: [{ type: 'text', text: bootstrap }] });
+        }
+      } catch (err) {
+        console.error('[superpowers] context hook failed:', err);
+      }
+    });
+  } catch (err) {
+    console.error('[superpowers] session hook registration failed:', err);
+  }
+}
+
+export default {
+  id: 'superpowers',
+  server: SuperpowersPlugin,
+  setup,
+};
