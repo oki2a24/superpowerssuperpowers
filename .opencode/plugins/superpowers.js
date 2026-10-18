@@ -202,7 +202,7 @@ async function setup(ctx) {
 }
 
 export default {
-  id: 'superpowersuperpower',
+  id: 'superpowerssuperpowers',
   server: SuperpowersPlugin,
   setup,
 };
