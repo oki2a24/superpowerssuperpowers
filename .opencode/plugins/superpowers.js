@@ -6,7 +6,8 @@
  * opencode.json skills.paths entry required.
  *
  * Installed via a git-backed plugin spec, e.g. in opencode.json:
- *   { "plugin": ["superpowerssuperpowers@git+https://github.com/oki2a24/superpowerssuperpowers.git"] }
+ *   { "plugins": ["superpowerssuperpowers@git+https://github.com/oki2a24/superpowerssuperpowers.git"] }
+ * or globally with: opencode plugin add git+https://github.com/oki2a24/superpowerssuperpowers.git
  */
 
 import path from 'path';

@@ -45,13 +45,17 @@ pi install git:https://github.com/oki2a24/superpowerssuperpowers
 ```
 
 #### opencode の場合
-opencode は `opencode.json`（グローバル or プロジェクト）の `plugin` 配列に、本リポジトリの git URL を追加してインストールします。追加後、opencode を再起動してください。プラグインは `skills/` の全スキルを自動登録し、セッション開始時に `using-superpowers` のブートストラップを注入します：
+opencode v2 では、Git パッケージのプラグインを CLI の `opencode plugin add` でグローバルにインストールできます:
+```bash
+opencode plugin add git+https://github.com/oki2a24/superpowerssuperpowers.git
+```
+プロジェクトにのみ導入したい場合は、プロジェクトの `opencode.json(c)` の `plugins` 配列（v1 までは `plugin`。v2 で `plugins` に改名）に本リポジトリの git URL を追加してください。追加後、opencode を再起動してください。プラグインは `skills/` の全スキルを自動登録し、セッション開始時に `using-superpowers` のブートストラップを注入します：
 ```json
 {
-   "plugin": ["superpowerssuperpowers@git+https://github.com/oki2a24/superpowerssuperpowers.git"]
+   "plugins": ["superpowerssuperpowers@git+https://github.com/oki2a24/superpowerssuperpowers.git"]
 }
 ```
-特定のバージョンやブランチに固定したい場合は、URL の末尾に `#<tag>` または `#<branch>` を付けます。
+特定のタグやブランチに固定したい場合は、URL の末尾に `#<tag>` または `#<branch>` を付けます。完全なコミットハッシュで指定した場合はそのリビジョンにピン留めされ、自動更新チェックの対象から外れます。
 
 #### Codex の場合
 OpenAI 公式の Codex plugin marketplace 方式で導入します。marketplace の登録は初回のみ行い、その後 plugin をインストールします。
@@ -85,13 +89,15 @@ codex plugin add superpowerssuperpowers@superpowerssuperpowers
 ```
 
 #### opencode の場合
-opencode の git+https 指定プラグインはキャッシュされ、再起動だけでは最新化されません。キャッシュを削除して再起動してください:
+opencode v2 にはプラグイン更新コマンドがあります:
 ```bash
-rm -rf ~/.cache/opencode/packages/superpowerssuperpowers@git+https:
-rm -rf ~/.cache/opencode/packages/git+https:
-# その後 opencode を再起動
+opencode plugin list    # 導入済みプラグインとターゲット名の確認
+opencode plugin check   # 更新の有無を確認（更新はしない）
+opencode plugin update  # 更新対象をすべて更新
 ```
-バージョン固定は更新手段ではなく、指定したタグやブランチを使い続けるための設定です。
+特定のパッケージのみ更新する場合は、`opencode plugin update <target>` のようにターゲットを指定します。
+
+v2 のサーバーは起動時に、ピン留めされていない npm・Git プラグインの更新を自動チェックします（インストール済みパッケージを自動で差し替えることはありません）。タグやコミットハッシュで固定した場合は指定したバージョンを使い続けます。固定を変更するときは `opencode.json(c)` の `plugins` エントリを編集するか、変更後の指定で `opencode plugin add` し直してください。
 
 ---
 
@@ -108,20 +114,21 @@ pi remove git:https://github.com/oki2a24/superpowerssuperpowers
 ```
 
 #### opencode の場合
-opencode にはプラグイン専用のアンインストールコマンドはありません（`opencode uninstall` は opencode 本体のアンインストールのため、本プラグインには使用しないでください）。`opencode.json`（グローバル or プロジェクト）の `plugin` 配列から本プラグインのエントリを手動で削除し、再起動します。
+opencode v2 にはプラグイン削除コマンドがあります（グローバルに管理されたパッケージプラグインが対象）:
+```bash
+opencode plugin remove git+https://github.com/oki2a24/superpowerssuperpowers.git
+```
+ターゲット名がわからない場合は、先に `opencode plugin list` で確認できます。
+
+プロジェクトの `opencode.json(c)` の `plugins` 配列に手動で追記した場合は、そのエントリを削除して再起動してください:
 
 ```json
 {
-    "plugin": []
+    "plugins": []
 }
 ```
 
-git+https で指定した場合は、更新時と同様にキャッシュも削除してください:
-```bash
-rm -rf ~/.cache/opencode/packages/superpowerssuperpowers@git+https:
-rm -rf ~/.cache/opencode/packages/git+https:
-# その後 opencode を再起動
-```
+なお `opencode uninstall` は opencode 本体のアンインストールコマンドのため、本プラグインの削除には使用しないでください。
 
 #### Codex の場合
 ```bash
