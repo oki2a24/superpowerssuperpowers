@@ -91,11 +91,11 @@ description: バグ、テスト失敗、予期せぬ動作に遭遇した際、�
     ```bash
     # レイヤー 1: ワークフロー
     echo "=== Secrets available in workflow: ==="
-    echo "IDENTITY: ${IDENTITY:+SET}${IDENTITY:-UNSET}"
+    echo "IDENTITY: $([ -n "${IDENTITY:-}" ] && echo SET || echo UNSET)"
 
     # レイヤー 2: ビルドスクリプト
     echo "=== Env vars in build script: ==="
-    env | grep IDENTITY || echo "IDENTITY not in environment"
+    printenv IDENTITY >/dev/null 2>&1 && echo "IDENTITY in environment" || echo "IDENTITY not in environment"
 
     # レイヤー 4: 実際の署名
     codesign --sign "$IDENTITY" --verbose=4 "$APP"

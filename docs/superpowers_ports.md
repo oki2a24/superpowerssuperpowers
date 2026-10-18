@@ -216,3 +216,23 @@
 *   前回監査後に `skills/` で唯一変更された `scripts/task-brief` の日本語見出し対応は、上流動作を保持する上位互換の言語適応として対応表に追記しました（上の対象・対応表 (SSOT) の該当項目）。
 
 **検証範囲:** `tests/test_finish_check.mjs`（失敗0）、3つの配布マニフェストのバージョン一致（`1.12.0`）、`git diff --check`、frontmatter と相互参照の静的確認、opencode ネイティブのスキルローダーで全スキルが一覧に載ることと `sync-upstream-skill` 自体の実ロードを確認。スキル本文の個別ロード実行テストとスクリプトの実行テストは未実施。
+
+### コミットハッシュ: `bb92a7741419a4ab5f06e711a283343f1ada0c3` (Upstream v7.0.0 準拠)
+
+上流 `superpowers-original` を `8ca22db` から `bb92a77`（Release v7.0.0: rebuilt brainstorming, Antigravity Marketplace manifest, Windows hook fixes）へ進めました。本リポジトリの3つの配布マニフェストは `1.12.1` に更新。
+
+**同期・アップデート済みスキル:**
+
+*   `brainstorming` (全面再構築への追従: Three Paths / チェックリスト / Mermaid プロセスフロー構成を廃し、上流の新しい対話主導型構成に刷新 — 「まず知っていること」「最初のメッセージ」「対話の規律」「理解を再生して返す」「作業の規模を決める」「書かれたデザイン + ビルダーチェック」、承認の2例外入り HARD-GATE、Red Flags の新テーブル、ビジュアル・コンパニオンのジャストインタイム提案。`spec-document-reviewer-prompt.md` は上流削除に追従して削除し、`builder-check-prompt.md` を日本語で新規配置。`scripts/server.cjs` は `replace()` の関数引数化を上流通りに適用)
+*   `executing-plans` (`scripts/task-done`: 台帳に書く最後出力の `|| last="(no output)"` フォールバックを上流通りに適用)
+*   `requesting-code-review` (BASE_SHA 取得コマンドを `awk` から `cut -d' ' -f1` に変更)
+*   `subagent-driven-development` (`scripts/sdd-workspace`: repo root の物理パス化 (`pwd -P`)、`CDPATH=''` 統一、`.superpowers/sdd/.gitignore` の create-only 化を上流通りに適用)
+*   `systematic-debugging` (例コマンドの bash 依存表現を上流通りに修正: `${IDENTITY:+SET}${IDENTITY:-UNSET}` → `[ -n ... ] && echo SET || echo UNSET`、`env | grep IDENTITY` → `printenv IDENTITY`)
+
+**確認済み・適応の判断:**
+
+*   上流 `hooks/session-start` の v7 変更は bash 実装の PATH 非依存化（`dirname` 不使用、`$(< file)`）と Windows の Git Bash EPIPE 吸収（`emit_json` で printf を cat にパイプ）であり、出力 JSON 形式の意味変更はない。本リポジトリの適応先は Node 製 `hooks/session-start.mjs` + `hooks/hooks.json` であり、これらの bash 固有の失敗モードは該当しないため、`.mjs` は無変更（読み込み・JSON 構造・`</EXTREMELY_IMPORTANT>` ラップは現行のまま同等と確認）。
+*   上流 `hooks/run-hook.cmd` は上流 bash フックの Windows ラッパであり、Node 直呼びの `hooks.json` には対応先がないため移植しない (`.antigravity-plugin/plugin.json`、`assets/antigravity-logo.png`、`scripts/render-antigravity-logo.sh` も上流の Antigravity Marketplace 配布インフラであり、本リポジトリの配布マニフェスト構成に対応先がないため対象外)。
+*   上流 `.opencode/INSTALL.md` / `docs/README.opencode.md` の差分は上流プラグインのバージョンタグ更新のみ。本リポジトリの opencode インストール文書は本プラグイン向けに独自管理的な `.opencode/INSTALL.md` を持つため対象外。
+
+**検証範囲:** `tests/test_finish_check.mjs`(7件) / `tests/test_task_brief.mjs`(5件) / `tests/test_hook_output.mjs` / `tests/test_pre_push_hook.mjs` 全 pass、`node --check` と `bash -n` の構文検査、`git diff --check`、`docs/superpowers/plans/` → `docs/plans/` のパス適応の維持確認。スキルローダーによるブラウザ実行・実行テストは未実施。
