@@ -197,9 +197,22 @@
 * 上流 `hooks/session-start` は `hooks/session-start.mjs` と `hooks/hooks.json` に対応し、Antigravity の Node.js フック形式へ適応。`agents/task-manager.md` はローカル専用設定で同期対象外。
 * ローカルスキル内の図を Mermaid で表す場合は図の構文適応として扱うが、分岐・選択肢・終端状態を上流と照合する。`writing-skills` の作成ガイドと `render-graphs.js` は Graphviz DOT を基準にする。
 * 日本語への翻訳は意図的な言語適応。プラットフォーム固有のツール参照・テンプレートは、この対応表で理由と対応先を記録した場合のみ意図的適応として扱う。
+* 上流 `subagent-driven-development/scripts/task-brief` は `Task n` 見出しの awk 抽出に対し、本リポジトリの日本語計画向けに `タスク n` 見出しの追加対応（コミット `c76e4ad`、バージョン 1.11.6 で導入）を行う。上流の `Task n` 動作と「見つからない場合の exit 3」経路は保持した上位互換。`task-start`・`task-done`・`sdd-workspace` は見出しをパースしないため、この適応の影響範囲は `task-brief` のみ。
 
 **検証範囲:** ファイル一覧、相互参照、翻訳後の意味、スクリプトとプロンプトを静的に再照合。実行テストおよびプラットフォームのスキルローダーによるロード確認は行っていません。
 
 **リリース管理:** コアスキルの同期時に `package.json` と `antigravity-extension.json` を `1.11.3` から `1.11.4` へ更新しましたが、Codex 用 `.codex-plugin/plugin.json` を更新し忘れていました。Codex のインストール済みキャッシュも `1.11.3` のまま残っていたため、この修正で3つの配布マニフェストをすべて `1.11.4` に揃えました。Codex の再インストール版は `.codex-plugin/plugin.json` のバージョンに基づきます。
 
 **再発防止:** `scripts/finish_check.mjs` に、コア変更時は3つの配布マニフェストをすべて更新し、各 `version` が一致していることを検査するゲートを追加しました。Codex マニフェストだけが旧版に残るケースを `tests/test_finish_check.mjs` で再現し、ゲートが失敗させます。この検査スクリプトの変更を含むため、3マニフェストを `1.11.5` に揃えました。
+
+### 2026-10-18 同一上流 SHA での意味パリティ監査（監査のみ・スキル本文の修復なし）
+
+上流 HEAD は `8ca22dba9a94f28898bbce59f2537ff4d87c747d`（v6.4.2）で、記録済み移植基準と同一 SHA、`superpowers-original` に未コミット変更はありませんでした。上流 SHA が不変のため上流差分の抽出を省略し、現行上流のソースと移植先15スキル全対象を全文照合しました。この記録は上流の更新ではなく、2026-10-04 の監査後におけるドリフト有無の再確認です。
+
+**監査結果:**
+
+*   ファイル一覧の差は、上の「対象・対応表 (SSOT)」に記載済みの意図的適応・除外のみ（`.DS_Store`、`.gitkeep`、`systematic-debugging/CREATION-LOG.md`、ローカル専用の観察・セッション運用系5スキル、`copilot-tools.md`、`opencode-tools.md`、`CLAUDE_MD_TESTING.md` → `ANTIGRAVITY_MD_TESTING.md`）で、理由のない欠落・追加・パス変更はありませんでした。
+*   15スキル全ファイルについて上流・移植先を全文読み込み、適用トリガー、分岐、承認ゲート、完了状態、手順の順序、MUST/NEVER の強さ、数値（再開ループ R≤3、5ラウンド制限ブレーカー、3回失敗上限等）、機械可読トークン、スクリプトの exit コード、参照リンクを照合しました。意味ドリフトは検出されませんでした。
+*   前回監査後に `skills/` で唯一変更された `scripts/task-brief` の日本語見出し対応は、上流動作を保持する上位互換の言語適応として対応表に追記しました（上の対象・対応表 (SSOT) の該当項目）。
+
+**検証範囲:** `tests/test_finish_check.mjs`（失敗0）、3つの配布マニフェストのバージョン一致（`1.12.0`）、`git diff --check`、frontmatter と相互参照の静的確認、opencode ネイティブのスキルローダーで全スキルが一覧に載ることと `sync-upstream-skill` 自体の実ロードを確認。スキル本文の個別ロード実行テストとスクリプトの実行テストは未実施。
