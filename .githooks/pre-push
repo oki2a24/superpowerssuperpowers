@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+
+if ! git rev-parse --verify --quiet 'origin/main^{commit}' >/dev/null; then
+  echo '❌ FAIL: origin/main が見つかりません。配布版チェックの基準を取得してください。' >&2
+  exit 1
+fi
+
+exec node scripts/finish_check.mjs origin/main

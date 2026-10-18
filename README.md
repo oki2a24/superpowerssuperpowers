@@ -201,6 +201,25 @@ codex plugin marketplace remove superpowerssuperpowers
 
 ---
 
+## 🔧 開発時の配布バージョンとプッシュ前チェック
+
+配布マニフェスト `package.json`、`antigravity-extension.json`、`.codex-plugin/plugin.json` の `version` は同じ値に揃えてください。プッシュ前チェックは `scripts/finish_check.mjs` でコア変更時の版更新漏れと3つの版の不一致を検出します。
+
+リポジトリをクローンした後、Git フックを有効にします。
+
+```bash
+git config --local core.hooksPath .githooks
+```
+
+これにより `git push` の前に自動でチェックが実行されます。手動で確認する場合は、次のコマンドを使います。
+
+```bash
+node scripts/finish_check.mjs origin/main
+node --test tests/test_finish_check.mjs tests/test_pre_push_hook.mjs
+```
+
+---
+
 ## 🏛 アーキテクチャ & システム・エフェクト (Architecture & Side Effects)
 
 `SuperpowersSuperpowers` は、ユーザーの環境に「英知の地層」を形成します。以下の図解は、スキル実行時に AI がどのようにコンテキストを合成し、どのディレクトリに影響を与えるかを示しています。
