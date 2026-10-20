@@ -198,6 +198,7 @@
 * ローカルスキル内の図を Mermaid で表す場合は図の構文適応として扱うが、分岐・選択肢・終端状態を上流と照合する。`writing-skills` の作成ガイドと `render-graphs.js` は Graphviz DOT を基準にする。
 * 日本語への翻訳は意図的な言語適応。プラットフォーム固有のツール参照・テンプレートは、この対応表で理由と対応先を記録した場合のみ意図的適応として扱う。
 * 上流 `subagent-driven-development/scripts/task-brief` は `Task n` 見出しの awk 抽出に対し、本リポジトリの日本語計画向けに `タスク n` 見出しの追加対応（コミット `c76e4ad`、バージョン 1.11.6 で導入）を行う。上流の `Task n` 動作と「見つからない場合の exit 3」経路は保持した上位互換。`task-start`・`task-done`・`sdd-workspace` は見出しをパースしないため、この適応の影響範囲は `task-brief` のみ。
+* `writing-plans` のセルフレビューには、上流の5項目に加えて「6. コマンドの正確性： 記述したコマンドがそのディレクトリで実際に動作するか？」の1項目が追加されている（2026-10-19 の監査で人間パートナーの承認を得て意図的なローカル追加として記録）。上流5項目の各文はすべて移植済みであり、この追加項目が既存項目の判定経路を狭めたり手順順序を変えたりしない。
 
 **検証範囲:** ファイル一覧、相互参照、翻訳後の意味、スクリプトとプロンプトを静的に再照合。実行テストおよびプラットフォームのスキルローダーによるロード確認は行っていません。
 
@@ -217,7 +218,7 @@
 
 **検証範囲:** `tests/test_finish_check.mjs`（失敗0）、3つの配布マニフェストのバージョン一致（`1.12.0`）、`git diff --check`、frontmatter と相互参照の静的確認、opencode ネイティブのスキルローダーで全スキルが一覧に載ることと `sync-upstream-skill` 自体の実ロードを確認。スキル本文の個別ロード実行テストとスクリプトの実行テストは未実施。
 
-### コミットハッシュ: `bb92a7741419a4ab5f06e711a283343f1ada0c3` (Upstream v7.0.0 準拠)
+### コミットハッシュ: `bb92a77741419a4ab5f06e711a283343f1ada0c3` (Upstream v7.0.0 準拠)
 
 上流 `superpowers-original` を `8ca22db` から `bb92a77`（Release v7.0.0: rebuilt brainstorming, Antigravity Marketplace manifest, Windows hook fixes）へ進めました。本リポジトリの3つの配布マニフェストは `1.12.1` に更新。
 
@@ -236,3 +237,21 @@
 *   上流 `.opencode/INSTALL.md` / `docs/README.opencode.md` の差分は上流プラグインのバージョンタグ更新のみ。本リポジトリの opencode インストール文書は本プラグイン向けに独自管理的な `.opencode/INSTALL.md` を持つため対象外。
 
 **検証範囲:** `tests/test_finish_check.mjs`(7件) / `tests/test_task_brief.mjs`(5件) / `tests/test_hook_output.mjs` / `tests/test_pre_push_hook.mjs` 全 pass、`node --check` と `bash -n` の構文検査、`git diff --check`、`docs/superpowers/plans/` → `docs/plans/` のパス適応の維持確認。スキルローダーによるブラウザ実行・実行テストは未実施。
+
+### 2026-10-19 同一上流 SHA での意味パリティ監査と2件の修復
+
+上流 HEAD は `bb92a77741419a4ab5f06e711a283343f1ada0c3`（v7.0.0、fetch 済みで origin/main と一致）で、記録済み移植基準と同一 SHA、`superpowers-original` に未コミット変更はありませんでした。上流差分の抽出を省略し、15スキル全対象のソースと移植先を複数のサブエージェント＋直接照合で全文比較しました。
+
+**監査で検出した意味ドリフトと修復:**
+
+*   `systematic-debugging`: 上流 `**But:** 95% of "no root cause" cases are incomplete investigation.` の数値「95%」が移植先で「多く」に弱体化していた（2026-10-18 監査での見逃し）。「根本原因は見つからなかった」脱出経路（環境・タイミング・外部要因が真因のケース）の末尾に上流通りの 95% 表記を復元し、概要節の要約行も 95% に統一。
+*   `writing-plans`: 移植先のセルフレビューに上流に存在しない「6. コマンドの正確性」が存在した。対応表 (SSOT) への未記録だったため、人間パートナーの承認を得て上の対応表に意図的な追加として新規記録（本文は変更なし）。
+*   `docs/superpowers_ports.md` の v7.0.0 見出し SHA の誤記を修正: `bb92a7741419a4ab5f06e711a283343f1ada0c3` → 正 `bb92a77741419a4ab5f06e711a283343f1ada0c3`（`git rev-parse HEAD` と照合、先頭8桁 `bb92a77` は変わらず）。
+
+**ドリフトなしと確認した対象:** `subagent-driven-development`（SKILL.md＋scripts 4本＋prompts 3本、exit 3・`タスク n` 対応を含む）、`test-driven-development`＋`writing-good-tests.md`、`verification-before-completion`、`using-git-worktrees`、`requesting-code-review`＋`code-reviewer.md`（判断辞退リスト・Read-Only Review 等の節構造含む）、`receiving-code-review`、`dispatching-parallel-agents`、`diagnosing-superpowers`（templates 4件・prompts 11件・references 4件を含む全文照合、機械可読トークンの原文維持を確認）、`brainstorming` / `executing-plans` / `finishing-a-development-branch`（節構造照合は本監査、全文照合は 2026-10-18 の同一 SHA 監査による）、`using-superpowers`（SKILL.md＋references。`codex-tools.md` は別形式の適応文書で中核規律を保持、上流の `agent_type` ロールファイル添付細部のみ未収載のため要観察）、`writing-skills`（セルフレビューの構造照合。`知見の蒸留 (Observations)` 節と `observations/writing-skills.md` 読み替えガイド参照はローカル運用への適応）。
+
+**インベントリ:** 15スキル全ファイルの一覧差分は、対応表に記載済みの意図的適応・除外のみで、理由のない欠落・追加・パス変更はありませんでした。
+
+**検証範囲:** `git diff --check`、リポジトリ既存テスト（実行結果は下記）、編集2ファイルの上流対照再確認、opencode ネイティブのスキルローダーで全スキルが一覧に載っていることの確認。スキル本文の実ロード実行テストは未実施。
+
+**リリース管理:** コア（`skills/`）変更を含むため、3つの配布マニフェストを `1.12.2` から `1.12.3` に揃えて更新（`scripts/finish_check.mjs` のコア変更・バージョン整合ゲートが要求する手順）。
