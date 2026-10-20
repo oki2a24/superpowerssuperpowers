@@ -77,9 +77,11 @@ bash scripts/start-server.sh --project-dir /path/to/project --open --foreground
 
 **Copilot CLI:**
 ```bash
-# --foreground を使用し、bash ツール経由で mode: "async" を指定してサーバーを起動し、
-# プロセスがターンを跨いで存続するようにします。後で操作する必要がある場合に備えて、
-# 返された shellId を保存してください。
+# Copilot CLI のノンブロッキング/バックグラウンドシェル機構で起動し、
+# サーバーがターンを跨いで存続するようにします。--foreground を維持し、
+# バックグラウンド化の担当はスクリプトではなくハーネス側にします。
+# ランチャーは .sh なので bash 経由で呼び出します
+# （Windows では PowerShell ツールから Git Bash の bash.exe を呼び出します）。
 bash scripts/start-server.sh --project-dir /path/to/project --open --foreground
 ```
 

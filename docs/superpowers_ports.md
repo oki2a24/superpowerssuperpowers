@@ -255,3 +255,42 @@
 **検証範囲:** `git diff --check`、リポジトリ既存テスト（実行結果は下記）、編集2ファイルの上流対照再確認、opencode ネイティブのスキルローダーで全スキルが一覧に載っていることの確認。スキル本文の実ロード実行テストは未実施。
 
 **リリース管理:** コア（`skills/`）変更を含むため、3つの配布マニフェストを `1.12.2` から `1.12.3` に揃えて更新（`scripts/finish_check.mjs` のコア変更・バージョン整合ゲートが要求する手順）。
+
+### 2026-10-20 同一上流 SHA での意味パリティ監査・大規模修復
+
+上流 HEAD は `bb92a77741419a4ab5f06e711a283343f1ada0c3`（v7.0.0、fetch 済みで origin/main と一致）で、記録済み移植基準と同一 SHA、`superpowers-original` に未コミット変更はありませんでした。上流差分の抽出を省略し、診断サブエージェント 8 グループ＋ `diagnosing-superpowers` 継続 1 グループ＋ `subagent-driven-development` 専門 1 グループの報告を、上流ソースとの直接対照で検証・修復しました。2026-10-18/19 の監査レコードは翻訳・SDO 圧縮スイープ由来の損失（とりわけ `systematic-debugging` とプロンプトテンプレート群）を見逃しており、本監査で下記の修復一覧をもってその不正確さを修正しました。
+
+**検出した意味ドリフトと修復（全編集は上流ロジックの意味復元、数値・機械可読トークン・exit コード保持）:**
+
+*   `systematic-debugging/SKILL.md`: 本番バグ (`production bugs`) 経路の復元、レイヤー3キーチェーン表の復元、2回以上の修正を求める強度表現、`Will it show up on its own / Will it show up under testing?` の信号行、プロセス完了 bullet の復元。
+*   `systematic-debugging/root-cause-tracing.md`: 中核原則の重複節を削除し節位置を上流に整合、Layer 1 の抽象化の復元、スクリプト参照句の復元。
+*   `systematic-debugging/test-pressure-2.md` / `test-pressure-3.md`: A/B 選択肢項目、百回・沈黙・ドキュメント C 案、MUST 形式の全面復元。
+*   `brainstorming/SKILL.md`: "Avoid jargon" の復元、description への要約文混入を除去。
+*   `brainstorming/visual-companion.md`: Copilot CLI コメントの復元、`mode: async` / `shellId` の除去。
+*   `writing-plans/SKILL.md`: Global Constraints を H2 化、自己防衛文の修正、Native 選択肢の freshest reviewer 復元＋ If-Native 重複行の削除、結語の順序、7項目最小実装文の復元、should 強度の解除。
+*   `executing-plans/SKILL.md`: mermaid フローの Per Task subgraph 表現を復元。
+*   `test-driven-development/SKILL.md`: REFACTOR 節の `...` 残骸修復＋5規則復元、対話型追記の8箇所除去、良いテストのルール節を上流と同じ位置へ移動。
+*   `test-driven-development/writing-good-tests.md`: モック・トリガーの復元、ゲート条件の双方向化。
+*   `using-git-worktrees/SKILL.md`: description のトリガー復元。
+*   `verification-before-completion/SKILL.md`: description へのコミット/PR トリガー追加、Revert/Restore 語彙の修正。
+*   `requesting-code-review/SKILL.md`: 不要な追加句の削除、Optional / timing の修正、評価の解除。+ `code-reviewer.md`: 出力例を上流例（Date validation / Progress indicators / index-conversations / With fixes 等）へ全面置換。
+*   `receiving-code-review/SKILL.md`: `gh api` エンドポイントの復元、❌ の5項目化、YAGNI 文の unused feature 修正、節順序 (Common Mistakes → Real Examples → GitHub Thread Replies) の並べ替え。
+*   `dispatching-parallel-agents/SKILL.md`: プロンプト例の Fix-by 3分岐復元＋最小限制約の削除、セッション実例節の復元。
+*   `finishing-a-development-branch/SKILL.md`: 「exactly 2 options」への修正。
+*   `using-superpowers/SKILL.md`: 探索・ファイル確認の列挙追加、プロセススキル規則の適用範囲拡張。+ `references/codex-tools.md`: reconcile 分岐の復元、every-spawn model+effort の MUST 化、fork_turns 既定の断定化、wait_agent ストレッチ規律の復元。
+*   `writing-skills/SKILL.md`: description の要約削除、@リンク禁止例＋理由句の復元、テスト方法4 bブレットの復元、マイクロテスト節の移動、50-100x の復元、意味のないラベル A/B の除去、個人スキル配置の文書化、チェックリスト順序の整理。+ `anthropic-best-practices.md`: Card href の絶対 URL 化、オンデマンド読み込みの汎用化。+ `persuasion-principles.md`: todo.mjs/TodoWrite 記名をチェックボックス管理への汎用表現に置換。
+*   `subagent-driven-development/task-reviewer-prompt.md`（HIGH 3件を含む）: レビュアー自身による証拠 re-read 規律節の復元、一括派遣の file-by-file 照合規定の復元、クロージャ・フェンス文の復元、プレースホルダ定義一覧と Reviewer returns 契約の追加。+ `SKILL.md`: 実行例の parked 台帳形式 `Task <N>: parked — <finding> — Ruling: <…>` を復元、パーキング節を上流3分岐の構成へ整合、レビュアー再読主体の修正、executing-plans 対比の項目補完。
+*   修正を重点的にかけた `scripts`（`task-brief`, `task-start`, `task-done`, `sdd-workspace`, `review-package`）は全ファイル照合の結果、ドリフトなしと確認。
+
+**監査での意図的適応の新規記録（削除せず本 SSOT へ記録したもの）:**
+
+*   `diagnosing-superpowers/prompts/quality-evidence.md` および `stumbles.md`: 出力テンプレートに「（日本語の同等主張）」という運用上の補助括弧を明示的に残しています。これは英語による機械判読が不可能であるため開発時に追加したものであり、翻訳による損失ではありません。上流の主張には影響しません。
+*   `systematic-debugging/testing-skills-with-subagents.md` (参考資料): 上流では frontmatter を持たないが、本リポジトリの配布規約に合わせて移植時に統一 frontmatter を付与しています。
+*   `dispatching-parallel-agents/SKILL.md`: `agy` (Antigravity CLI) 上で skill ツールの `view_file` を補足して起動させる platform adaptation 節を追加しています。これは他全スキルと同じ共通適応 (opencode tools / codex 系の対応表に相当) の Antigravity での local adaptation で、上流にはありません。
+*   `writing-skills/SKILL.md`: 作成の際、日本語コメントの規則（コード例内コメントは日本語、機械トークンと終端名は英語のまま）を明示的に付加しています。上流の英語例文自体の意味と機械トークンは保持のため、ドリフトではありません。
+*   `subagent-driven-development/SKILL.md`: 会話型の「利用者への確認を促す」指示は、上流の自律実行モデルへの整合による明示的なことであり、ドリフトではありません。
+*   `brainstorming/SKILL.md`: 具体的な構成の詳細表現は、上流のロジックを保持した上で日本語圏での読みやすさのために修正されたものであり、ドリフトではありません。
+
+**検証範囲:** `git diff --check`、リポジトリ既存テスト（`tests/test_finish_check.mjs`、失敗0）、主要修復ファイルの上流対照再確認、mermaid / DOT 図の記法照合。スキル本文の実ロード実行テストは未実施。
+
+**リリース管理:** コア（`skills/`）変更を含むため、3つの配布マニフェストを `1.12.3` から `1.12.4` に揃えて更新（`scripts/finish_check.mjs` のコア変更・バージョン整合ゲートが要求する手順）。
