@@ -5,11 +5,12 @@ import { fileURLToPath } from 'node:url';
 
 /**
  * TODO ファイルを保存するディレクトリのパスを取得します。
- * 環境変数 ANTIGRAVITY_TASK_DIR が設定されている場合はそれを優先し、
- * 設定されていない場合はデフォルトの ".antigravity/tasks" を使用します。
+ * `AGENTS_TASK_DIR` を最優先し、設定されていない場合は廃止予定の旧環境変数
+ * `ANTIGRAVITY_TASK_DIR` を互換読み（既存のプロジェクトローカル設定を壊さないための
+ * 移行措置）として参照し、それも無い場合は既定の ".agents/tasks" を使用します。
  */
 export function getTaskDir() {
-  return process.env.ANTIGRAVITY_TASK_DIR || ".antigravity/tasks";
+  return process.env.AGENTS_TASK_DIR || process.env.ANTIGRAVITY_TASK_DIR || ".agents/tasks";
 }
 
 /**
