@@ -1,6 +1,6 @@
 {
   "name": "superpowerssuperpowers",
-  "version": "1.12.6",
+  "version": "1.12.7",
   "description": "SuperpowersSuperpowers: 生成AIコーディングハーネスのためのコア・スキル・ライブラリ (obra/superpowers 移植 + 独自スキル)",
   "type": "module",
   "main": ".opencode/plugins/superpowers.js",
