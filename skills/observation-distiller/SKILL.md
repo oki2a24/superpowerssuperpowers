@@ -19,7 +19,7 @@ description: セッションを跨いで再利用可能な知見、設計上の�
 ```text
 [ 低優先 ]                                                                                                          [ 高優先 ]
   L1: Core (Skills)             L2: Extension (Shared)                L3: Personal (Global)         L4: Project (Local)
-  [Extension Root]/skills       [Extension Root]/observations         ~/.antigravity/observations/       ./.antigravity/observations/
+  [Extension Root]/skills       [Extension Root]/observations         ~/.agents/observations/       ./.agents/observations/
           |                             |                             |                             |
           +-----------------------------+-----------------------------+-----------------------------+
                                         |
@@ -38,8 +38,8 @@ description: セッションを跨いで再利用可能な知見、設計上の�
 - **既存知見との論理的マージ**: 対象ファイルが既に存在する場合は、上書きせず既存知見と統合せよ。重複を排除し、AI が即座にアクションに繋げられる「物理的な指示」へと **抽象化** せよ。
 - **保存先 (L2-L4) の決定**:
     - **L2 (Shared):** `[Extension Root]/observations/`。この拡張機能に同梱され、全ユーザーに共有されるベストプラクティス。
-    - **L3 (Global):** `~/.antigravity/observations/`。ユーザー個人の普遍的な流儀や好み。
-    - **L4 (Project):** `./.antigravity/observations/`。作業中のプロジェクト固有の局所的な知見。
+    - **L3 (Global):** `~/.agents/observations/`。ユーザー個人の普遍的な流儀や好み。
+    - **L4 (Project):** `./.agents/observations/`。作業中のプロジェクト固有の局所的な知見。
 
 ### 3. 検証と洗練 (REFACTOR)
 - 追加した知見を読み込んだ状態で、AI が正しく振る舞うか（失敗が再現しないか）を実証テストせよ。
