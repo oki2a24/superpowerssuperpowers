@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { createFromTemplate } from '../scripts/agy_sub.mjs';
+import { createFromTemplate } from '../scripts/gpac_sub.mjs';
 
-test('agy_sub.mjs UI 改善テスト', async (t) => {
+test('gpac_sub.mjs UI 改善テスト', async (t) => {
   await t.test('createFromTemplate は生成された絶対パスをカラーで出力すること', () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agy-sub-ui-test-'));
     const draftPath = path.join(tempDir, 'task_draft.md');

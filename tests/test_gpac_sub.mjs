@@ -16,7 +16,7 @@ import {
   findTaskDirectory,
   spawn,
   report
-} from '../scripts/agy_sub.mjs';
+} from '../scripts/gpac_sub.mjs';
 
 describe('YAML Parser', () => {
   test('should parse simple key-value pairs', () => {
@@ -274,7 +274,7 @@ describe('Helper Functions', () => {
     const payload = createPayload(workDir, taskId);
 
     assert.ok(payload.includes(`cd ${workDir}`));
-    assert.ok(payload.includes('node scripts/agy_sub.mjs show-task ' + taskId));
+    assert.ok(payload.includes('node scripts/gpac_sub.mjs show-task ' + taskId));
     assert.ok(payload.includes('【サブセッションの重要制約】'));
     assert.ok(payload.includes("任務完了後は速やかに 'report' を行うよう人間に促し"));
   });
@@ -284,7 +284,7 @@ describe('Helper Functions', () => {
     const workDir = '/path/to/workdir';
     const taskId = '20260314-TEST-ABCD';
     const payload = createPayload(workDir, taskId);
-    assert.ok(payload.includes('node scripts/agy_sub.mjs show-task'));
+    assert.ok(payload.includes('node scripts/gpac_sub.mjs show-task'));
   });
 
   test('findTaskDirectory should find existing task directory', () => {
