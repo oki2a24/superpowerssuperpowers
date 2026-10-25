@@ -167,10 +167,10 @@ test('gpac_sub.mjs - GPAC_AGENT_COMMAND 未設定の tmux モードは tmux を�
 - 消費: タスク 2・3 のスクリプト名・パス・env 契約
 - 生産: なし（ドキュメント）
 
-- [ ] **ステップ 1: `strata.md` の L3/L4 パスを汎用化**（図解込み）: L3 `~/.agents/observations/`、L4 `./.agents/observations/`。クロスランタイムな `~/.agents` / `.agents` 規約に乗る旨を 1 文追記。
-- [ ] **ステップ 2: `session-coordination/SKILL.md` を更新**: GPAC 名称を "Peer-Agent Coordination (GPAC)" に、全コマンド例を `scripts/gpac_sub.mjs` に、SSOT を `~/.agents/sub-sessions/` に更新し、`GPAC_AGENT_COMMAND`（未設定時は manual 既定）と `GPAC_LAUNCHER` の運用を追記。`[extension-path]` の例示を汎用化。
-- [ ] **ステップ 3: 物理検証** — `grep -rn "agy_sub\|~/.antigravity/sub-sessions" skills/ | grep -v superpowers-original` が空であること。
-- [ ] **ステップ 4: コミット**
+- [x] **ステップ 1: `strata.md` の L3/L4 パスを汎用化**（図解込み）: L3 `~/.agents/observations/`、L4 `./.agents/observations/`。クロスランタイムな `~/.agents` / `.agents` 規約に乗る旨を 1 文追記。
+- [x] **ステップ 2: `session-coordination/SKILL.md` を更新**: GPAC 名称を "Peer-Agent Coordination (GPAC)" に、全コマンド例を `scripts/gpac_sub.mjs` に、SSOT を `~/.agents/sub-sessions/` に更新し、`GPAC_AGENT_COMMAND`（未設定時は manual 既定）と `GPAC_LAUNCHER` の運用を追記。`[extension-path]` の例示を汎用化。
+- [x] **ステップ 3: 物理検証** — `grep -rn "agy_sub\|~/.antigravity/sub-sessions" skills/ | grep -v superpowers-original` が空であること。
+- [x] **ステップ 4: コミット**
   `git commit -m "docs: session-coordination と strata を gpac/agents 名前空間へ追従"`
 
 ### タスク 5: README・TODO・obs の機械的参照更新
