@@ -14,7 +14,7 @@
 ## Ⅱ. 開発支援ツール (Factory Tools)
 
 - **Todo 管理**: `node scripts/todo.mjs` を使用し、作業の進捗を管理せよ。
-- **連携プロトコル**: 大規模タスクの分割には `scripts/agy_sub.mjs` (GPAC) を活用せよ。
+- **連携プロトコル**: 大規模タスクの分割には `scripts/gpac_sub.mjs` (GPAC) を活用せよ。
 
 ## Ⅲ. アップデート追随の規律 (Upstream Sync Mandate)
 

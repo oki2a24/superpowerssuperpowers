@@ -243,7 +243,7 @@ AI エージェントは、実行時に以下の 4 つの層を順にスキャ�
 [ 低優先 (基盤) ]                                                                                                             [ 高優先 (最新) ]
 
      L1: Core (Skills)            L2: Extension (Shared)         L3: Personal (Global)                   L4: Project (Local)
- [Extension Root]/skills      [Extension Root]/observations    ~/.antigravity/observations/            ./.agents/observations/
+ [Extension Root]/skills      [Extension Root]/observations    ~/.agents/observations/                 ./.agents/observations/
             |                            |                             |                                       |
             +----------------------------+-----------------------------+---------------------------------------+
                                          |
@@ -258,13 +258,22 @@ AI エージェントは、実行時に以下の 4 つの層を順にスキャ�
 | パス (Path) | 役割 (Role) | バージョン管理の推奨 |
 | :--- | :--- | :--- |
 | **`./.agents/observations/`** | **L4: Project Local** | **[任意]** プロジェクト固有の知見やルール。チームで規律を共有したい場合は Git に含め、個人用とする場合は `.gitignore` に追加してください。 |
-| **`~/.antigravity/observations/`** | **L3: Personal Global** | **[通常は不要]** ユーザー個人の好みや、全プロジェクト共通の規律。通常は OS のユーザーディレクトリに保持されます。 |
+| **`~/.agents/observations/`** | **L3: Personal Global** | **[通常は不要]** ユーザー個人の好みや、全プロジェクト共通の規律。通常は OS のユーザーディレクトリに保持されます。 |
 
 > [!TIP]  
 > **柔軟な運用**:  
 > 本拡張機能は、プロジェクトのルートディレクトリを汚すことなく、`.agents/` フォルダ内に設定や知見を集約します。これにより、メインのソースコードの構成を維持したまま、AI エージェントの知能を段階的に強化できます。
 
-### 3. GPAC プロトコル (Antigravity/Gemini Peer-Agent Coordination)
+> [!NOTE]  
+> **旧バージョン（Antigravity 専用時代）からの移行について**:  
+> 知見（observations）や GPAC サブセッション（sub-sessions）の保存先は、`~/.antigravity/` から `~/.agents/` へ変更されました。**旧環境のデータは自動移行されません。** 必要に応じて手動で引き継いでください：
+> 
+> ```bash
+> mv ~/.antigravity/observations ~/.agents/observations   # L3 知見
+> mv ~/.antigravity/sub-sessions ~/.agents/sub-sessions   # GPAC SSOT
+> ```
+
+### 3. Peer-Agent Coordination (GPAC)
 
 親セッションとサブセッションの間で任務を確実に同期するための独自通信プロトコルです。
 *   **任務の委譲 (Spawn)**: コンテキストを適切に制限し、サブセッションへ任務を物理的に分離して委譲。
@@ -279,7 +288,7 @@ AI エージェントは、実行時に以下の 4 つの層を順にスキャ�
 
 *   **100% ローカル実行**: 推論（Gemini API や Vertex AI 等の呼び出し）以外のすべての操作、スクリプト、知見の保存はローカル環境で完結します。
 *   **透明な英知 (Transparent Knowledge)**: 採取された知見はすべて Markdown 形式で保存されます。暗号化や難読化は一切なく、ユーザーはいつでも自らの英知を監査・修正できます。
-*   **最小権限の原則**: ツールはプロジェクトディレクトリおよび `~/.antigravity/` 内の規定のパス以外の領域には干渉しません。
+*   **最小権限の原則**: ツールはプロジェクトディレクトリおよび `~/.agents/` 内の規定のパス以外の領域には干渉しません。
 
 ---
 

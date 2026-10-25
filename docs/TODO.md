@@ -37,8 +37,8 @@
 
 ## 6. ハーネス汎用化の残課題 (2026-10-25)
 プロジェクトの役割が「Gemini CLI / agy 向けの移植物」から「生成AIハーネス全般をカバーする汎用スキル群」へ変化したことに伴い、アーキテクチャ レベルの agy 依存を将来のプロジェクトとして扱う（詳細は `docs/plans/2026-10-25-generic-harness-repositioning-design.md` を参照）。
-- [ ] **地層パスの汎用化**: `skills/observation-distiller/strata.md` および README 記載の L3/L4 パス（`~/.antigravity/observations/`、`./.antigravity/observations/`）を、クロスランタイムな `~/.agents/` 系・`.agents/` 系の規約へ統一する。strata.md と README・実際のディレクトリ運用（`.agents/observations/`）の間の不整合も解消する。
-- [ ] **GPAC 実装の汎用化**: `scripts/agy_sub.mjs`（および `session-coordination` スキルのクイックリファレンス）を、特定ハーネスのコマンドに依存しない形へ再設計する。`scripts/todo.mjs` の `.antigravity/tasks` 既定パスも対象。
+- [x] **地層パスの汎用化**: `skills/observation-distiller/strata.md` および README 記載の L3/L4 パス（`~/.antigravity/observations/`、`./.antigravity/observations/`）を、クロスランタイムな `~/.agents/` 系・`.agents/` 系の規約へ統一する。strata.md と README・実際のディレクトリ運用（`.agents/observations/`）の間の不整合も解消する。→ 完了: `docs/plans/2026-10-25-gpac-generic-rename.md`（タスク4・5）
+- [x] **GPAC 実装の汎用化**: GPAC スクリプト（現在は `scripts/gpac_sub.mjs`）と `session-coordination` スキルのクイックリファレンスを、特定ハーネスのコマンドに依存しない形へ再設計する。`scripts/todo.mjs` のタスク既定パスも対象。→ 完了: `docs/plans/2026-10-25-gpac-generic-rename.md`（タスク1〜4）。`GPAC_AGENT_COMMAND` / `GPAC_LAUNCHER` / `~/.agents/sub-sessions` 契約へ再設計済み
 
 ---
 *Created by AI Agent. 過去の完了済みセクションは、プロジェクトの歴史としてコミット履歴に保存されています。*
