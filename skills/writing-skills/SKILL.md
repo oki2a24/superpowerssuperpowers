@@ -9,7 +9,7 @@ description: 新しいスキルを作成する時、既存のスキルを編集�
 
 **スキルの作成とは、プロセス文書にテスト駆動開発（TDD）を適用することです。**
 
-**個人のスキルは、ランタイムごとのスキルディレクトリ**（このリポジトリでは Antigravity CLI 向けにプロジェクトの `skills/`、またはグローバルの `~/.antigravity/skills/`）に配置されます。Codex、Copilot CLI、Gemini CLI はいずれも `~/.agents/skills/` をクロスランタイムの別名として認識します（各ランタイムの配置先は `using-superpowers/references/` の codex-tools.md や gemini-tools.md を参照してください）。
+**個人のスキルは、ランタイムごとのスキルディレクトリ**（このリポジトリではプロジェクトの `skills/`、またはお使いのハーネスが定めるグローバルのスキルディレクトリ）に配置されます。Codex、Copilot CLI、Gemini CLI はいずれも `~/.agents/skills/` をクロスランタイムの別名として認識します（各ランタイムの配置先は `using-superpowers/references/` の各ツール対応ドキュメントを参照してください）。
 
 あなたはテストケース（圧力シナリオ）を書き、それが失敗するのを見て（ベースラインの振る舞い）、スキル（ドキュメント）を書き、テストが成功するのを見て（エージェントが従う）、リファクタリング（抜け穴を塞ぐ）します。
 
@@ -17,7 +17,7 @@ description: 新しいスキルを作成する時、既存のスキルを編集�
 
 **必須の背景知識：** このスキルを使用する前に、`test-driven-development`を理解している必要があります。そのスキルは基本的なRED-GREEN-REFACTORサイクルを定義しています。このスキルはTDDをドキュメンテーションに適応させます。
 
-**公式ガイダンス：** Anthropic公式のスキル作成ベストプラクティス（移植・適応版）については、[references/anthropic-best-practices.md](references/anthropic-best-practices.md)を参照してください。このドキュメントを読み進める際は、**必ず [observations/writing-skills.md](../../observations/writing-skills.md) の読み替えガイドを併用し、Antigravity CLI (agy) 環境向けに用語やツールを読み替えてください。**
+**公式ガイダンス：** Anthropic公式のスキル作成ベストプラクティス（移植・適応版）については、[references/anthropic-best-practices.md](references/anthropic-best-practices.md)を参照してください。このドキュメントを読み進める際は、**必ず [observations/writing-skills.md](../../observations/writing-skills.md) の読み替えガイドを併用し、お使いのハーネスの環境に合わせて用語やツールを読み替えてください。**（同ガイドの対応表は Antigravity CLI (agy) 環境で作成された実例であり、他のハーネスでは `using-superpowers/references/` の該当ドキュメントを併用してください。）
 
 ## スキルとは何か？
 
@@ -55,7 +55,7 @@ description: 新しいスキルを作成する時、既存のスキルを編集�
 **作成しない時：**
 - 一度きりの解決策
 - 他で十分に文書化されている標準的なプラクティス
-- プロジェクト固有の規約（プロジェクトの`ANTIGRAVITY.md`に記述）
+- プロジェクト固有の規約（プロジェクトの`AGENTS.md`に記述）
 - 機械的な制約（正規表現/検証で強制可能なら自動化する—判断が必要な場合にドキュメントを保存する）
 
 ## スキルの種類

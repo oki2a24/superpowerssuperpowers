@@ -39,7 +39,7 @@ const diff = runGit(['diff', '--name-only', `${baseRef}..HEAD`]);
 if (diff !== null) {
   const files = diff.split('\n').filter(f => f.length > 0);
   const coreDirectories = ['skills/', 'observations/', 'scripts/', 'agents/'];
-  const coreFiles = ['ANTIGRAVITY.md'];
+  const coreFiles = ['AGENTS.md'];
   const versionManifests = ['package.json', 'antigravity-extension.json', '.codex-plugin/plugin.json'];
 
   const hasCoreChanges = files.some(f => 

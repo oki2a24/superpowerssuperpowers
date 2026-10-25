@@ -40,7 +40,7 @@ L3/L4 から L2 へ知見を昇格させる際は、この三位一体が満た�
 | **Claude Haiku** | **Antigravity Flash** | 高速・経済的モデル |
 | **Claude Sonnet** | **Antigravity Pro** | バランスモデル |
 | **Claude Opus** | **Antigravity Ultra / Advanced** | 強力な推論モデル |
-| **CLAUDE.md** | **ANTIGRAVITY.md** | プロジェクト憲法・規約ファイル |
+| **CLAUDE.md** | **AGENTS.md** | プロジェクト憲法・規約ファイル |
 | **~/.claude/skills/** | **~/.antigravity/skills/** | グローバルスキルディレクトリ |
 
 ### ツール名の読み替え

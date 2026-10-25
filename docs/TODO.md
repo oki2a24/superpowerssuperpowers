@@ -35,6 +35,11 @@
 ## 5. 既知の不具合・技術負債 (Known Issues)
 - [x] **`GEMINI.md` 内のインポートエラー調査 (2026-04-12)**: `observation-distiller:start:strata` 等のインポートが ENOENT で失敗する問題の修正。インポートを部品化（`skills/observation-distiller/strata.md`）し、歴史的文書（`docs/plans/`）はエスケープしてノイズを排除。
 
+## 6. ハーネス汎用化の残課題 (2026-10-25)
+プロジェクトの役割が「Gemini CLI / agy 向けの移植物」から「生成AIハーネス全般をカバーする汎用スキル群」へ変化したことに伴い、アーキテクチャ レベルの agy 依存を将来のプロジェクトとして扱う（詳細は `docs/plans/2026-10-25-generic-harness-repositioning-design.md` を参照）。
+- [ ] **地層パスの汎用化**: `skills/observation-distiller/strata.md` および README 記載の L3/L4 パス（`~/.antigravity/observations/`、`./.antigravity/observations/`）を、クロスランタイムな `~/.agents/` 系・`.agents/` 系の規約へ統一する。strata.md と README・実際のディレクトリ運用（`.agents/observations/`）の間の不整合も解消する。
+- [ ] **GPAC 実装の汎用化**: `scripts/agy_sub.mjs`（および `session-coordination` スキルのクイックリファレンス）を、特定ハーネスのコマンドに依存しない形へ再設計する。`scripts/todo.mjs` の `.antigravity/tasks` 既定パスも対象。
+
 ---
-*Created by Gemini CLI Agent. 過去の完了済みセクションは、プロジェクトの歴史としてコミット履歴に保存されています。*
+*Created by AI Agent. 過去の完了済みセクションは、プロジェクトの歴史としてコミット履歴に保存されています。*
 - [ ] code-reviewer サブエージェントの安定性調査、またはマニュアル・レビュー用チェックリストの整備

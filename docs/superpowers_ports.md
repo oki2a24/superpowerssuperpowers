@@ -1,8 +1,16 @@
 # Superpowersスキル移植履歴
 
-このドキュメントは、`obra/superpowers` リポジリからGemini CLIに移植されたスキルの履歴と、その移植元となった `superpowers-original` サブモジュールのコミットハッシュを記録します。これにより、移植内容の再現性を保証し、将来のアップデート時の比較を容易にします。
+## 歴史的経緯 (Origin & Evolution)
+
+本リポジトリは、`obra/superpowers` リポジトリを **Gemini CLI 向けに移植したこと**が始まりです。その後、後継の **Antigravity CLI (agy)** への対応を経て、対応ハーネスを拡張してきました（opencode、Codex、Pi Coding Agent 等を含む）。
+
+ただし、これは「特定のハーネスへの引っ越し」を目的としたものではありません。本リポジトリのスキル群は、**任意の生成AIコーディングハーネスで利用できる汎用スキル群**として整備されています。現在、開発・利用の主環境として opencode や Codex を使用していますが、それらは「現に使っているハーネスの一例」にすぎず、プロジェクトの位置付けそのものではありません。
+
+各スキルはプラットフォーム固有のツール名に依存しない「アクション」表現で書かれており、`using-superpowers` のプラットフォーム適応レイヤー（`skills/using-superpowers/references/` の各ツール対応ドキュメント）を通じて、各ハーネスのネイティブ機能へ読み替えられます。
 
 ## 記録された移植
+
+このセクション以降は、移植元 `superpowers-original` サブモジュールのコミットハッシュごとの移植・同期履歴です。これにより、移植内容の再現性を保証し、将来のアップデート時の比較を容易にします。
 
 ### コミットハッシュ: `a98c5dfc9de0df5318f4980d91d24780a566ee60`
 
@@ -189,7 +197,7 @@
 * 上流のアクティブな15スキル `superpowers-original/skills/<name>/**` は、同じ相対パスの `skills/<name>/**` に対応します。対象名: `brainstorming`, `diagnosing-superpowers`, `dispatching-parallel-agents`, `executing-plans`, `finishing-a-development-branch`, `receiving-code-review`, `requesting-code-review`, `subagent-driven-development`, `systematic-debugging`, `test-driven-development`, `using-git-worktrees`, `using-superpowers`, `verification-before-completion`, `writing-plans`, `writing-skills`。
 * `systematic-debugging/CREATION-LOG.md` は作成経緯の開発ログであり、実行時スキル内容ではないため移植対象から除外。
 * 上流 `using-superpowers/references/hermes-tools.md` は移植対象に追加し、メインの `SKILL.md` から参照。
-* 上流 `writing-skills/examples/CLAUDE_MD_TESTING.md` は Antigravity 用の `ANTIGRAVITY_MD_TESTING.md` で置き換える。これは対象プラットフォーム向けの意図的な代替例（v7.0.1 で上流側も `references/CLAUDE_MD_TESTING.md` へ移動したため、本リポジトリでは `skills/writing-skills/references/ANTIGRAVITY_MD_TESTING.md` として対応）。
+* 上流 `writing-skills/examples/CLAUDE_MD_TESTING.md` は Antigravity 用の `AGENTS_MD_TESTING.md` で置き換える。これは対象プラットフォーム向けの意図的な代替例（v7.0.1 で上流側も `references/CLAUDE_MD_TESTING.md` へ移動したため、本リポジトリでは `skills/writing-skills/references/AGENTS_MD_TESTING.md` として対応）。
 * `using-superpowers/references/copilot-tools.md` と `opencode-tools.md` はローカルのプラットフォーム追加。`using-git-worktrees/.gitkeep`、`.DS_Store` は上流コンテンツに含めない。
 * ローカルにのみある `observation-distiller`、`roadmap-management`、`session-coordination`、`session-handoff`、`session-retrospective` は、このリポジトリ独自の観察記録・計画管理・セッション運用スキルであり、上流 `obra/superpowers` に対応するアクティブスキルがないため移植・同期対象外。
 * 上流の計画保存先 `docs/superpowers/plans/` は、このリポジトリで確立した `docs/plans/` に適応。パスを置き換えても計画の内容・実行規律は同じにする。
@@ -212,7 +220,7 @@
 
 **監査結果:**
 
-*   ファイル一覧の差は、上の「対象・対応表 (SSOT)」に記載済みの意図的適応・除外のみ（`.DS_Store`、`.gitkeep`、`systematic-debugging/CREATION-LOG.md`、ローカル専用の観察・セッション運用系5スキル、`copilot-tools.md`、`opencode-tools.md`、`CLAUDE_MD_TESTING.md` → `ANTIGRAVITY_MD_TESTING.md`）で、理由のない欠落・追加・パス変更はありませんでした。
+*   ファイル一覧の差は、上の「対象・対応表 (SSOT)」に記載済みの意図的適応・除外のみ（`.DS_Store`、`.gitkeep`、`systematic-debugging/CREATION-LOG.md`、ローカル専用の観察・セッション運用系5スキル、`copilot-tools.md`、`opencode-tools.md`、`CLAUDE_MD_TESTING.md` → `AGENTS_MD_TESTING.md`）で、理由のない欠落・追加・パス変更はありませんでした。
 *   15スキル全ファイルについて上流・移植先を全文読み込み、適用トリガー、分岐、承認ゲート、完了状態、手順の順序、MUST/NEVER の強さ、数値（再開ループ R≤3、5ラウンド制限ブレーカー、3回失敗上限等）、機械可読トークン、スクリプトの exit コード、参照リンクを照合しました。意味ドリフトは検出されませんでした。
 *   前回監査後に `skills/` で唯一変更された `scripts/task-brief` の日本語見出し対応は、上流動作を保持する上位互換の言語適応として対応表に追記しました（上の対象・対応表 (SSOT) の該当項目）。
 

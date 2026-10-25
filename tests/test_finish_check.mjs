@@ -155,11 +155,11 @@ test('finish_check.mjs - 異常系: agents/ の変更を検知して非ゼロで
   }
 });
 
-test('finish_check.mjs - 異常系: ANTIGRAVITY.md の変更を検知して非ゼロで終了すること', (t) => {
+test('finish_check.mjs - 異常系: AGENTS.md の変更を検知して非ゼロで終了すること', (t) => {
   const repoPath = createTempRepo();
   try {
-    fs.writeFileSync(path.join(repoPath, 'ANTIGRAVITY.md'), 'updated constitution');
-    spawnSync('git', ['add', 'ANTIGRAVITY.md'], { cwd: repoPath });
+    fs.writeFileSync(path.join(repoPath, 'AGENTS.md'), 'updated constitution');
+    spawnSync('git', ['add', 'AGENTS.md'], { cwd: repoPath });
     spawnSync('git', ['commit', '-m', 'update constitution without version update'], { cwd: repoPath });
 
     const result = spawnSync('node', [SCRIPT_PATH, 'HEAD~1'], { 
@@ -167,7 +167,7 @@ test('finish_check.mjs - 異常系: ANTIGRAVITY.md の変更を検知して非�
       encoding: 'utf8' 
     });
     
-    assert.notStrictEqual(result.status, 0, 'ANTIGRAVITY.md の変更がある場合は非ゼロで終了すべき');
+    assert.notStrictEqual(result.status, 0, 'AGENTS.md の変更がある場合は非ゼロで終了すべき');
   } finally {
     fs.rmSync(repoPath, { recursive: true, force: true });
   }

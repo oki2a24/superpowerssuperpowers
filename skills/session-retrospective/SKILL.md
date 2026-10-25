@@ -32,9 +32,9 @@ description: セッション終了時、または失敗の物理的証拠（エ�
 
 ### 2. 資産への精密なマッピング (Asset Mapping & Strata)
 特定された各不備に対し、どの資産を修正・更新すべきかを特定します。
-- **影響を受ける規律 (Asset)**: どのスキル（`SKILL.md`）または憲法（`ANTIGRAVITY.md`）に関連するか。
+- **影響を受ける規律 (Asset)**: どのスキル（`SKILL.md`）または憲法（`AGENTS.md`）に関連するか。
 - **修正の初動 (Distill)**: `observation-distiller` を介し、`observations/` (L2-L4) へ知見を蒸留する案を策定する。
-  - **重要**: 原則として直接 `SKILL.md` や `ANTIGRAVITY.md` 本体を更新してはならない。Observations での熟成を優先せよ。
+  - **重要**: 原則として直接 `SKILL.md` や `AGENTS.md` 本体を更新してはならない。Observations での熟成を優先せよ。
 - **将来の宿題 (TODO)**: 構造的な改善が必要な場合、`docs/TODO.md` へのタスク追加案を策定する。
 
 ### 3. 物理的アクション・マトリクスの出力 (Physical Action Matrix)
@@ -42,7 +42,7 @@ description: セッション終了時、または失敗の物理的証拠（エ�
 
 | 課題 (RED: 物理的証拠) | 修正対象 (Asset) | 層 (Strata) | 具体的な物理アクション |
 | :--- | :--- | :--- | :--- |
-| 例: コミット漏れ | `ANTIGRAVITY.md` | L4 Project | DoD に `git status` の確認ステップを明示 |
+| 例: コミット漏れ | `AGENTS.md` | L4 Project | DoD に `git status` の確認ステップを明示 |
 | 例: YAML パースエラー | `session-coordination` | L2 Shared | `observations/` に YAML キー保護ルールを追記 |
 
 ### 4. 改善の永続化と宿題の提案 (Persistence)
@@ -61,7 +61,7 @@ description: セッション終了時、または失敗の物理的証拠（エ�
 ## 禁止事項
 - **事実の要約**: すでにチャット履歴にあることを繰り返してはいけません。
 - **感情的な反省**: 「今後は気をつけます」といった精神論は、何の改善にも繋がりません。出力の 80% 以上を物理的な分析（マトリクス等）に充ててください。
-- **直接の本体更新**: Observations (L2-L4) を介さずに `SKILL.md` や `ANTIGRAVITY.md` 本体を直接修正することを提案してはいけません。
+- **直接の本体更新**: Observations (L2-L4) を介さずに `SKILL.md` や `AGENTS.md` 本体を直接修正することを提案してはいけません。
 
 ## よくある間違い
 - **振り返りを最後に回す**: 疲労で内容が薄くなる。 -> 重要な指摘を受けた瞬間に、このスキルの「ログ作成」だけ先に行え。

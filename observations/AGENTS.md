@@ -1,4 +1,4 @@
-# 知見：ANTIGRAVITY.md (Extension Shared)
+# 知見：AGENTS.md (Extension Shared)
 
 ## タスク管理規律：ネイティブ・ファースト & サイレント・フォールバック
 

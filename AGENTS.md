@@ -1,6 +1,6 @@
-# Antigravity CLI プロジェクト憲法 (Project Constitution)
+# プロジェクト憲法 (Project Constitution)
 
-本ファイルは、本プロジェクトにおいて Antigravity CLI (agy) エージェントが遵守すべき「行動原理」および「品質基準」を規定する。
+本ファイルは、本プロジェクトにおいて AI エージェント（opencode、Codex 等、任意の生成AIハーネス上で動作するエージェント）が遵守すべき「行動原理」および「品質基準」を規定する。
 
 ---
 

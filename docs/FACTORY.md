@@ -7,14 +7,14 @@
 ## Ⅰ. 移植・開発の基本原則 (Principles of Porting)
 
 - **オリジナルの尊重 (Original Fidelity)**:
-    - 移植元の構造やロジックを最大限尊重しつつ、Gemini CLI の特性（`ask_user`、`activate_skill` 等）に適合させよ。
+    - 移植元の構造やロジックを最大限尊重しつつ、お使いの生成AIハーネスの特性（サブエージェント派遣、スキル起動機構、対話への問いかけ等）に適合させよ。ハーネス固有の読み替えは `skills/using-superpowers/references/` の各ツール対応ドキュメントに集約せよ。
 - **Node.js への完全準拠**:
     - スクリプトおよび移植後のロジックはすべて Node.js (v20+) で実装せよ。Python の新規導入は禁止する。
 
 ## Ⅱ. 開発支援ツール (Factory Tools)
 
 - **Todo 管理**: `node scripts/todo.mjs` を使用し、作業の進捗を管理せよ。
-- **連携プロトコル**: 大規模タスクの分割には `scripts/gemini_sub.mjs` (GPAC) を活用せよ。
+- **連携プロトコル**: 大規模タスクの分割には `scripts/agy_sub.mjs` (GPAC) を活用せよ。
 
 ## Ⅲ. アップデート追随の規律 (Upstream Sync Mandate)
 
@@ -40,6 +40,6 @@
 
 1. **リリースの完全性**:
     - AI の振る舞いに影響を与える「コアファイル（プロンプト、スクリプト等）」に変更を加えた際は、必ずバージョン番号を更新せよ。
-    - [ ] **Versioning**: `gemini-extension.json` の更新状況を確認せよ。
+    - [ ] **Versioning**: `package.json`、`antigravity-extension.json`、`.codex-plugin/plugin.json` の3つのマニフェストのバージョンを同じ値に更新し、完了前に `node scripts/finish_check.mjs <ベースブランチ>` で確認せよ。
 2. **移植の記録**:
     - [ ] **Porting Record**: `docs/superpowers_ports.md` への追記を確認せよ。

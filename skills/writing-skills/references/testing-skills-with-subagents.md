@@ -17,7 +17,7 @@ description: スキルの作成や編集時、デプロイ前に使用。サブ�
 
 **必須の背景知識:** このスキルを使用する前に、`test-driven-development` を理解している必要があります。そのスキルは基本的な RED-GREEN-REFACTOR サイクルを定義しています。本スキルは、スキル特有のテスト形式（圧力シナリオ、自己正当化テーブル）を提供します。
 
-**具体的な例:** `ANTIGRAVITY.md` のドキュメントバリエーションをテストした完全なキャンペーンについては、このディレクトリの `ANTIGRAVITY_MD_TESTING.md`（移植元: `CLAUDE_MD_TESTING.md`）を参照してください。
+**具体的な例:** `AGENTS.md` のドキュメントバリエーションをテストした完全なキャンペーンについては、このディレクトリの `AGENTS_MD_TESTING.md`（移植元: `CLAUDE_MD_TESTING.md`）を参照してください。
 
 ## いつ使用するか
 

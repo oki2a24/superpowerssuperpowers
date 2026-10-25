@@ -3,10 +3,14 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-v20+-green.svg)](https://nodejs.org/)
 
-**Antigravity CLI (agy) / Pi Coding Agent / opencode のための高精度インテリジェンス & スキル拡張**
+**生成AIコーディングハーネスのための高精度インテリジェンス & スキル拡張**
 
-`SuperpowersSuperpowers` は、Antigravity CLI (agy)、Pi Coding Agent、opencode、Codex、Gemini CLI に「高度な思考プロセス」と「自律的な自己進化」を統合する、プロフェッショナル仕様の拡張機能です。
+`SuperpowersSuperpowers` は、生成AIコーディングハーネス（例: opencode、Codex、Antigravity CLI (agy)、Pi Coding Agent、Gemini CLI）に「高度な思考プロセス」と「自律的な自己進化」を統合する、プロフェッショナル仕様のスキルライブラリです。
+特定のハーネスには依存せず、プラットフォーム適応レイヤー（`using-superpowers` のツール対応ドキュメント群）を通じて、各ハーネスのネイティブ機能に読み替えて動作します。
 業界標準のエンジニアリング規律（移植軸）と、長期的な経験を資産化する独自知能（知能軸）を融合させることで、単なるツールを超えた「成長し続けるエンジニアリング・パートナー」を定義します。
+
+> [!NOTE]
+> **由来と変遷**: 本プロジェクトは `obra/superpowers` を Gemini CLI に移植したことが始まりで、その後 Antigravity CLI (agy) への対応を経て、現在は複数のハーネスで利用される汎用スキル群として整備されています。歴史的経緯の詳細は [`docs/superpowers_ports.md`](docs/superpowers_ports.md) 冒頭の「歴史的経緯」を参照してください。
 
 ---
 
@@ -15,7 +19,7 @@
 本プロジェクトは、互いに相乗効果を生み出す 2 つの柱によって構成されています。
 
 ### 1. Inherited Foundations: 信頼の基盤
-[obra/superpowers](https://github.com/obra/superpowers) の優れた設計思想を Antigravity, Pi Coding Agent, opencode, Codex, Gemini CLI へ忠実に移植。
+[obra/superpowers](https://github.com/obra/superpowers) の優れた設計思想を各生成AIハーネスへ忠実に移植。
 *   **規律の物理的強制**: TDD（テスト駆動開発）、体系的なデバッグ、および構造化された実装計画。
 *   **安全な実行環境**: Git Worktrees による環境隔離と、サブエージェントへの確実な任務委譲。
 *   **信頼性**: すべての移植スキルは対応ランタイムに最適化され、予測可能で高品質な成果を保証します。
@@ -154,7 +158,7 @@ codex plugin marketplace remove superpowerssuperpowers
 
 ## 🛠 エンジニアリング・ファンデーション (Development Catalog)
 
-本セクションのスキルは、AI エージェントの自律開発における先駆的プロジェクトである [**obra/superpowers**](https://github.com/obra/superpowers) の卓越した設計思想に基づき、Gemini CLI へと移植されたものです。オリジナルの厳格な規律を継承し、予測可能で堅牢な開発プロセスを提供します。
+本セクションのスキルは、AI エージェントの自律開発における先駆的プロジェクトである [**obra/superpowers**](https://github.com/obra/superpowers) の卓越した設計思想に基づき、各生成AIハーネスへ移植されたものです。オリジナルの厳格な規律を継承し、予測可能で堅牢な開発プロセスを提供します。
 
 > [!IMPORTANT]  
 > **Respect for Original**: 以下のスキルは `Ported` (移植済み) であり、オリジナルのワークフローと規律を尊重しつつ、対応環境のランタイムに最適化されています。
@@ -290,4 +294,4 @@ AI エージェントは、実行時に以下の 4 つの層を順にスキャ�
 - **`docs/`**: デザインドキュメント、実装計画、移植記録
 
 ---
-*Created by Antigravity CLI Agent — A partner in self-evolving software engineering.*
+*Created by AI Agent — A partner in self-evolving software engineering.*
