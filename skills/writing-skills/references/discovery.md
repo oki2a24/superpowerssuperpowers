@@ -129,6 +129,16 @@ description: React Routerを使用して認証リダイレクトを処理する�
 - ✅ `creating-skills` not `skill-creation`
 - ✅ `condition-based-waiting` not `async-test-helpers`
 
+**行っていること（DO）や核心の洞察で命名する：**
+- ✅ `condition-based-waiting` > `async-test-helpers`
+- ✅ `using-skills` not `skill-usage`
+- ✅ `flatten-with-flags` > `data-structure-refactoring`
+- ✅ `root-cause-tracing` > `debugging-techniques`
+
+**進行形（-ing 形）はプロセスに有効です：**
+- `creating-skills`、`testing-skills`、`debugging-with-logs`
+- 能動的で、実行している行為をそのまま表します
+
 ### 4. トークン効率（重要）
 
 **問題：** 頻繁に参照されるスキルは、すべての会話に読み込まれます。すべてのトークンが重要です。
@@ -165,12 +175,12 @@ my-toolは複数のモードとフィルターをサポートしています。�
 # ❌ 悪い例：冗長な例（42語）
 ユーザー：「以前、React Routerでの認証エラーはどう処理しましたか？」
 エージェント：過去の会話からReact Routerの認証パターンを検索します。
-[複雑なクエリでrun_shell_commandを実行]
+[検索クエリ「React Router 認証エラー処理 401」でサブエージェントに検索を依頼]
 
 # ✅ 良い例：最小限の例（20語）
 ユーザー：「React Routerでの認証エラーはどう処理しましたか？」
 エージェント：検索中...
-[run_shell_command → 要約]
+[検索クエリ「React Router 認証エラー処理 401」でサブエージェントに検索を依頼 → 要約]
 ```
 
 **冗長性の排除：**
@@ -190,8 +200,8 @@ wc -w skills/path/SKILL.md
 **他のスキルを参照するドキュメントを作成する場合：**
 
 明示的な要件マーカーとともにスキル名のみを使用します：
-- ✅ 良い例：`**必須のサブスキル：** test-driven-developmentを使用`
-- ✅ 良い例：`**必須の背景知識：** systematic-debuggingを理解している必要があります`
+- ✅ 良い例：`**必須のサブスキル：** superpowers:test-driven-development を使用`
+- ✅ 良い例：`**必須の背景知識：** superpowers:systematic-debugging を理解している必要があります`
 - ❌ 悪い例：`skills/testing/test-driven-developmentを参照`（必須かどうかが不明確）
 - ❌ 悪い例：`@skills/testing/test-driven-development/SKILL.md`（強制読み込みされ、コンテキストを消費する）
 
