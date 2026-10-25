@@ -716,7 +716,7 @@ export function main() {
   const args = process.argv.slice(2);
   const command = args[0];
 
-  const launcher = process.env.GPAC_LAUNCHER || 'manual';
+  const launcher = process.env.GPAC_LAUNCHER || ('manual');
   const defaultProject = path.basename(process.cwd());
 
   try {
