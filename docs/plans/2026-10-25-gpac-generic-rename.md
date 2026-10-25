@@ -40,7 +40,7 @@
 - 消費: なし
 - 生産: `getTaskDir(): string` — `AGENTS_TASK_DIR` → （未設定時）`ANTIGRAVITY_TASK_DIR` → （未設定時）`.agents/tasks` の順で返す。後続タスクはこの契約に依存しない。
 
-- [ ] **ステップ 1: 失敗するテストを作成** — `tests/test_todo_core.mjs` に追加:
+- [x] **ステップ 1: 失敗するテストを作成** — `tests/test_todo_core.mjs` に追加:
 
 ```js
 test('todo.mjs - AGENTS_TASK_DIR 未設定で旧名 ANTIGRAVITY_TASK_DIR のみ設定時、互換読みとして旧値を使う', () => {
@@ -52,11 +52,11 @@ test('todo.mjs - AGENTS_TASK_DIR 未設定で旧名 ANTIGRAVITY_TASK_DIR のみ�
 
 さらに既存 4 テストファイル内の `ANTIGRAVITY_TASK_DIR` / `.antigravity/tasks` 記述を `AGENTS_TASK_DIR` / `.agents/tasks` 系に置換する（この段階では既存アサーションが不正になる＝RED）。
 
-- [ ] **ステップ 2: テストが失敗することを確認**
+- [x] **ステップ 2: テストが失敗することを確認**
   実行: `node --test tests/test_todo_core.mjs`
  期待値: 既定パスと旧名のテストが FAIL（現状は `.antigravity/tasks` を返すため）
 
-- [ ] **ステップ 3: `getTaskDir()` を実装**
+- [x] **ステップ 3: `getTaskDir()` を実装**
 
 ```js
 export function getTaskDir() {
@@ -66,11 +66,11 @@ export function getTaskDir() {
 
 旧 env 名は「廃止予定の互換読み」である旨を JSDoc（日本語）で明記する。
 
-- [ ] **ステップ 4: テストがパスすることを確認**
+- [x] **ステップ 4: テストがパスすることを確認**
   実行: `node --test tests/test_todo_core.mjs tests/test_todo_hierarchy.mjs tests/test_todo_ai_friendly.mjs tests/test_todo_hardening.mjs tests/test_todo_ui.mjs`
   期待値: 全 PASS
 
-- [ ] **ステップ 5: コミット**
+- [x] **ステップ 5: コミット**
 
 ```bash
 git add -A && git commit -m "refactor: todo.mjs のタスクディレクトリを汎用名前空間へ移行"
@@ -86,12 +86,12 @@ git add -A && git commit -m "refactor: todo.mjs のタスクディレクトリ�
 - 消費: なし
 - 生産: `scripts/gpac_sub.mjs` の全公開関数（`getGpacBaseDir` / `getCliCommand` / `createPayload` / `launchSession` / `spawn` / `report` / `listSessions` / `showFile` / `handleImport` / `createFromTemplate` / `main` / `generateTaskId` / `parseYamlFrontmatter` / `validateFrontmatter` / `handoffDocument`）。シグネチャは改名前と同一。タスク 3 はこのモジュールを改変する。
 
-- [ ] **ステップ 1: `git mv` で 3 ファイルを改名**
-- [ ] **ステップ 2: テスト・本文中の参照を更新**（`agy_sub.mjs` の文字列参照と import パスのみ。`.antigravity` の期待値は**この時点では触らない**）
-- [ ] **ステップ 3: テストがパスすることを確認**（挙動無変更の改名であることをグリーンで証明する）
+- [x] **ステップ 1: `git mv` で 3 ファイルを改名**
+- [x] **ステップ 2: テスト・本文中の参照を更新**（`agy_sub.mjs` の文字列参照と import パスのみ。`.antigravity` の期待値は**この時点では触らない**）
+- [x] **ステップ 3: テストがパスすることを確認**（挙動無変更の改名であることをグリーンで証明する）
   実行: `node --test tests/test_gpac_sub.mjs tests/test_gpac_sub_ui.mjs`
   期待値: 全 PASS
-- [ ] **ステップ 4: コミット**
+- [x] **ステップ 4: コミット**
   `git commit -m "refactor: agy_sub.mjs を gpac_sub.mjs に改名"`
 
 ### タスク 3: GPAC の SSOT パス・CLI 契約・env 名の汎用化（挙動変更）
@@ -104,7 +104,7 @@ git add -A && git commit -m "refactor: todo.mjs のタスクディレクトリ�
 - 消費: タスク 2 の `scripts/gpac_sub.mjs`
 - 生産: `getGpacBaseDir(homeDir=null): string`（`path.join(baseHome, '.agents', 'sub-sessions')`）、`getCliCommand(): string|null`（`process.env.GPAC_AGENT_COMMAND || null`）、`createPayload(workDir: string, taskId: string): string`（CLI 部に `getCliCommand()` の値または `<YOUR_AGENT_CLI>`、命令文は spawn 時に算出したスクリプト絶対パスの `node <abs>/scripts/gpac_sub.mjs show-task <id>` を参照）、`launchSession(sessionId, taskPath, workDir, launcherMode='manual')`（`GPAC_AGENT_COMMAND` 未設定時は tmux モードを拒否して manual へフォールバックし、`GPAC_AGENT_COMMAND="<CLI> [args...]" node <abs>/scripts/gpac_sub.mjs ...` の再実行案内を出す）、`main()` の launcher env は `GPAC_LAUNCHER`
 
-- [ ] **ステップ 1: 失敗するテストを作成** — `tests/test_gpac_sub.mjs` に追加（既存テストの `.antigravity` 期待値も併せて `.agents` に書き換え）:
+- [x] **ステップ 1: 失敗するテストを作成** — `tests/test_gpac_sub.mjs` に追加（既存テストの `.antigravity` 期待値も併せて `.agents` に書き換え）:
 
 ```js
 // 3-1: SSOT パス
@@ -142,20 +142,20 @@ test('gpac_sub.mjs - GPAC_AGENT_COMMAND 未設定の tmux モードは tmux を�
 
 さらに `tests/test_agy_sub.mjs` 由来の既存テスト（spawn/report/list/show/import 系）の期待パスを `tempHome/.agents/sub-sessions` に書き替え、UI テスト（`tests/test_gpac_sub_ui.mjs`）の env 期待を `GPAC_LAUNCHER` に書き替える。
 
-- [ ] **ステップ 2: テストが失敗することを確認**
+- [x] **ステップ 2: テストが失敗することを確認**
   実行: `node --test tests/test_gpac_sub.mjs`
  期待値: 上記 5 件と既存パス期待値が FAIL（`.antigravity` 返却・`agy` ハードコードゆえ）
 
-- [ ] **ステップ 3: `scripts/gpac_sub.mjs` を実装**
+- [x] **ステップ 3: `scripts/gpac_sub.mjs` を実装**
   - `getGpacBaseDir`: `.antigravity` → `.agents`
   - `getCliCommand`: `process.env.GPAC_AGENT_COMMAND || null`
   - `createPayload`: スクリプト絶対パスを `fileURLToPath(import.meta.url)` から解決して命令文に埋め込み、CLI 部は `getCliCommand() || '<YOUR_AGENT_CLI>'`
   - `launchSession`: `launcherMode === 'tmux' && !getCliCommand()` の場合は tmux 実行前に manual へフォールバック（manual 文面に `GPAC_AGENT_COMMAND` 再実行案内を追加）
   - `main`: `const launcher = process.env.GPAC_LAUNCHER || 'manual';`
-- [ ] **ステップ 4: テストがパスすることを確認**
+- [x] **ステップ 4: テストがパスすることを確認**
   実行: `node --test tests/test_gpac_sub.mjs tests/test_gpac_sub_ui.mjs`
   期待値: 全 PASS
-- [ ] **ステップ 5: コミット**
+- [x] **ステップ 5: コミット**
   `git commit -m "feat: GPAC を GPAC_AGENT_COMMAND / .agents 名前空間で汎用化"`
 
 ### タスク 4: スキル・地層ドキュメントの追従
