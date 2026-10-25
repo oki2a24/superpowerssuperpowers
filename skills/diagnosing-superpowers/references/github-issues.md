@@ -30,10 +30,10 @@ gh issue create --repo obra/superpowers --title "<title>" --body-file <path> \
 
 報告者に push 権限がないと GitHub はラベルを黙って落とすため、ラベルが付くのはコラボレーターのみです。テンプレートフッターは skill-filed である旨を残します。`gh` はファイルを添付できません。issue 作成後にブラウザで添付できるよう、パートナーにバンドルパスを渡します。
 
-`gh` なしの場合は `diagnosis_report.md` テンプレートの事前記入リンクを渡します。どの報告者にも両ラベルが付きます:
+`gh` なしの場合は `bug_report.md` テンプレートの事前記入リンクを渡します。どの報告者にも `bug` ラベルが付きます:
 
 ```
-https://github.com/obra/superpowers/issues/new?template=diagnosis_report.md&title=<url-encoded title>&body=<url-encoded body>
+https://github.com/obra/superpowers/issues/new?template=bug_report.md&title=<url-encoded title>&body=<url-encoded body>
 ```
 
 GitHub は約8,000文字超の URL を拒否します。超える場合はタイトルのみのリンクを送り、本文はファイルから貼り付けるようパートナーに伝えます。

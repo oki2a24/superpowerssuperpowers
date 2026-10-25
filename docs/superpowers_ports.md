@@ -189,7 +189,7 @@
 * 上流のアクティブな15スキル `superpowers-original/skills/<name>/**` は、同じ相対パスの `skills/<name>/**` に対応します。対象名: `brainstorming`, `diagnosing-superpowers`, `dispatching-parallel-agents`, `executing-plans`, `finishing-a-development-branch`, `receiving-code-review`, `requesting-code-review`, `subagent-driven-development`, `systematic-debugging`, `test-driven-development`, `using-git-worktrees`, `using-superpowers`, `verification-before-completion`, `writing-plans`, `writing-skills`。
 * `systematic-debugging/CREATION-LOG.md` は作成経緯の開発ログであり、実行時スキル内容ではないため移植対象から除外。
 * 上流 `using-superpowers/references/hermes-tools.md` は移植対象に追加し、メインの `SKILL.md` から参照。
-* 上流 `writing-skills/examples/CLAUDE_MD_TESTING.md` は Antigravity 用の `ANTIGRAVITY_MD_TESTING.md` で置き換える。これは対象プラットフォーム向けの意図的な代替例。
+* 上流 `writing-skills/examples/CLAUDE_MD_TESTING.md` は Antigravity 用の `ANTIGRAVITY_MD_TESTING.md` で置き換える。これは対象プラットフォーム向けの意図的な代替例（v7.0.1 で上流側も `references/CLAUDE_MD_TESTING.md` へ移動したため、本リポジトリでは `skills/writing-skills/references/ANTIGRAVITY_MD_TESTING.md` として対応）。
 * `using-superpowers/references/copilot-tools.md` と `opencode-tools.md` はローカルのプラットフォーム追加。`using-git-worktrees/.gitkeep`、`.DS_Store` は上流コンテンツに含めない。
 * ローカルにのみある `observation-distiller`、`roadmap-management`、`session-coordination`、`session-handoff`、`session-retrospective` は、このリポジトリ独自の観察記録・計画管理・セッション運用スキルであり、上流 `obra/superpowers` に対応するアクティブスキルがないため移植・同期対象外。
 * 上流の計画保存先 `docs/superpowers/plans/` は、このリポジトリで確立した `docs/plans/` に適応。パスを置き換えても計画の内容・実行規律は同じにする。
@@ -294,3 +294,22 @@
 **検証範囲:** `git diff --check`、リポジトリ既存テスト（`tests/test_finish_check.mjs`、失敗0）、主要修復ファイルの上流対照再確認、mermaid / DOT 図の記法照合。スキル本文の実ロード実行テストは未実施。
 
 **リリース管理:** コア（`skills/`）変更を含むため、3つの配布マニフェストを `1.12.3` から `1.12.4` に揃えて更新（`scripts/finish_check.mjs` のコア変更・バージョン整合ゲートが要求する手順）。
+
+### コミットハッシュ: `2ce8aa15d05bd57213e6f746f953aafb7ded7a8b` (Upstream v7.0.1 準拠)
+
+上流 `superpowers-original` を `bb92a77`（v7.0.0）から `2ce8aa1`（Release v7.0.1: brainstorming retune, skills that better survive compaction, contribution templates）へ進めました。3つの配布マニフェストは `1.12.4` から `1.12.5` に揃えて更新。
+
+**同期・アップデート済みスキル:**
+
+*   `brainstorming` (実装前の必須手順を明文化: 手法の提示 → デザイン文書 → 承認 → writing-plans 起動、「実装ではない2つ」の明示、`Look Before You Ask`（聞く前に見る）セクション追加、最初のメッセージの2分岐化（要求済み/未要求）とブレインストーミング要求の有無による締め方の分岐、スキル引用禁止の一文追加、質問指針を「具体的でソクラテス的な質問」へ刷新、「内側で広く考える」を「手法の提示」に刷新、ビジュアル確認後のモックアップ添付規律維持、規模テーブルを2行化しデザイン文書に Approaches 部分を必須化、デザイン文書カバレッジへの「手法」追加、小変更の短いデザインの明文化、ビルダーチェックをプロジェクト限定に変更、HARD-GATE をデザイン文書承認（小変更＝短い文書／プロジェクト＝完全な文書）への統一、Red Flags の1行変更・1行追加・1行修正。再生 (Play It Back) の推測表示を「あなたの提案＋理由」へ更新)
+*   `executing-plans` (上流削除に追従し「実行例 (Example Workflow)」セクションを削除)
+*   `subagent-driven-development` (場面別 references 化: `references/fix-loop.md`・`final-review.md`・`preflight.md`・`resuming.md`・`batching.md`・`handling-reports.md`・`cannot-verify.md` を新規配置。SKILL.md の該当セクション（既存台帳確認・衝突スキャン・同じ形の小さな作業・ステータスハンドリング・差分から検証不能・修正ループ・最終レビュー＋締め処理）を参照指示に刷新し、「実行例」を削除、「使用するテンプレートとスクリプト」に場面別参照一覧を追加。機械可読トークン `Task <N>: ...` `Ruling: <...>` は原文維持)
+*   `writing-skills` (同様の references 化: `references/discovery.md`・`bulletproofing.md`・`flowcharts.md` を新規配置。`anthropic-best-practices.md`・`persuasion-principles.md`・`graphviz-conventions.dot`・`testing-skills-with-subagents.md` を `references/` へ移動し、ファイル内の参照先を更新。SKILL.md は「SKILL.md の執筆」「フローチャート」「正当化に対する防弾化」の参照指示に刷新し、「知見の蒸留 (Observations)」節はローカル運用への適応として維持)
+*   `diagnosing-superpowers` (承認ゲートに「プレースホルダの要約のまま issue やコメントを作成しない」を追加、`references/github-issues.md` を `bug_report.md` テンプレート・`bug` ラベルへ更新、`templates/issue.md` に「このレポートの提出者（必須）」「人間による要約（必須、200語未満）」セクション追加、superpowers 非再現確認の記述式化、フッターの記載先更新)
+
+**上流で確認済み・対象外:**
+
+*   上流 `.github` のコントリビューションテンプレ刷新（`diagnosis_report.md` の廃止と `bug_report.md`・`platform_support.md`・`feature_request.md`・`PULL_REQUEST_TEMPLATE.md` の導入・更新）、`AGENTS.md`・`README.md`・`RELEASE-NOTES.md`・各プラグインマニフェストのバージョンタグ更新は上流リポジトリのインフラであり、スキル移植対象外。
+*   上流 `tests/skill-size/test-skill-size.sh`（SKILL.md 20,000 バイト上限ゲート。Claude Code がコンパクション後にスキルを切り詰める仕様 #2481 への対策）は移植しない。日本語はバイト幅が英字より大きく、意味を保った翻訳では `writing-skills`（約25.6KB）・`executing-plans`（約21.7KB）が上限を超過する。本リポジトリの対象環境には Claude Code 特有の切捨てがなく、意味パリティを優先するためこのゲートを採用しない。
+
+**検証範囲:** リポジトリ既存テスト `tests/test_finish_check.mjs`(7件) / `tests/test_task_brief.mjs`(5件) / `tests/test_hook_output.mjs` / `tests/test_pre_push_hook.mjs` 全 pass、`git diff --check`、3配布マニフェストのバージョン一致（`1.12.5`）と `scripts/finish_check.mjs` のゲート pass、移動・新規ファイルの参照整合確認。スキル本文の実ロード実行テストは未実施。
