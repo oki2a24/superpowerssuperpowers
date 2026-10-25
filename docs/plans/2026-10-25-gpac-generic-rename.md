@@ -194,7 +194,7 @@ test('gpac_sub.mjs - GPAC_AGENT_COMMAND 未設定の tmux モードは tmux を�
 **ファイル:**
 - 変更: `package.json`・`antigravity-extension.json`・`.codex-plugin/plugin.json`（→ 1.12.7）
 
-- [ ] **ステップ 1: 3 マニフェストの version を 1.12.7 に更新**
-- [ ] **ステップ 2: 全テスト実行** — `for f in tests/test_*.mjs; do node --test "$f" || exit 1; done` 期待値: FAIL なし
-- [ ] **ステップ 3: `node scripts/finish_check.mjs origin/main`** — 期待値: "✨ All checks passed"
-- [ ] **ステップ 4: コミット** — `git commit -m "chore: GPAC 汎用化に伴う配布バージョンを 1.12.7 に連動"`
+- [x] **ステップ 1: 3 マニフェストの version を 1.12.7 に更新**
+- [x] **ステップ 2: 全テスト実行** — `for f in tests/test_*.mjs; do node --test "$f" || exit 1; done` 期待値: FAIL なし
+- [x] **ステップ 3: `node scripts/finish_check.mjs origin/main`** — 期待値: "✨ All checks passed"
+- [x] **ステップ 4: コミット** — `git commit -m "chore: GPAC 汎用化に伴う配布バージョンを 1.12.7 に連動"`
