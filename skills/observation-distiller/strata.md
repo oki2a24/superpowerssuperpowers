@@ -6,7 +6,7 @@
 ```text
 [ 低優先 ]                                                                                                          [ 高優先 ]
   L1: Core (Skills)             L2: Extension (Shared)                L3: Personal (Global)         L4: Project (Local)
-  [Extension Root]/skills       [Extension Root]/observations         ~/.antigravity/observations/       ./.antigravity/observations/
+  [Extension Root]/skills       [Extension Root]/observations         ~/.agents/observations/       ./.agents/observations/
           |                             |                             |                             |
           +-----------------------------+-----------------------------+-----------------------------+
                                         |
@@ -22,3 +22,4 @@
     - 特定のスキルを使用する直前に、L1-L4 のすべての層から対応する知見ファイル（`スキル名.md`）を読み込め。
     - **マージ戦略**: 下位層から順に読み込み、上位層に同名のファイルが存在する場合は、その差分を適用（補足または上書き）せよ。
 - **スペルの厳格化**: ディレクトリやパスの記述において `observations` / `extensions` 等のフルスペルを厳守せよ（略称禁止）。
+- **クロスランタイム規約**: L3/L4 のパスは `~/.agents` / `.agents` という、特定の生成AIハーネスに依存しない汎用的な agents 名前空間の規約に乗る。どのハーネス上で実行しても同一レイアウトで知見を参照できる。
