@@ -182,11 +182,11 @@ test('gpac_sub.mjs - GPAC_AGENT_COMMAND 未設定の tmux モードは tmux を�
 - 消費: タスク 1〜4 の確定名称
 - 生産: なし（ドキュメント）
 
-- [ ] **ステップ 1: README** — ①「知見の地層と優先順位」図解の L3/L4 を新パスへ、②「ファイルシステムへの影響」表を新パスへ、③ GPAC 節の名称を "Peer-Agent Coordination (GPAC)" に、④「最小権限の原則」の `~/.antigravity/` → `~/.agents/`、⑤ 移行 NOTE 追記（`mv ~/.antigravity/observations ~/.agents/observations` 等の手順 + 「旧環境データは自動移行されない」旨）。
-- [ ] **ステップ 2: `docs/TODO.md`** — 「6. ハーネス汎用化の残課題」の該当 2 項目を `[x]` にして成果（本設計・計画へのリンク）を記録。
-- [ ] **ステップ 3: obs 等の機械的参照更新** — `grep -rn "agy_sub\|ANTIGRAVITY_TASK_DIR\|GEMINI_SUB_LAUNCHER\|\.antigravity/tasks\|sub-sessions"`（`skills/ observations/ .agents/ docs/`、`superpowers-original` と履歴文書・obs 事実記述を除く）をすべて現行名へ更新。
-- [ ] **ステップ 4: 物理検証** — 上記 `grep`（ obs 事実記述以外）が空であること。
-- [ ] **ステップ 5: コミット**
+- [x] **ステップ 1: README** — ①「知見の地層と優先順位」図解の L3/L4 を新パスへ、②「ファイルシステムへの影響」表を新パスへ、③ GPAC 節の名称を "Peer-Agent Coordination (GPAC)" に、④「最小権限の原則」の `~/.antigravity/` → `~/.agents/`、⑤ 移行 NOTE 追記（`mv ~/.antigravity/observations ~/.agents/observations` 等の手順 + 「旧環境データは自動移行されない」旨）。
+- [x] **ステップ 2: `docs/TODO.md`** — 「6. ハーネス汎用化の残課題」の該当 2 項目を `[x]` にして成果（本設計・計画へのリンク）を記録。
+- [x] **ステップ 3: obs 等の機械的参照更新** — `grep -rn "agy_sub\|ANTIGRAVITY_TASK_DIR\|GEMINI_SUB_LAUNCHER\|\.antigravity/tasks\|sub-sessions"`（`skills/ observations/ .agents/ docs/`、`superpowers-original` と履歴文書・obs 事実記述を除く）をすべて現行名へ更新。
+- [x] **ステップ 4: 物理検証** — 上記 `grep`（ obs 事実記述以外）が空であること。
+- [x] **ステップ 5: コミット**
   `git commit -m "docs: README/TODO/obs を gpac・agents 名前空間へ整合"`
 
 ### タスク 6: 配布バージョン連動と完了検証
