@@ -77,8 +77,8 @@ def _build_bootstrap(skills_dir: str) -> str:
         f"loaded for this Hermes session. Follow it now. "
         f"Do not try to load using-superpowers again.\n\n"
         f"{body}\n\n"
-        f"## Loading Superpowers Skills on Hermes\n\n"
-        f"Superpowers skills are registered with Hermes' native skill loader: "
+        f"## Loading superpowerssuperpowers Skills on Hermes\n\n"
+        f"superpowerssuperpowers skills are registered with Hermes' native skill loader: "
         f'invoke one with `skill_view("superpowerssuperpowers:skill-name")` '
         f'(for example `skill_view("superpowerssuperpowers:brainstorming")`). '
         f"If a namespaced lookup returns 'not found', read the skill file "
