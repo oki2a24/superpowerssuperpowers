@@ -1,6 +1,6 @@
 name: superpowerssuperpowers
 version: 7.0.1
-description: Superpowers skills and workflow bootstrap for Hermes Agent
-author: obra
+description: Hermes Agent 用 Superpowers スキルとワークフローのブートストラップ
+author: oki2a24
 provides_hooks:
   - pre_llm_call
