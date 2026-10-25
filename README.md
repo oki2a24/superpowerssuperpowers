@@ -68,6 +68,33 @@ codex plugin marketplace add oki2a24/superpowerssuperpowers --ref main
 codex plugin add superpowerssuperpowers@superpowerssuperpowers
 ```
 
+#### Hermes Agent の場合
+Hermes Agent のネイティブプラグイン機能でインストールします。Git URL またはリポジトリ短縮名で指定可能です。
+```bash
+# インストール（プロンプトで有効化を確認）
+hermes plugins install https://github.com/oki2a24/superpowerssuperpowers
+
+# または短縮名で（カタログ未登録のため、Git URL と同等）
+hermes plugins install oki2a24/superpowerssuperpowers
+
+# インストールと同時に有効化（依存関係の同意プロンプトは別途表示）
+hermes plugins install oki2a24/superpowerssuperpowers --enable
+
+# インストールのみ（有効化せず、プロンプトなし）
+hermes plugins install oki2a24/superpowerssuperpowers --no-enable
+
+# 特定のコミットにピン留め（完全な 40 文字 SHA が必要）
+hermes plugins install oki2a24/superpowerssuperpowers --ref 0123456789abcdef0123456789abcdef01234567
+```
+
+インストール後、プラグインが有効化されていない場合は：
+```bash
+hermes plugins enable superpowerssuperpowers
+```
+
+> [!NOTE]
+> Hermes Agent はプロジェクトローカルプラグイン (`./.hermes-plugin/`) をゲートウェイ経由では読み込みません。`hermes plugins install` でユーザープラグイン (`~/.hermes/plugins/`) としてインストールし、`hermes plugins enable` で有効化する必要があります。
+
 ---
 
 ### 2. アップデート (Update)
@@ -102,6 +129,31 @@ opencode plugin update  # 更新対象をすべて更新
 特定のパッケージのみ更新する場合は、`opencode plugin update <target>` のようにターゲットを指定します。
 
 v2 のサーバーは起動時に、ピン留めされていない npm・Git プラグインの更新を自動チェックします（インストール済みパッケージを自動で差し替えることはありません）。タグやコミットハッシュで固定した場合は指定したバージョンを使い続けます。固定を変更するときは `opencode.json(c)` の `plugins` エントリを編集するか、変更後の指定で `opencode plugin add` し直してください。
+
+#### Hermes Agent の場合
+```bash
+# プラグインの更新（最新に変更）
+hermes plugins update superpowerssuperpowers
+
+# 全プラグインの更新一覧を表示（プロンプト）
+hermes plugins update
+
+# 全プラグインの更新を実行（プロンプトなし、cron 等で使用）
+hermes plugins update --yes
+
+# プラグインのアンインストール
+hermes plugins remove superpowerssuperpowers
+
+# または rm / uninstall エイリアス
+hermes plugins rm superpowerssuperpowers
+hermes plugins uninstall superpowerssuperpowers
+
+# 無効化（アンインストールせず、有効化を解除）
+hermes plugins disable superpowerssuperpowers
+```
+
+> [!TIP]
+> `hermes update` でもプラグイン更新をチェックできます（デフォルト 24 時間ごと）。詳細は `hermes plugins check-updates` を参照してください。
 
 ---
 
@@ -143,6 +195,18 @@ marketplace の登録も削除する場合：
 ```bash
 codex plugin marketplace remove superpowerssuperpowers
 ```
+
+#### Hermes Agent の場合
+```bash
+# プラグインのアンインストール
+hermes plugins remove superpowerssuperpowers
+
+# または rm / uninstall エイリアス
+hermes plugins rm superpowerssuperpowers
+hermes plugins uninstall superpowerssuperpowers
+```
+
+アンインストールは `~/.hermes/plugins/<name>/` 内のファイルと、プラグイン設定を伴います。必要に応じて `~/.hermes/` 配下の関連設定も確認してください。
 
 ---
 
