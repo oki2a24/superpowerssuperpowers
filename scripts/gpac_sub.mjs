@@ -4,6 +4,15 @@ import os from 'node:os';
 import crypto from 'node:crypto';
 import { parseArgs } from 'node:util';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+/**
+ * 本スクリプトの絶対パス。
+ * workDir が拡張リポジトリ外のプロジェクトでもサブセッションから任務を
+ * 参照できるよう、起動ペイロードや案内出力から参照されます（共通化により
+ * 3 箇所に重複していた同様の算出を一本化した）。
+ */
+const scriptPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'gpac_sub.mjs');
 
 /**
  * Markdown の Frontmatter を抽出し、パースを行います。
@@ -280,16 +289,15 @@ export function findTaskDirectory(taskId, homeDir = null) {
 export function createPayload(workDir, taskId) {
   // 命令文にはスクリプトの絶対パスを使う。workDir が拡張リポジトリ外でも
   // サブセッションが任務を参照できるようにするため。
-  const scriptPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'gpac_sub.mjs');
   const prompt = `GPACプロトコル：任務を定義しました。任務内容を確認するために 'node ${scriptPath} show-task ${taskId}' を実行してください。
 
 【サブセッションの重要制約】
 1. あなたは一時的なサブセッションです。任務完了後は速やかに 'report' を行うよう人間に促し、親セッションへの帰還（import）を誘導してください。
 2. 作業が長引く場合は、定期的に「この作業はサブセッションで行っている」ことを人間にリマインドし、没入を防いでください。`;
-  // プロンプト内のクォートをエスケープ
-  const safePrompt = prompt.replace(/"/g, '"');
+  // プロンプトの追加エスケープは行わない（設計上の契約）。GPAC_AGENT_COMMAND
+  // の値は信頼済みのシェルコマンド文字列であり、実行者が責任を持って設定する。
   const cli = getCliCommand() || '<YOUR_AGENT_CLI>';
-  return `cd ${workDir} && ${cli} "${safePrompt}"`;
+  return `cd ${workDir} && ${cli} "${prompt}"`;
 }
 
 /**
@@ -445,7 +453,6 @@ export function launchSession(sessionId, taskPath, workDir, launcherMode = 'manu
   const payload = createPayload(workDir, sessionId);
 
   if (launcherMode === 'manual') {
-    const scriptPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'gpac_sub.mjs');
     console.log(getReturnReminderAA());
     console.log('\n[GPAC Launcher: Manual Mode]');
     if (!getCliCommand()) {
@@ -462,7 +469,7 @@ export function launchSession(sessionId, taskPath, workDir, launcherMode = 'manu
       const result = spawnSync('tmux', tmuxCmd);
       if (result.status === 0) {
         console.log(`Launched in new tmux window: sub-${sessionId}`);
-        console.log(`作業完了後の統合コマンド:\n  node ${path.join(path.dirname(fileURLToPath(import.meta.url)), 'gpac_sub.mjs')} import ${sessionId}\n`);
+        console.log(`作業完了後の統合コマンド:\n  node ${scriptPath} import ${sessionId}\n`);
       } else {
         throw new Error('tmux failed');
       }
@@ -571,7 +578,9 @@ export function handleImport(taskId, options = {}) {
   if (taskDir) {
     reportFile = path.join(taskDir, 'report.md');
   } else if (projectName && homeDir) {
-    // プロジェクト名がある場合は旧パスも探す（後方互換性）
+    // findTaskDirectory の走査で見つからなかった場合は、プロジェクト名から
+    // SSOT 上のパスを直接構築するフォールバック（旧パス互換ではなく、
+    // 同一 SSOT（~/.agents/sub-sessions）への直参照）。
     const baseDir = getGpacBaseDir(homeDir);
     reportFile = path.join(baseDir, projectName, taskId, 'report.md');
   } else {
@@ -709,7 +718,7 @@ lessons_learned: []
 }
 
 /**
- * gemini_sub CLI のメインエントリーポイントです。
+ * gpac_sub CLI のメインエントリーポイントです。
  * コマンドライン引数をパースし、対応する関数（spawn, report, list 等）を呼び出します。
  */
 export function main() {
@@ -798,7 +807,6 @@ export function main() {
 }
 
 // 直接実行された場合
-import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 
 if (resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
