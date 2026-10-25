@@ -3,12 +3,16 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import cp from 'node:child_process';
 // まだ存在しない、または関数がエクスポートされていないため失敗することを期待
 import {
   parseYamlFrontmatter,
   validateFrontmatter,
   generateTaskId,
   createPayload,
+  getGpacBaseDir,
+  getCliCommand,
+  launchSession,
   listSessions,
   showFile,
   handleImport,
@@ -188,7 +192,7 @@ describe('Spawn Handoff', () => {
      * - PENDING の実値置換
      * - グローバル配置とローカル削除
      */
-    const tempHome = path.join(os.tmpdir(), `.antigravity-spawn-test-${Date.now()}`);
+    const tempHome = path.join(os.tmpdir(), `.agents-spawn-test-${Date.now()}`);
     const draftPath = path.join(os.tmpdir(), `tmp_task_draft_${Date.now()}.md`);
     const projectName = 'handoff-project';
 
@@ -233,7 +237,7 @@ steps:
 
   test('required_skills キーが含まれている場合に spawn が成功すること', () => {
     /** required_skills が必須項目であることを前提とした検証 */
-    const tempHome = path.join(os.tmpdir(), `.antigravity-spawn-test-${Date.now()}`);
+    const tempHome = path.join(os.tmpdir(), `.agents-spawn-test-${Date.now()}`);
     const draftPath = path.join(os.tmpdir(), `tmp_task_draft_${Date.now()}.md`);
     const projectName = 'handoff-project-with-skills';
 
@@ -274,7 +278,7 @@ describe('Helper Functions', () => {
     const payload = createPayload(workDir, taskId);
 
     assert.ok(payload.includes(`cd ${workDir}`));
-    assert.ok(payload.includes('node scripts/gpac_sub.mjs show-task ' + taskId));
+    assert.match(payload, new RegExp(`'node .*scripts/gpac_sub\\.mjs show-task ${taskId}'`));
     assert.ok(payload.includes('【サブセッションの重要制約】'));
     assert.ok(payload.includes("任務完了後は速やかに 'report' を行うよう人間に促し"));
   });
@@ -284,15 +288,104 @@ describe('Helper Functions', () => {
     const workDir = '/path/to/workdir';
     const taskId = '20260314-TEST-ABCD';
     const payload = createPayload(workDir, taskId);
-    assert.ok(payload.includes('node scripts/gpac_sub.mjs show-task'));
+    assert.match(payload, /'node .*scripts\/gpac_sub\.mjs show-task /);
+  });
+
+  test('gpac_sub.mjs - getGpacBaseDir は ~/.agents/sub-sessions を返す', () => {
+    /**
+     * why: SSOT（サブセッションデータの集約地）が特定ハーネスの
+     * ~/.antigravity 名前空間ではなく、クロスランタイムな ~/.agents
+     * 名前空間に置かれることを保証するため。
+     */
+    const tempHome = path.join(os.tmpdir(), `agents-basedir-test-${Date.now()}`);
+    assert.strictEqual(getGpacBaseDir(tempHome), path.join(tempHome, '.agents', 'sub-sessions'));
+  });
+
+  test('gpac_sub.mjs - getCliCommand は GPAC_AGENT_COMMAND 設定時にその値を返す', () => {
+    /** why: ハーネス CLI の自動起動契約（シェルコマンド文字列）を検証するため。 */
+    const saved = process.env.GPAC_AGENT_COMMAND;
+    process.env.GPAC_AGENT_COMMAND = 'opencode run';
+    try {
+      assert.strictEqual(getCliCommand(), 'opencode run');
+    } finally {
+      if (saved === undefined) { delete process.env.GPAC_AGENT_COMMAND; } else { process.env.GPAC_AGENT_COMMAND = saved; }
+    }
+  });
+
+  test('gpac_sub.mjs - getCliCommand は GPAC_AGENT_COMMAND 未設定時に null を返す', () => {
+    /** why: 未設定時に自動起動を行わず manual 既定へ誘導するための分岐値を検証するため。 */
+    const saved = process.env.GPAC_AGENT_COMMAND;
+    delete process.env.GPAC_AGENT_COMMAND;
+    try {
+      assert.strictEqual(getCliCommand(), null);
+    } finally {
+      if (saved !== undefined) { process.env.GPAC_AGENT_COMMAND = saved; }
+    }
+  });
+
+  test('gpac_sub.mjs - createPayload の show-task 命令はスクリプト絶対パスを参照する', () => {
+    /**
+     * why: workDir が拡張リポジトリ外のプロジェクトでもサブセッションが
+     * ミッションを参照できるよう、spawn 時に算出した絶対パスを埋め込むため。
+     */
+    const payload = createPayload('/tmp/some-other-project', 'TASK-1');
+    assert.match(payload, /'node .*\/scripts\/gpac_sub\.mjs show-task TASK-1'/);
+    assert.ok(payload.includes(path.resolve('scripts', 'gpac_sub.mjs')));
+  });
+
+  test('gpac_sub.mjs - GPAC_AGENT_COMMAND の引数付き値が CLI 部にそのまま使われる', () => {
+    /**
+     * why: opencode run / codex exec のように追加引数を必要とするハーネス
+     * CLI を「シェルコマンド文字列」として設定できる契約を検証するため。
+     */
+    const saved = process.env.GPAC_AGENT_COMMAND;
+    process.env.GPAC_AGENT_COMMAND = 'opencode run';
+    try {
+      const payload = createPayload('/tmp/x', 'T');
+      assert.ok(payload.includes('cd /tmp/x && opencode run "'));
+    } finally {
+      if (saved === undefined) { delete process.env.GPAC_AGENT_COMMAND; } else { process.env.GPAC_AGENT_COMMAND = saved; }
+    }
+  });
+
+  test('gpac_sub.mjs - GPAC_AGENT_COMMAND 未設定時、createPayload は <YOUR_AGENT_CLI> を使う', () => {
+    /** why: 未設定環境でも先頭の命令形式が崩れず、置換対象が自明になるため。 */
+    const saved = process.env.GPAC_AGENT_COMMAND;
+    delete process.env.GPAC_AGENT_COMMAND;
+    try {
+      assert.ok(createPayload('/tmp/x', 'T').includes('<YOUR_AGENT_CLI>'));
+    } finally {
+      if (saved !== undefined) { process.env.GPAC_AGENT_COMMAND = saved; }
+    }
+  });
+
+  test('gpac_sub.mjs - GPAC_AGENT_COMMAND 未設定の tmux モードは tmux を試みず manual にフォールバックし GPAC_AGENT_COMMAND 再実行案内を出す', () => {
+    /**
+     * why: CLI が決定できない環境で tmux 起動を試みてもサブセッションは
+     * 動かないため、tmux 失敗ログのみを出すことなく manual 既定の案内に
+     * 落ちることを保証するため。
+     */
+    const saved = process.env.GPAC_AGENT_COMMAND;
+    delete process.env.GPAC_AGENT_COMMAND;
+    let output = '';
+    const originalLog = console.log;
+    console.log = (msg) => { output += (msg ?? '') + '\n'; };
+    try {
+      launchSession('T-1', '/tmp/task.md', '/tmp/x', 'tmux');
+    } finally {
+      console.log = originalLog;
+      if (saved !== undefined) { process.env.GPAC_AGENT_COMMAND = saved; }
+    }
+    assert.ok(output.includes('GPAC_AGENT_COMMAND'), `GPAC_AGENT_COMMAND 再実行案内を出すこと: ${output}`);
+    assert.ok(!output.includes('tmux is not available'), 'tmux 起動を試みてはならない');
   });
 
   test('findTaskDirectory should find existing task directory', () => {
     /** 指定した ID のディレクトリを見つけられるか検証 */
-    const tempHome = path.join(os.tmpdir(), `.antigravity-test-${Date.now()}`);
+    const tempHome = path.join(os.tmpdir(), `.agents-test-${Date.now()}`);
     const taskId = '20260311-TEST-XXXX';
     const projName = 'test-proj';
-    const taskDir = path.join(tempHome, '.antigravity', 'sub-sessions', projName, taskId);
+    const taskDir = path.join(tempHome, '.agents', 'sub-sessions', projName, taskId);
 
     try {
       fs.mkdirSync(taskDir, { recursive: true });
@@ -306,7 +399,7 @@ describe('Helper Functions', () => {
 
 describe('Report Handoff', () => {
   test('reportSuccess should create report and delete local draft', () => {
-    const tempHome = path.join(os.tmpdir(), `.antigravity-report-test-${Date.now()}`);
+    const tempHome = path.join(os.tmpdir(), `.agents-report-test-${Date.now()}`);
     const draftPath = path.join(os.tmpdir(), `tmp_report_draft_${Date.now()}.md`);
     const taskId = "20260311-REPORT-WXYZ";
     const projectName = "report-proj";
@@ -324,7 +417,7 @@ next_actions: []
       fs.writeFileSync(draftPath, draftContent);
 
       // 2. ダミーのタスクディレクトリ準備
-      const taskDir = path.join(tempHome, '.antigravity', 'sub-sessions', projectName, taskId);
+      const taskDir = path.join(tempHome, '.agents', 'sub-sessions', projectName, taskId);
       fs.mkdirSync(taskDir, { recursive: true });
 
       // 3. report 呼び出し
@@ -346,13 +439,13 @@ next_actions: []
   });
 
   test('reportOverwriteProtection should block update if status is success', () => {
-    const tempHome = path.join(os.tmpdir(), `.antigravity-overwrite-test-${Date.now()}`);
+    const tempHome = path.join(os.tmpdir(), `.agents-overwrite-test-${Date.now()}`);
     const draftPath = path.join(os.tmpdir(), `tmp_report_overwrite_${Date.now()}.md`);
     const taskId = "20260311-Completed-Task";
     const projectName = "overwrite-proj";
 
     try {
-      const taskDir = path.join(tempHome, '.antigravity', 'sub-sessions', projectName, taskId);
+      const taskDir = path.join(tempHome, '.agents', 'sub-sessions', projectName, taskId);
       fs.mkdirSync(taskDir, { recursive: true });
 
       // 1. すでに success の報告書を置いておく
@@ -384,11 +477,11 @@ next_actions: []
 
 describe('リストと表示コマンド', () => {
   test('listSessionsはセッション情報を出力すること', () => {
-    const tempHome = path.join(os.tmpdir(), `.antigravity-list-test-${Date.now()}`);
+    const tempHome = path.join(os.tmpdir(), `.agents-list-test-${Date.now()}`);
     try {
       const projName = 'list-proj';
       const taskId = '20260311-LIST-AAAA';
-      const taskDir = path.join(tempHome, '.antigravity', 'sub-sessions', projName, taskId);
+      const taskDir = path.join(tempHome, '.agents', 'sub-sessions', projName, taskId);
       fs.mkdirSync(taskDir, { recursive: true });
       fs.writeFileSync(path.join(taskDir, 'task.md'), `---
 parent_task_tag: test-tag
@@ -410,10 +503,10 @@ parent_task_tag: test-tag
   });
 
   test('showFileはファイル内容を出力すること', () => {
-    const tempHome = path.join(os.tmpdir(), `.antigravity-show-test-${Date.now()}`);
+    const tempHome = path.join(os.tmpdir(), `.agents-show-test-${Date.now()}`);
     try {
       const taskId = '20260311-SHOW-TASK';
-      const taskDir = path.join(tempHome, '.antigravity', 'sub-sessions', 'test-proj', taskId);
+      const taskDir = path.join(tempHome, '.agents', 'sub-sessions', 'test-proj', taskId);
       fs.mkdirSync(taskDir, { recursive: true });
       // Wait, line 257 of previous read had `fs.mkdirSync(taskDir, { recursive: true });`. Correct.
       const content = '# Task content';
@@ -435,11 +528,11 @@ parent_task_tag: test-tag
 
 describe('レポートのインポート', () => {
   test('handleImportはレポート情報を整形して出力すること', () => {
-    const tempHome = path.join(os.tmpdir(), `.antigravity-import-test-${Date.now()}`);
+    const tempHome = path.join(os.tmpdir(), `.agents-import-test-${Date.now()}`);
     try {
       const taskId = '20260311-IMPORT-WXYZ';
       const projName = 'test-proj';
-      const reportDir = path.join(tempHome, '.antigravity', 'sub-sessions', projName, taskId);
+      const reportDir = path.join(tempHome, '.agents', 'sub-sessions', projName, taskId);
       fs.mkdirSync(reportDir, { recursive: true });
       const reportContent = `---
 status: success
@@ -479,7 +572,7 @@ lessons_learned:
 describe('テンプレート生成機能', () => {
   test('createFromTemplate はデフォルトテンプレートからタスク下書きを作成すること', () => {
     /** デフォルトテンプレートからのタスク下書き生成をテストします。 */
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), '.antigravity-sub-template-test'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), '.agents-sub-template-test'));
     const draftPath = path.join(tempDir, 'task_draft.md');
 
     try {
@@ -496,7 +589,7 @@ describe('テンプレート生成機能', () => {
 
   test('ファイルが既に存在する場合、createFromTemplate はエラーをスローすること', () => {
     /** 同名ファイルが存在する場合の上書き防止をテストします。 */
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), ".antigravity-sub-error-test"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), ".agents-sub-error-test"));
     const draftPath = path.join(tempDir, 'report_draft.md');
 
     try {

@@ -222,19 +222,21 @@ export function generateTaskId() {
  * GPAC のベースディレクトリを取得します。
  *
  * @param {string|null} [homeDir=null] - ホームディレクトリのパス。
- * @returns {string} ベースディレクトリのパス。
+ * @returns {string} ベースディレクトリのパス（クロスランタイムな `~/.agents/sub-sessions`）。
  */
 export function getGpacBaseDir(homeDir = null) {
   const baseHome = homeDir || os.homedir();
-  return path.join(baseHome, '.antigravity', 'sub-sessions');
+  return path.join(baseHome, '.agents', 'sub-sessions');
 }
 
 /**
- * 起動する CLI コマンドを取得します。
- * @returns {string} コマンド名。
+ * サブセッションを自動起動するためのハーネス CLI コマンドを取得します。
+ *
+ * @returns {string|null} `GPAC_AGENT_COMMAND` 環境変数の値（シェルコマンド文字列）。
+ *   未設定の場合は null を返す（起動方法は manual 既定にフォールバックする）。
  */
 export function getCliCommand() {
-  return 'agy';
+  return process.env.GPAC_AGENT_COMMAND || null;
 }
 
 /**
@@ -276,14 +278,17 @@ export function findTaskDirectory(taskId, homeDir = null) {
  * @returns {string} 実行されるシェルコマンド。
  */
 export function createPayload(workDir, taskId) {
-  const prompt = `GPACプロトコル：任務を定義しました。任務内容を確認するために 'node scripts/gpac_sub.mjs show-task ${taskId}' を実行してください。
+  // 命令文にはスクリプトの絶対パスを使う。workDir が拡張リポジトリ外でも
+  // サブセッションが任務を参照できるようにするため。
+  const scriptPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'gpac_sub.mjs');
+  const prompt = `GPACプロトコル：任務を定義しました。任務内容を確認するために 'node ${scriptPath} show-task ${taskId}' を実行してください。
 
 【サブセッションの重要制約】
 1. あなたは一時的なサブセッションです。任務完了後は速やかに 'report' を行うよう人間に促し、親セッションへの帰還（import）を誘導してください。
 2. 作業が長引く場合は、定期的に「この作業はサブセッションで行っている」ことを人間にリマインドし、没入を防いでください。`;
   // プロンプト内のクォートをエスケープ
   const safePrompt = prompt.replace(/"/g, '"');
-  const cli = getCliCommand();
+  const cli = getCliCommand() || '<YOUR_AGENT_CLI>';
   return `cd ${workDir} && ${cli} "${safePrompt}"`;
 }
 
@@ -430,14 +435,26 @@ ${cyan}    │${reset}   /    \\
  * @param {string} [launcherMode='manual'] - 起動モード。'manual'（手動コピー）または 'tmux'（新規 tmux ウィンドウ）。
  */
 export function launchSession(sessionId, taskPath, workDir, launcherMode = 'manual') {
+  // GPAC_AGENT_COMMAND が未設定の場合、ハーネス CLI が決定できないため
+  // tmux モードを試みる前に manual モードへフォールバックする。
+  if (launcherMode === 'tmux' && !getCliCommand()) {
+    console.log('Error: GPAC_AGENT_COMMAND is not set. Falling back to manual mode.');
+    launchSession(sessionId, taskPath, workDir, 'manual');
+    return;
+  }
   const payload = createPayload(workDir, sessionId);
 
   if (launcherMode === 'manual') {
+    const scriptPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'gpac_sub.mjs');
     console.log(getReturnReminderAA());
     console.log('\n[GPAC Launcher: Manual Mode]');
+    if (!getCliCommand()) {
+      console.log(`GPAC_AGENT_COMMAND 未設定のため、ハーネス CLI を指定して spawn し直してください：`);
+      console.log(`  GPAC_AGENT_COMMAND="<CLI> [args...]" node ${scriptPath} spawn <draft_file>\n`);
+    }
     console.log('新しいタブを開き、以下のコマンドをコピー＆ペーストして実行してください：\n');
     console.log(`  ${payload}\n`);
-    console.log(`作業完了後の統合コマンド:\n  node scripts/gpac_sub.mjs import ${sessionId}\n`);
+    console.log(`作業完了後の統合コマンド:\n  node ${scriptPath} import ${sessionId}\n`);
   } else if (launcherMode === 'tmux') {
     try {
       // tmux new-window -n sub-ID "bash -c 'payload; exec bash'"
@@ -445,7 +462,7 @@ export function launchSession(sessionId, taskPath, workDir, launcherMode = 'manu
       const result = spawnSync('tmux', tmuxCmd);
       if (result.status === 0) {
         console.log(`Launched in new tmux window: sub-${sessionId}`);
-        console.log(`作業完了後の統合コマンド:\n  node scripts/gpac_sub.mjs import ${sessionId}\n`);
+        console.log(`作業完了後の統合コマンド:\n  node ${path.join(path.dirname(fileURLToPath(import.meta.url)), 'gpac_sub.mjs')} import ${sessionId}\n`);
       } else {
         throw new Error('tmux failed');
       }
@@ -699,7 +716,7 @@ export function main() {
   const args = process.argv.slice(2);
   const command = args[0];
 
-  const launcher = process.env.GEMINI_SUB_LAUNCHER || 'manual';
+  const launcher = process.env.GPAC_LAUNCHER || 'manual';
   const defaultProject = path.basename(process.cwd());
 
   try {
