@@ -242,10 +242,10 @@ AI エージェントは、実行時に以下の 4 つの層を順にスキャ�
 ```text
 [ 低優先 (基盤) ]                                                                                                             [ 高優先 (最新) ]
 
-     L1: Core (Skills)            L2: Extension (Shared)         L3: Personal (Global)                   L4: Project (Local)
- [Extension Root]/skills      [Extension Root]/observations    ~/.agents/observations/                 ./.agents/observations/
-            |                            |                             |                                       |
-            +----------------------------+-----------------------------+---------------------------------------+
+     L1: Core (Skills)            L2: Extension (Shared)         L3: Personal (Global)               L4: Project (Local)
+ [Extension Root]/skills      [Extension Root]/observations    ~/.agents/observations/             ./.agents/observations/
+            |                            |                             |                                   |
+            +----------------------------+-----------------------------+-----------------------------------+
                                          |
                                          v
                                 [ AI Execution Context ]
@@ -269,6 +269,7 @@ AI エージェントは、実行時に以下の 4 つの層を順にスキャ�
 > 知見（observations）や GPAC サブセッション（sub-sessions）の保存先は、`~/.antigravity/` から `~/.agents/` へ変更されました。**旧環境のデータは自動移行されません。** 必要に応じて手動で引き継いでください：
 > 
 > ```bash
+> mkdir -p ~/.agents
 > mv ~/.antigravity/observations ~/.agents/observations   # L3 知見
 > mv ~/.antigravity/sub-sessions ~/.agents/sub-sessions   # GPAC SSOT
 > ```

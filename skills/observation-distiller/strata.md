@@ -5,10 +5,10 @@
 
 ```text
 [ 低優先 ]                                                                                                          [ 高優先 ]
-  L1: Core (Skills)             L2: Extension (Shared)                L3: Personal (Global)         L4: Project (Local)
-  [Extension Root]/skills       [Extension Root]/observations         ~/.agents/observations/       ./.agents/observations/
-          |                             |                             |                             |
-          +-----------------------------+-----------------------------+-----------------------------+
+  L1: Core (Skills)             L2: Extension (Shared)                L3: Personal (Global)     L4: Project (Local)
+  [Extension Root]/skills       [Extension Root]/observations         ~/.agents/observations/   ./.agents/observations/
+          |                             |                             |                         |
+          +-----------------------------+-----------------------------+-------------------------+
                                         |
                                         v
                                [ AI Execution Context ]
