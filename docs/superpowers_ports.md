@@ -312,4 +312,6 @@
 *   上流 `.github` のコントリビューションテンプレ刷新（`diagnosis_report.md` の廃止と `bug_report.md`・`platform_support.md`・`feature_request.md`・`PULL_REQUEST_TEMPLATE.md` の導入・更新）、`AGENTS.md`・`README.md`・`RELEASE-NOTES.md`・各プラグインマニフェストのバージョンタグ更新は上流リポジトリのインフラであり、スキル移植対象外。
 *   上流 `tests/skill-size/test-skill-size.sh`（SKILL.md 20,000 バイト上限ゲート。Claude Code がコンパクション後にスキルを切り詰める仕様 #2481 への対策）は移植しない。日本語はバイト幅が英字より大きく、意味を保った翻訳では `writing-skills`（約25.6KB）・`executing-plans`（約21.7KB）が上限を超過する。本リポジトリの対象環境には Claude Code 特有の切捨てがなく、意味パリティを優先するためこのゲートを採用しない。
 
-**検証範囲:** リポジトリ既存テスト `tests/test_finish_check.mjs`(7件) / `tests/test_task_brief.mjs`(5件) / `tests/test_hook_output.mjs` / `tests/test_pre_push_hook.mjs` 全 pass、`git diff --check`、3配布マニフェストのバージョン一致（`1.12.5`）と `scripts/finish_check.mjs` のゲート pass、移動・新規ファイルの参照整合確認。スキル本文の実ロード実行テストは未実施。
+**検証範囲:** リポジトリ既存テスト `tests/test_finish_check.mjs`(7件) / `tests/test_task_brief.mjs`(5件) / `tests/test_hook_output.mjs` / `tests/test_pre_push_hook.mjs` 全 pass、`git diff --check`、3配布マニフェストのバージョン一致（`1.12.5`）と `scripts/finish_check.mjs` のゲート pass、移動・新規ファイルの参照整合確認、`requesting-code-review` の `code-reviewer.md` に基づく読み取り専用レビュー（Important 2件・Minor 5件を指摘され、discovery.md 命名指針の復元・誤字修正・モデル選択規則の復元等として全件修正し、スコープ付き再レビューで承認）。
+
+スキル本文の実ロード実行テストは未実施。
